@@ -1,29 +1,26 @@
 package config
 
 import (
-	"database/sql"
-	"fmt"
+	"context"
 	"os"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func ConnDB() (*sql.DB, error) {
+var DB *pgxpool.Pool
 
-	// get data from .env file
-	db_user := os.Getenv("DB_USER")
-	db_pass := os.Getenv("DB_PASS")
-	db_host := os.Getenv("DB_HOST")
-	db_name := os.Getenv("DB_NAME")
-	db_port := os.Getenv("DB_PORT")
+func ConnDB() (*pgxpool.Pool, error) {
 
-	// connect database
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", db_host, db_port, db_user, db_pass, db_name)
-	DB, err := sql.Open("postgres", connStr)
+	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		return nil, err
 	}
+	if err := dbpool.Ping(context.Background()); err != nil {
+		return nil, err
+	}
 
-	return DB, nil
+	DB = dbpool
+
+	return dbpool, nil
 
 }
