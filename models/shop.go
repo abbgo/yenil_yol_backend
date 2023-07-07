@@ -13,3 +13,12 @@ type Shop struct {
 	UpdatedAt string  `json:"-"`
 	DeletedAt string  `json:"-"`
 }
+
+type ShopPhone struct {
+	ID          string `json:"id,omitempty"`
+	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
+	ShopID      string `json:"shop_id,omitempty" binding:"required"`
+	CreatedAt   string `json:"-"`
+	UpdatedAt   string `json:"-"`
+	DeletedAt   string `json:"-"`
+}
