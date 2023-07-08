@@ -2,6 +2,7 @@ package routes
 
 import (
 	// backApi "github/abbgo/isleg/isleg-backend/routes/back"
+	shopOwnerApi "github/abbgo/yenil_yol/backend/routes/admin"
 	frontApi "github/abbgo/yenil_yol/backend/routes/front"
 
 	"github.com/gin-contrib/cors"
@@ -27,17 +28,6 @@ func Routes() *gin.Engine {
 		// MaxAge:           12 * time.Hour,
 	}))
 
-	// routes belong to admin panel
-	// back := routes.Group("/api/admin")
-	// {
-	// 	backApi.AdminRoutes(back)
-
-	// 	// bu group - daki ahli yazylan funksiyalary dine ahli adminler isledip biler
-	// 	// CheckAdmin middleware sony kesgitleyar
-	// 	backApi.BackRoutes(back)
-
-	// }
-
 	front := routes.Group("/api")
 	{
 		// customer routes
@@ -46,6 +36,12 @@ func Routes() *gin.Engine {
 		// bu group - a degisli api - lerden maglumat alynanda ( :lang ) paramter boyunca uytgedilip
 		// terjime alynyar
 		frontApi.FrontRoutes(front)
+	}
+
+	admin := routes.Group("/api")
+	{
+		// bu rout - ler magazynyn eyeleri ucin doredilen rout - laryn toplumy
+		shopOwnerApi.ShopOwnerRoutes(admin)
 	}
 
 	return routes
