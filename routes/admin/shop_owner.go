@@ -2,6 +2,7 @@ package shopOwnerApi
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/admin"
+	"github/abbgo/yenil_yol/backend/helpers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,10 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 
 			// UpdateShopOwner shop_owner - in maglumatlaryny uytgetmek ucin ulanylyar.
 			shopOwner.PUT("update", controllers.UpdateShopOwner)
+
+			// ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
+			// ucin ulanylyar
+			shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
 
 		}
 	}
