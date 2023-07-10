@@ -21,16 +21,16 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 			shopOwner.POST("login", controllers.LoginShopOwner)
 
 			// UpdateShopOwner shop_owner - in maglumatlaryny uytgetmek ucin ulanylyar.
-			shopOwner.PUT("update", controllers.UpdateShopOwner)
+			shopOwner.PUT("update", middlewares.CheckShopOwner(), controllers.UpdateShopOwner)
 
 			// ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 			// ucin ulanylyar
 			shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
 
-			// GetAdmins funksiya hemme adminlerin spisoygyny almak ucin ulanylyar.
-			shopOwner.GET("one", middlewares.CheckShopOwner(), controllers.GetShopOwnerD)
+			// GetShopOwner funksiya haeder - den gelen id boyunca bir sany shop_owneri almak ucin ulanylyar.
+			shopOwner.GET("one", middlewares.CheckShopOwner(), controllers.GetShopOwner)
 
-			// GetAdmins funksiya hemme adminlerin spisoygyny almak ucin ulanylyar.
+			// GetShopOwners funksiya hemme shop_owner - leri almak ucin ulanylyar.
 			shopOwner.GET(":limit/:page", controllers.GetShopOwners)
 
 		}

@@ -337,7 +337,7 @@ func GetShopOwners(c *gin.Context) {
 
 }
 
-func GetShopOwnerD(c *gin.Context) {
+func GetShopOwner(c *gin.Context) {
 
 	shopOwnerID, hasID := c.Get("shop_owner_id")
 	if !hasID {
