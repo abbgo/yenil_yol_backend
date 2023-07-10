@@ -13,10 +13,12 @@ func BackRoutes(back *gin.RouterGroup) {
 		{
 			// Shop gosmak ulanylar
 			backApi.POST("", controllers.CreateShop)
+			backApi.PUT("", controllers.UpdateShopByID)
 
 		}
 	}
 
-	back.POST("file-upload", controllers.AddOrUpdateImage)
+	back.POST("image", controllers.AddOrUpdateImage)
+	back.DELETE("image", controllers.DeleteImage)
 
 }
