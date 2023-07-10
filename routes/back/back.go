@@ -17,4 +17,6 @@ func BackRoutes(back *gin.RouterGroup) {
 		}
 	}
 
+	back.POST("file-upload", controllers.AddOrUpdateImage)
+
 }

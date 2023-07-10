@@ -1,8 +1,8 @@
 package models
 
-type ImageHelper struct {
+type HelperImage struct {
 	ID        string `json:"id,omitempty"`
-	Name      string `json:"name,omitempty" binding:"required"`
+	Image     string `json:"image,omitempty" binding:"required"`
 	CreatedAt string `json:"-"`
 	UpdatedAt string `json:"-"`
 	DeletedAt string `json:"-"`
