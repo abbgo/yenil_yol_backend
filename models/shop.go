@@ -10,6 +10,8 @@ type Shop struct {
 	Image       string  `json:"image,omitempty"`
 	HasDelivery bool    `json:"has_delivery,omitempty" binding:"required"`
 	ShopOwnerID string  `json:"shop_owner_id,omitempty" binding:"required"`
+	SlugTM      string  `json:"slug_tm,omitempty"`
+	SlugRU      string  `json:"slug_ru,omitempty"`
 	CreatedAt   string  `json:"-"`
 	UpdatedAt   string  `json:"-"`
 	DeletedAt   string  `json:"-"`
