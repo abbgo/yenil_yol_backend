@@ -34,7 +34,7 @@ func RegisterShopOwner(c *gin.Context) {
 	}
 
 	// gelen maglumatlar barlanylyar
-	if err := models.ValidateRegisterShopOwner(shopOwner.PhoneNumber, "register"); err != nil {
+	if err := models.ValidateRegisterShopOwner(shopOwner.PhoneNumber); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
@@ -90,10 +90,10 @@ func LoginShopOwner(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateRegisterShopOwner(shopOwner.PhoneNumber, "login"); err != nil {
+	if !helpers.ValidatePhoneNumber(shopOwner.PhoneNumber) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
-			"message": err.Error(),
+			"message": errors.New("invalid phone number"),
 		})
 		return
 	}
@@ -224,6 +224,14 @@ func UpdateShopOwner(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
 			"message": "shop_owner not found",
+		})
+		return
+	}
+
+	if !helpers.ValidatePhoneNumber(shopOwner.PhoneNumber) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": errors.New("invalid phone number"),
 		})
 		return
 	}

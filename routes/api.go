@@ -3,6 +3,8 @@ package routes
 import (
 	// backApi "github/abbgo/isleg/isleg-backend/routes/back"
 	shopOwnerApi "github/abbgo/yenil_yol/backend/routes/admin"
+	backApi "github/abbgo/yenil_yol/backend/routes/back"
+
 	frontApi "github/abbgo/yenil_yol/backend/routes/front"
 
 	"github.com/gin-contrib/cors"
@@ -47,7 +49,7 @@ func Routes() *gin.Engine {
 	back := routes.Group("/api/back")
 	{
 		// bu rout - ler magazynyn eyeleri ucin doredilen rout - laryn toplumy
-		shopOwnerApi.ShopOwnerRoutes(back)
+		backApi.BackRoutes(back)
 	}
 
 	return routes

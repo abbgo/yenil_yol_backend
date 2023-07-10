@@ -31,7 +31,7 @@ type ShopOwnerUpdate struct {
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 }
 
-func ValidateRegisterShopOwner(phoneNumber, url string) error {
+func ValidateRegisterShopOwner(phoneNumber string) error {
 
 	db, err := config.ConnDB()
 	if err != nil {
@@ -39,12 +39,10 @@ func ValidateRegisterShopOwner(phoneNumber, url string) error {
 	}
 	defer db.Close()
 
-	if url == "register" {
-		var phone_number string
-		db.QueryRow(context.Background(), "SELECT phone_number FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&phone_number)
-		if phone_number != "" {
-			return errors.New("this shop owner already exists")
-		}
+	var phone_number string
+	db.QueryRow(context.Background(), "SELECT phone_number FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&phone_number)
+	if phone_number != "" {
+		return errors.New("this shop owner already exists")
 	}
 
 	if !helpers.ValidatePhoneNumber(phoneNumber) {
