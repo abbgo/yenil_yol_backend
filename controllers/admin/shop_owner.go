@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 )
 
 func RegisterShopOwner(c *gin.Context) {
@@ -52,7 +53,7 @@ func RegisterShopOwner(c *gin.Context) {
 	}
 
 	// hemme zat yerbe yer bolsa maglumatlar shop_owners tablisa gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO shop_owners (name,phone_number,password) VALUES ($1,$2,$3)", shopOwner.Name, shopOwner.PhoneNumber, hashPassword)
+	_, err = db.Exec(context.Background(), "INSERT INTO shop_owners (name,phone_number,password,slug) VALUES ($1,$2,$3,$4)", shopOwner.Name, shopOwner.PhoneNumber, hashPassword, slug.MakeLang(shopOwner.Name, "en"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -228,7 +229,7 @@ func UpdateShopOwner(c *gin.Context) {
 	}
 
 	// eger shop_owner database - de bar bolsa onda onun maglumatlary request body - dan gelen maglumatlar bilen update edilyar
-	_, err = db.Exec(context.Background(), "UPDATE shop_owners SET name = $1 , phone_number = $2 WHERE id = $3", shopOwner.Name, shopOwner.PhoneNumber, id)
+	_, err = db.Exec(context.Background(), "UPDATE shop_owners SET name = $1 , phone_number = $2 , slug = $3 WHERE id = $4", shopOwner.Name, shopOwner.PhoneNumber, slug.MakeLang(shopOwner.Name, "en"), id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
