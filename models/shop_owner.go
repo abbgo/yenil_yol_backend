@@ -23,6 +23,13 @@ type ShopOwnerLogin struct {
 	Password    string `json:"password,omitempty" binding:"required"`
 }
 
+// bu model ShopOwner - in maglumatyny uytgetmegi ucin doredildi
+type ShopOwnerUpdate struct {
+	ID          string `json:"id,omitempty"`
+	Name        string `json:"name,omitempty" binding:"required"`
+	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
+}
+
 func ValidateRegisterShopOwner(phoneNumber, url string) error {
 
 	db, err := config.ConnDB()
