@@ -336,3 +336,32 @@ func GetShopOwners(c *gin.Context) {
 	})
 
 }
+
+func GetShopOwnerD(c *gin.Context) {
+
+	shopOwnerID, hasID := c.Get("id")
+	if !hasID {
+		c.JSON(http.StatusBadRequest, "shopOwnerID is required")
+		return
+	}
+
+	var ok bool
+	shopOwner_id, ok := shopOwnerID.(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, "shopOwnerID must be uint")
+	}
+
+	adm, err := GetShopOwnerByID(shopOwner_id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"shop_owner": adm,
+	})
+
+}

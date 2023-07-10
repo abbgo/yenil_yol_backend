@@ -27,6 +27,9 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 			shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
 
 			// GetAdmins funksiya hemme adminlerin spisoygyny almak ucin ulanylyar.
+			shopOwner.GET(":id", controllers.GetShopOwnerD)
+
+			// GetAdmins funksiya hemme adminlerin spisoygyny almak ucin ulanylyar.
 			shopOwner.GET(":limit/:page", controllers.GetShopOwners)
 
 		}
