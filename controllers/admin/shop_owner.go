@@ -107,6 +107,8 @@ func LoginShopOwner(c *gin.Context) {
 		})
 		return
 	}
+	defer row.Close()
+
 	for row.Next() {
 		if err := row.Scan(&id, &password); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -177,6 +179,8 @@ func GetShopOwnerByID(id string) (models.ShopOwner, error) {
 	if err != nil {
 		return models.ShopOwner{}, err
 	}
+	defer rowShopOwner.Close()
+
 	for rowShopOwner.Next() {
 		if err := rowShopOwner.Scan(&shopOwner.Name, &shopOwner.PhoneNumber); err != nil {
 			return models.ShopOwner{}, err
