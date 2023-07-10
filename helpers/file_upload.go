@@ -27,14 +27,7 @@ func FileUpload(fileName, path, fileType string, context *gin.Context) (string, 
 		}
 		newFileName = uuid.New().String() + extensionFile
 
-	} /*else if fileType == "excel" {
-		if extensionFile != ".xlsx" && extensionFile != ".xlsm" && extensionFile != ".xlsb" && extensionFile != ".xltx" {
-			return "", errors.New("the file must be an excel")
-		}
-		newFileName = "products" + extensionFile
-	} else {
-		return "", errors.New("invalid file type")
-	}*/
+	}
 
 	_, err = os.Stat(ServerPath + "uploads/" + path)
 	if err != nil {
