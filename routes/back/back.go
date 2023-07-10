@@ -14,6 +14,7 @@ func BackRoutes(back *gin.RouterGroup) {
 			// Shop gosmak ulanylar
 			backApi.POST("", controllers.CreateShop)
 			backApi.PUT("", controllers.UpdateShopByID)
+			backApi.GET(":id", controllers.GetShopByID)
 
 		}
 	}

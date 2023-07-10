@@ -7,11 +7,28 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
 	"github.com/lib/pq"
 )
+
+type ResponseShop struct {
+	ID          string             `json:"id,omitempty"`
+	NameTM      string             `json:"name_tm,omitempty"`
+	NameRU      string             `json:"name_ru,omitempty"`
+	AddressTM   string             `json:"address_tm,omitempty"`
+	AddressRU   string             `json:"address_ru,omitempty"`
+	Latitude    float64            `json:"latitude,omitempty"`
+	Longitude   float64            `json:"longitude,omitempty"`
+	Image       string             `json:"image,omitempty"`
+	HasDelivery bool               `json:"has_delivery,omitempty"`
+	ShopOwnerID string             `json:"shop_owner_id,omitempty"`
+	SlugTM      string             `json:"slug_tm,omitempty"`
+	SlugRU      string             `json:"slug_ru,omitempty"`
+	ShopPhones  []models.ShopPhone `json:"shop_phones"`
+}
 
 func CreateShop(c *gin.Context) {
 
@@ -182,7 +199,7 @@ func UpdateShopByID(c *gin.Context) {
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE shops SET name_tm=$1 , name_ru=$2 , address_tm=$3 , address_ru=$4 , latitude=$5 , longitude=$6 , image=$7 , has_delivery=$8 , shop_owner_id=$9 , slug_tm=$10 , slug_ru=$11 WHERE id=$12", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, fileName, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.ID)
+	_, err = db.Exec(context.Background(), "UPDATE shops SET name_tm=$1 , name_ru=$2 , address_tm=$3 , address_ru=$4 , latitude=$5 , longitude=$6 , image=$7 , has_delivery=$8 , shop_owner_id=$9 , slug_tm=$10 , slug_ru=$11 , updated_at=$12 WHERE id=$13", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, fileName, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), time.Now(), shop.ID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -214,6 +231,63 @@ func UpdateShopByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully updated",
+	})
+
+}
+
+func GetShopByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request parametrden shop id alynyar
+	shopID := c.Param("id")
+
+	// database - den request parametr - den gelen id boyunca maglumat cekilyar
+	rowShop, err := db.Query(context.Background(), "SELECT s.id,s.name_tm,s.name_ru,s.address_tm,s.address_ru,s.latitude,s.longitude,s.image,s.has_delivery,s.shop_owner_id,sp.id,sp.phone_number FROM shops s INNER JOIN shop_phones sp ON sp.shop_id = s.id WHERE s.id = $1 AND s.deleted_at IS NULL AND sp.deleted_at IS NULL", shopID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer rowShop.Close()
+
+	var shop ResponseShop
+	for rowShop.Next() {
+		var shopPhone models.ShopPhone
+		if err := rowShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.HasDelivery, &shop.ShopOwnerID, &shopPhone.ID, &shopPhone.PhoneNumber); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+				"error":   "yalnys bar",
+			})
+			return
+		}
+		shop.ShopPhones = append(shop.ShopPhones, shopPhone)
+	}
+
+	// eger databse sol maglumat yok bolsa error return edilyar
+	if shop.ID == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "record not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true,
+		"shop":   shop,
 	})
 
 }
