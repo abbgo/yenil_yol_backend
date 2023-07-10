@@ -9,7 +9,7 @@ import (
 
 func ShopOwnerRoutes(back *gin.RouterGroup) {
 
-	shopOwner := back.Group("/shop-owner")
+	shopOwner := back.Group("/shop-owners")
 	{
 		{
 			// RegisterShopOwner shop_owner - i registrasiya etmek ucin ulanylyar.
@@ -25,6 +25,9 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 			// ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 			// ucin ulanylyar
 			shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
+
+			// GetAdmins funksiya hemme adminlerin spisoygyny almak ucin ulanylyar.
+			shopOwner.GET(":limit/:page", controllers.GetShopOwners)
 
 		}
 	}

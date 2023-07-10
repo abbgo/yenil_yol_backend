@@ -6,6 +6,7 @@ import (
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
+	"strconv"
 
 	"net/http"
 
@@ -235,6 +236,99 @@ func UpdateShopOwner(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully updated",
+	})
+
+}
+
+func GetShopOwners(c *gin.Context) {
+
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den limit alynyar
+	limitStr := c.Param("limit")
+	if limitStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "limit is required",
+		})
+		return
+	}
+	limit, err := strconv.ParseUint(limitStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// // request parametr - den page alynyar
+	pageStr := c.Param("page")
+	if pageStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "page is required",
+		})
+		return
+	}
+	page, err := strconv.ParseUint(pageStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := limit * (page - 1)
+
+	// database - den shop_owner - lerin sany alynyar
+	countOfShopOwners := 0
+	if err := db.QueryRow(context.Background(), "SELECT COUNT(id) FROM shop_owners WHERE deleted_at IS NULL").Scan(&countOfShopOwners); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// databae - den request - den gelen limit we page boyunca limitlap shop_owner - ler alynyar
+	var shopOwners []models.ShopOwner
+	rowsShopOwner, err := db.Query(context.Background(), "SELECT name,phone_number FROM shop_owners WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer rowsShopOwner.Close()
+
+	for rowsShopOwner.Next() {
+		var shopOwner models.ShopOwner
+		if err := rowsShopOwner.Scan(&shopOwner.Name, &shopOwner.PhoneNumber); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
+		shopOwners = append(shopOwners, shopOwner)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":      true,
+		"shop_owners": shopOwners,
+		"total":       countOfShopOwners,
 	})
 
 }
