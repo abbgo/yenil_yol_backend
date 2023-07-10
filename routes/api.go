@@ -44,6 +44,12 @@ func Routes() *gin.Engine {
 		shopOwnerApi.ShopOwnerRoutes(admin)
 	}
 
+	back := routes.Group("/api/back")
+	{
+		// bu rout - ler magazynyn eyeleri ucin doredilen rout - laryn toplumy
+		shopOwnerApi.ShopOwnerRoutes(back)
+	}
+
 	return routes
 
 }
