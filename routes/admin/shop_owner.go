@@ -16,6 +16,8 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 			shopOwner.POST("register", controllers.RegisterShopOwner)
 			// admin.POST("register", middlewares.IsSuperAdmin(), adminController.RegisterAdmin)
 
+			shopOwner.POST("login", controllers.LoginShopOwner)
+
 		}
 	}
 

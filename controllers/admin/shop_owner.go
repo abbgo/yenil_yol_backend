@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
@@ -23,13 +24,15 @@ func RegisterShopOwner(c *gin.Context) {
 	}
 	defer db.Close()
 
+	// request - den gelen maglumatlar alynyar
 	var shopOwner models.ShopOwner
 	if err := c.BindJSON(&shopOwner); err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err := models.ValidateRegisterShopOwner(shopOwner.PhoneNumber); err != nil {
+	// gelen maglumatlar barlanylyar
+	if err := models.ValidateRegisterShopOwner(shopOwner.PhoneNumber, "register"); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
@@ -37,6 +40,7 @@ func RegisterShopOwner(c *gin.Context) {
 		return
 	}
 
+	// parol hashlenyan
 	hashPassword, err := helpers.HashPassword(shopOwner.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -46,6 +50,7 @@ func RegisterShopOwner(c *gin.Context) {
 		return
 	}
 
+	// hemme zat yerbe yer bolsa maglumatlar shop_owners tablisa gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO shop_owners (name,phone_number,password) VALUES ($1,$2,$3)", shopOwner.Name, shopOwner.PhoneNumber, hashPassword)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -60,7 +65,129 @@ func RegisterShopOwner(c *gin.Context) {
 		"status":       true,
 		"phone_number": shopOwner.PhoneNumber,
 		"password":     shopOwner.Password,
-		// "admin_type":   admin.Type,
 	})
+
+}
+
+func LoginShopOwner(c *gin.Context) {
+
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request - den maglumatlar alynyar
+	var shopOwner models.ShopOwnerLogin
+	if err := c.BindJSON(&shopOwner); err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := models.ValidateRegisterShopOwner(shopOwner.PhoneNumber, "login"); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// database - den telefon belgisi request - den gelen telefon belga den bolan maglumat cekilyar
+	var id, password string
+	row, err := db.Query(context.Background(), "SELECT id,password FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", shopOwner.PhoneNumber)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	for row.Next() {
+		if err := row.Scan(&id, &password); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
+	}
+
+	// eger request - den gelen telefon belgili shop_owner database - de yok bolsa onda error response edilyar
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "this show_owner does not exist",
+		})
+		return
+	}
+
+	// eger shop_owner bar bolsa onda paroly dogry yazypdyrmy yazmandyrmy sol barlanyar
+	credentialError := helpers.CheckPassword(shopOwner.Password, password)
+	if credentialError != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "invalid credentials",
+		})
+		return
+	}
+
+	// maglumatlar dogry bolsa auth ucin access_toke bilen resfresh_token generate edilyar
+	accessTokenString, refreshTokenString, err := helpers.GenerateAccessTokenForAdmin(shopOwner.PhoneNumber, id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// front tarapa ugratmak ucin shop_owner - in id - si boyunca maglumatlary get edilyar
+	adm, err := GetShopOwnerByID(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  accessTokenString,
+		"refresh_token": refreshTokenString,
+		"admin":         adm,
+	})
+
+}
+
+func GetShopOwnerByID(id string) (models.ShopOwner, error) {
+	db, err := config.ConnDB()
+	if err != nil {
+		return models.ShopOwner{}, err
+	}
+	defer db.Close()
+
+	// parametrler edilip berilen id - boyunca database - den shop_owner - in maglumatlary cekilyar
+	var shopOwner models.ShopOwner
+	rowShopOwner, err := db.Query(context.Background(), "SELECT name,phone_number FROM shop_owners WHERE deleted_at IS NULL AND id = $1", id)
+	if err != nil {
+		return models.ShopOwner{}, err
+	}
+	for rowShopOwner.Next() {
+		if err := rowShopOwner.Scan(&shopOwner.Name, &shopOwner.PhoneNumber); err != nil {
+			return models.ShopOwner{}, err
+		}
+	}
+
+	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
+	if shopOwner.PhoneNumber == "" {
+		return models.ShopOwner{}, errors.New("shop_owner not found")
+	}
+
+	// hemme zat dogry bolsa shop_owner - in maglumatlary return edilyar
+	return shopOwner, nil
 
 }
