@@ -3,6 +3,7 @@ package shopOwnerApi
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/admin"
 	"github/abbgo/yenil_yol/backend/helpers"
+	"github/abbgo/yenil_yol/backend/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +28,7 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 			shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
 
 			// GetAdmins funksiya hemme adminlerin spisoygyny almak ucin ulanylyar.
-			shopOwner.GET(":id", controllers.GetShopOwnerD)
+			shopOwner.GET("one", middlewares.CheckShopOwner(), controllers.GetShopOwnerD)
 
 			// GetAdmins funksiya hemme adminlerin spisoygyny almak ucin ulanylyar.
 			shopOwner.GET(":limit/:page", controllers.GetShopOwners)

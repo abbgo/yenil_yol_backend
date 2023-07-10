@@ -339,7 +339,7 @@ func GetShopOwners(c *gin.Context) {
 
 func GetShopOwnerD(c *gin.Context) {
 
-	shopOwnerID, hasID := c.Get("id")
+	shopOwnerID, hasID := c.Get("shop_owner_id")
 	if !hasID {
 		c.JSON(http.StatusBadRequest, "shopOwnerID is required")
 		return
