@@ -521,3 +521,64 @@ func RestoreShopByID(c *gin.Context) {
 	})
 
 }
+
+func DeletePermanentlyShopByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den shop id alynyar
+	ID := c.Param("id")
+
+	// database - de gelen id degisli maglumat barmy sol barlanyar
+	var image string
+	if err := db.QueryRow(context.Background(), "SELECT image FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&image); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// eger database - de gelen id degisli shop yok bolsa error return edilyar
+	if image == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "record not found",
+		})
+		return
+	}
+
+	// eger shop bar bolsa sonda shop - yn suraty papkadan pozulyar
+	if err := os.Remove(helpers.ServerPath + image); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// shop - yn suraty pozulandan sonra database - den shop pozulyar
+	_, err = db.Exec(context.Background(), "DELETE FROM shops WHERE id = $1", ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully deleted",
+	})
+
+}
