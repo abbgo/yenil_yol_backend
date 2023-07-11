@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -345,6 +347,9 @@ func GetShops(c *gin.Context) {
 	// limit we page boyunca offset hasaplanyar
 	offset := limit * (page - 1)
 
+	// request parametr - den page alynyar
+	shopOwnerID := c.DefaultQuery("shop_owner_id", "")
+
 	// request query - den shop status alynyar
 	// status -> shop pozulan ya-da pozulanmadygyny anlatyar
 	// true bolsa pozulan
@@ -360,11 +365,13 @@ func GetShops(c *gin.Context) {
 	}
 
 	// request query - den status - a gora shop - laryn sanyny almak ucin query yazylyar
-	var queryCount string
-	if !status {
-		queryCount = `SELECT COUNT(id) FROM shops WHERE deleted_at IS NULL`
-	} else {
-		queryCount = `SELECT COUNT(id) FROM shops WHERE deleted_at IS NOT NULL`
+	queryCount := fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at %v", "IS NULL")
+	if status {
+		queryCount = fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at %v", "IS NOT NULL")
+	}
+
+	if shopOwnerID != "" {
+		queryCount = fmt.Sprintf("%v AND shop_owner_id = %v", queryCount, shopOwnerID)
 	}
 
 	// database - den shop - laryn sany alynyar
@@ -373,16 +380,21 @@ func GetShops(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
+			"error":   "yalnys 1",
 		})
 		return
 	}
 
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
-	var rowQuery string
-	if !status {
-		rowQuery = `SELECT id,name_tm,image FROM shops WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	} else {
-		rowQuery = `SELECT id,name_tm,image FROM shops WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	rowQuery := fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", "IS NULL")
+	if status {
+		rowQuery = fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", "IS NOT NULL")
+	}
+
+	if shopOwnerID != "" {
+		// rowQuery = fmt.Sprintf("%v AND shop_owner_id = $%v", queryCount, shopOwnerID)
+		rows := strings.Split(rowQuery, " ORDER BY created_at DESC ")
+		rowQuery = fmt.Sprintf("%v AND shop_owner_id = %v %v %v", rows[0], shopOwnerID, "ORDER BY created_at DESC ", rows[1])
 	}
 
 	// database - den shop - lar alynyar
@@ -391,6 +403,7 @@ func GetShops(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
+			"error":   "yalnys 2",
 		})
 		return
 	}
