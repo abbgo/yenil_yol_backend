@@ -17,6 +17,7 @@ func BackRoutes(back *gin.RouterGroup) {
 			backApi.GET(":id", controllers.GetShopByID)
 			backApi.GET("", controllers.GetShops)
 			backApi.DELETE(":id", controllers.DeleteShopByID)
+			backApi.GET(":id/restore", controllers.RestoreShopByID)
 
 		}
 	}
