@@ -7,6 +7,7 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -288,6 +289,130 @@ func GetShopByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
 		"shop":   shop,
+	})
+
+}
+
+func GetShops(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den limit alynyar
+	limitStr := c.Query("limit")
+	if limitStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "limit is required",
+		})
+		return
+	}
+	limit, err := strconv.ParseUint(limitStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// request parametr - den page alynyar
+	pageStr := c.Query("page")
+	if pageStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "page is required",
+		})
+		return
+	}
+	page, err := strconv.ParseUint(pageStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := limit * (page - 1)
+
+	// request query - den shop status alynyar
+	// status -> shop pozulan ya-da pozulanmadygyny anlatyar
+	// true bolsa pozulan
+	// false bolsa pozulmadyk
+	statusQuery := c.DefaultQuery("status", "false")
+	status, err := strconv.ParseBool(statusQuery)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// request query - den status - a gora shop - laryn sanyny almak ucin query yazylyar
+	var queryCount string
+	if !status {
+		queryCount = `SELECT COUNT(id) FROM shops WHERE deleted_at IS NULL`
+	} else {
+		queryCount = `SELECT COUNT(id) FROM shops WHERE deleted_at IS NOT NULL`
+	}
+
+	// database - den shop - laryn sany alynyar
+	var countOfShops uint
+	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfShops); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// request query - den status - a gora shop - lary almak ucin query yazylyar
+	var rowQuery string
+	if !status {
+		rowQuery = `SELECT id,name_tm,image FROM shops WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	} else {
+		rowQuery = `SELECT id,name_tm,image FROM shops WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	}
+
+	// database - den shop - lar alynyar
+	rowsShop, err := db.Query(context.Background(), rowQuery, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer rowsShop.Close()
+
+	var shops []ResponseShop
+	for rowsShop.Next() {
+		var shop ResponseShop
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.Image); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
+		shops = append(shops, shop)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true,
+		"shops":  shops,
+		"total":  countOfShops,
 	})
 
 }
