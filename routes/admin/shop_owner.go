@@ -1,4 +1,4 @@
-package shopOwnerApi
+package adminApi
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/admin"
