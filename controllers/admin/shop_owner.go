@@ -374,3 +374,56 @@ func GetShopOwner(c *gin.Context) {
 	})
 
 }
+
+func DeleteShopOwnerByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den shop_owner id alynyar
+	ID := c.Param("id")
+
+	// gelen id den bolan maglumat database - de barmy sol barlanyar
+	var id string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
+	if id == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "record not found",
+		})
+		return
+	}
+
+	// hemme zat dogry bolsa shop_owner - in we sol shop_owner - a degisli shops - laryn deleted_at - ine current_time goyulyar
+	_, err = db.Exec(context.Background(), "CALL delete_shop_owner($1)", ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+			"error":   "yalnys bar",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully deleted",
+	})
+
+}

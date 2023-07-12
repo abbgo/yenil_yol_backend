@@ -32,6 +32,9 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 			// GetShopOwners funksiya hemme shop_owner - leri almak ucin ulanylyar.
 			shopOwner.GET(":limit/:page", controllers.GetShopOwners)
 
+			// GetShopOwners funksiya hemme shop_owner - leri almak ucin ulanylyar.
+			shopOwner.DELETE(":id", controllers.DeleteShopOwnerByID)
+
 		}
 	}
 
