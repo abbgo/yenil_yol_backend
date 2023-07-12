@@ -25,6 +25,11 @@ type AdminUpdate struct {
 	IsSuperAdmin bool   `json:"is_super_admin,omitempty"`
 }
 
+type AdminUpdatePassword struct {
+	ID       string `json:"id,omitempty" binding:"required"`
+	Password string `json:"password,omitempty" binding:"required"`
+}
+
 func ValidateRegisterAdmin(phoneNumber string) error {
 
 	db, err := config.ConnDB()

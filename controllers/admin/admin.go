@@ -97,7 +97,8 @@ func LoginAdmin(c *gin.Context) {
 
 	// database - den telefon belgisi request - den gelen telefon belga den bolan maglumat cekilyar
 	var id, password string
-	if err := db.QueryRow(context.Background(), "SELECT id,password FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", admin.PhoneNumber).Scan(&id, &password); err != nil {
+	var is_super_admin bool
+	if err := db.QueryRow(context.Background(), "SELECT id,password,is_super_admin FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", admin.PhoneNumber).Scan(&id, &password, &is_super_admin); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
@@ -125,7 +126,7 @@ func LoginAdmin(c *gin.Context) {
 	}
 
 	// maglumatlar dogry bolsa auth ucin access_toke bilen resfresh_token generate edilyar
-	accessTokenString, refreshTokenString, err := helpers.GenerateAccessTokenForAdmin(admin.PhoneNumber, id)
+	accessTokenString, refreshTokenString, err := helpers.GenerateAccessTokenForAdmin(admin.PhoneNumber, id, is_super_admin)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -512,6 +513,74 @@ func DeletePermanentlyAdminByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully deleted",
+	})
+
+}
+
+func UpdateAdminPassword(c *gin.Context) {
+
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request body - den maglumatlar alynyar
+	var admin models.AdminUpdatePassword
+	if err := c.BindJSON(&admin); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
+	var admin_id string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", admin.ID).Scan(&admin_id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// eger gelen id den bolan maglumat database - de yok bolsa error return edilyar
+	if admin_id == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "admin not found",
+		})
+		return
+	}
+
+	// maglumat bar bolsa admin - in taze paroly hashlenyar
+	hashPassword, err := helpers.HashPassword(admin.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// taze parol kone parol bilen calsylyar
+	_, err = db.Exec(context.Background(), "UPDATE admins SET password = $1 WHERE id = $2", hashPassword, admin.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "password of admin successfuly updated",
 	})
 
 }

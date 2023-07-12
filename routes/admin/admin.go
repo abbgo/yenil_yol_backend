@@ -21,7 +21,10 @@ func AdminRoutes(back *gin.RouterGroup) {
 			admin.POST("login", controllers.LoginAdmin)
 
 			// UpdateAdmin admin - in maglumatlaryny uytgetmek ucin ulanylyar.
-			admin.PUT("update", controllers.UpdateAdmin)
+			admin.PUT("update", middlewares.IsSuperAdmin(), controllers.UpdateAdmin)
+
+			// UpdateAdmin admin - in maglumatlaryny uytgetmek ucin ulanylyar.
+			admin.PUT("update-password", middlewares.IsSuperAdmin(), controllers.UpdateAdminPassword)
 
 			// Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 			// ucin ulanylyar

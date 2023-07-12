@@ -72,3 +72,56 @@ func CheckAdmin() gin.HandlerFunc {
 	}
 
 }
+
+// IsSuperAdmin middleware dine super adminlere dostup beryar
+// adminleri gecirmeyar
+func IsSuperAdmin() gin.HandlerFunc {
+
+	return func(context *gin.Context) {
+
+		tokenStr := context.GetHeader("Authorization")
+		if tokenStr == "" {
+			context.AbortWithStatusJSON(http.StatusUnauthorized, "Token is required")
+			return
+		}
+		var tokenString string
+
+		splitToken := strings.Split(tokenStr, "Bearer ")
+		if len(splitToken) > 1 {
+			tokenString = splitToken[1]
+		} else {
+			context.AbortWithStatusJSON(http.StatusBadRequest, "Invalid token")
+			return
+		}
+
+		token, err := jwt.ParseWithClaims(
+			tokenString,
+			&helpers.JWTClaimForAdmin{},
+			func(token *jwt.Token) (interface{}, error) {
+				return []byte(helpers.JwtKey), nil
+			},
+		)
+		if err != nil {
+			context.AbortWithStatusJSON(403, gin.H{"message": err.Error()})
+			return
+		}
+		claims, ok := token.Claims.(*helpers.JWTClaimForAdmin)
+		if !ok {
+			context.AbortWithStatusJSON(400, gin.H{"message": "couldn't parse claims"})
+			return
+		}
+		if claims.ExpiresAt < time.Now().Local().Unix() {
+			context.AbortWithStatusJSON(403, gin.H{"message": "token expired"})
+			return
+		}
+		// context.Set("admin_id", claims.AdminID)
+
+		if !claims.IsSuperAdmin {
+			context.AbortWithStatusJSON(400, gin.H{"message": "only super_admin can perform this task"})
+			return
+		}
+
+		context.Next()
+	}
+
+}

@@ -17,11 +17,11 @@ var JwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 type JWTClaimForAdmin struct {
 	PhoneNumber  string `json:"phone_number"`
 	AdminID      string `json:"admin_id"`
-	IsSuperAdmin string `json:"is_super_admin"`
+	IsSuperAdmin bool   `json:"is_super_admin"`
 	jwt.StandardClaims
 }
 
-func GenerateAccessTokenForAdmin(phoneNumber, adminID string) (string, string, error) {
+func GenerateAccessTokenForAdmin(phoneNumber, adminID string, isSuperAdmin bool) (string, string, error) {
 
 	accessTokenTimeOut, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_TIMEOUT"))
 	if err != nil {
@@ -30,8 +30,9 @@ func GenerateAccessTokenForAdmin(phoneNumber, adminID string) (string, string, e
 	expirationTimeAccessToken := time.Now().Add(time.Duration(accessTokenTimeOut) * time.Second)
 
 	claimsAccessToken := &JWTClaimForAdmin{
-		PhoneNumber: phoneNumber,
-		AdminID:     adminID,
+		PhoneNumber:  phoneNumber,
+		AdminID:      adminID,
+		IsSuperAdmin: isSuperAdmin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTimeAccessToken.Unix(),
 		},
@@ -48,8 +49,9 @@ func GenerateAccessTokenForAdmin(phoneNumber, adminID string) (string, string, e
 	}
 	expirationTimeRefreshToken := time.Now().Add(time.Duration(refreshTokenTimeOut) * time.Second)
 	claimsRefreshToken := &JWTClaimForAdmin{
-		PhoneNumber: phoneNumber,
-		AdminID:     adminID,
+		PhoneNumber:  phoneNumber,
+		AdminID:      adminID,
+		IsSuperAdmin: isSuperAdmin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTimeRefreshToken.Unix(),
 		},
@@ -107,7 +109,7 @@ func RefreshTokenForAdmin(c *gin.Context) {
 		return
 	}
 
-	accessTokenString, refreshTokenString, err := GenerateAccessTokenForAdmin(claims.PhoneNumber, claims.AdminID)
+	accessTokenString, refreshTokenString, err := GenerateAccessTokenForAdmin(claims.PhoneNumber, claims.AdminID, claims.IsSuperAdmin)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
