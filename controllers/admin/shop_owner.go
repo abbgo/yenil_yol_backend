@@ -417,7 +417,6 @@ func DeleteShopOwnerByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
-			"error":   "yalnys bar",
 		})
 		return
 	}

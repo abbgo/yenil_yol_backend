@@ -33,8 +33,8 @@ func AdminRoutes(back *gin.RouterGroup) {
 			// GetAdmins funksiya hemme admin - leri almak ucin ulanylyar.
 			admin.GET("", controllers.GetAdmins)
 
-			// 	// DeleteShopOwnerByID funksiya id boyunca shop_owner - i korzina salmak ucin ulanylyar.
-			// 	shopOwner.DELETE(":id", controllers.DeleteShopOwnerByID)
+			// DeleteAdminByID funksiya id boyunca admin - i korzina salmak ucin ulanylyar.
+			admin.DELETE(":id", controllers.DeleteAdminByID)
 
 			// 	// RestoreShopOwnerByID funksiya id boyunca shop_owner - i korzinadan cykarmak ucin ulanylyar.
 			// 	shopOwner.GET(":id/restore", controllers.RestoreShopOwnerByID)
