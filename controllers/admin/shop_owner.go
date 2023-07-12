@@ -54,7 +54,7 @@ func RegisterShopOwner(c *gin.Context) {
 	}
 
 	// hemme zat yerbe yer bolsa maglumatlar shop_owners tablisa gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO shop_owners (name,phone_number,password,slug) VALUES ($1,$2,$3,$4)", shopOwner.Name, shopOwner.PhoneNumber, hashPassword, slug.MakeLang(shopOwner.Name, "en"))
+	_, err = db.Exec(context.Background(), "INSERT INTO shop_owners (full_name,phone_number,password,slug) VALUES ($1,$2,$3,$4)", shopOwner.FullName, shopOwner.PhoneNumber, hashPassword, slug.MakeLang(shopOwner.FullName, "en"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -177,14 +177,14 @@ func GetShopOwnerByID(id string) (models.ShopOwner, error) {
 
 	// parametrler edilip berilen id - boyunca database - den shop_owner - in maglumatlary cekilyar
 	var shopOwner models.ShopOwner
-	rowShopOwner, err := db.Query(context.Background(), "SELECT name,phone_number FROM shop_owners WHERE deleted_at IS NULL AND id = $1", id)
+	rowShopOwner, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL AND id = $1", id)
 	if err != nil {
 		return models.ShopOwner{}, err
 	}
 	defer rowShopOwner.Close()
 
 	for rowShopOwner.Next() {
-		if err := rowShopOwner.Scan(&shopOwner.Name, &shopOwner.PhoneNumber); err != nil {
+		if err := rowShopOwner.Scan(&shopOwner.FullName, &shopOwner.PhoneNumber); err != nil {
 			return models.ShopOwner{}, err
 		}
 	}
@@ -238,7 +238,7 @@ func UpdateShopOwner(c *gin.Context) {
 	}
 
 	// eger shop_owner database - de bar bolsa onda onun maglumatlary request body - dan gelen maglumatlar bilen update edilyar
-	_, err = db.Exec(context.Background(), "UPDATE shop_owners SET name = $1 , phone_number = $2 , slug = $3 WHERE id = $4", shopOwner.Name, shopOwner.PhoneNumber, slug.MakeLang(shopOwner.Name, "en"), id)
+	_, err = db.Exec(context.Background(), "UPDATE shop_owners SET full_name = $1 , phone_number = $2 , slug = $3 WHERE id = $4", shopOwner.FullName, shopOwner.PhoneNumber, slug.MakeLang(shopOwner.FullName, "en"), id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -317,7 +317,7 @@ func GetShopOwners(c *gin.Context) {
 
 	// databae - den request - den gelen limit we page boyunca limitlap shop_owner - ler alynyar
 	var shopOwners []models.ShopOwner
-	rowsShopOwner, err := db.Query(context.Background(), "SELECT name,phone_number FROM shop_owners WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
+	rowsShopOwner, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -329,7 +329,7 @@ func GetShopOwners(c *gin.Context) {
 
 	for rowsShopOwner.Next() {
 		var shopOwner models.ShopOwner
-		if err := rowsShopOwner.Scan(&shopOwner.Name, &shopOwner.PhoneNumber); err != nil {
+		if err := rowsShopOwner.Scan(&shopOwner.FullName, &shopOwner.PhoneNumber); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
 				"message": err.Error(),

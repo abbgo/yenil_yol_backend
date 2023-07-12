@@ -9,7 +9,7 @@ import (
 
 type ShopOwner struct {
 	ID          string `json:"id,omitempty"`
-	Name        string `json:"name,omitempty" binding:"required"`
+	FullName    string `json:"full_name,omitempty" binding:"required"`
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 	Password    string `json:"password,omitempty" binding:"required"`
 	Slug        string `json:"slug,omitempty"`
@@ -27,7 +27,7 @@ type ShopOwnerLogin struct {
 // bu model ShopOwner - in maglumatyny uytgetmegi ucin doredildi
 type ShopOwnerUpdate struct {
 	ID          string `json:"id,omitempty"`
-	Name        string `json:"name,omitempty" binding:"required"`
+	FullName    string `json:"full_name,omitempty" binding:"required"`
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 }
 
