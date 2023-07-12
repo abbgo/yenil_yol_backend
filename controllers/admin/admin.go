@@ -255,3 +255,32 @@ func UpdateAdmin(c *gin.Context) {
 	})
 
 }
+
+func GetAdmin(c *gin.Context) {
+
+	adminID, hasID := c.Get("admin_id")
+	if !hasID {
+		c.JSON(http.StatusBadRequest, "adminID is required")
+		return
+	}
+
+	var ok bool
+	admin_id, ok := adminID.(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, "adminID must be uint")
+	}
+
+	adm, err := GetAdminByID(admin_id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"admin": adm,
+	})
+
+}
