@@ -14,7 +14,7 @@ func AdminRoutes(back *gin.RouterGroup) {
 	{
 		{
 			// RegisterAdmin admin - i registrasiya etmek ucin ulanylyar.
-			admin.POST("register", controllers.RegisterAdmin)
+			admin.POST("register", middlewares.IsSuperAdmin(), controllers.RegisterAdmin)
 			// 	// admin.POST("register", middlewares.IsSuperAdmin(), adminController.RegisterAdmin)
 
 			// LoginAdmin admin - i login etmek ucin ulanylyar.
@@ -28,7 +28,7 @@ func AdminRoutes(back *gin.RouterGroup) {
 
 			// Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 			// ucin ulanylyar
-			admin.POST("refresh", helpers.RefreshTokenForAdmin)
+			admin.POST("refresh", middlewares.CheckAdmin(), helpers.RefreshTokenForAdmin)
 
 			// GetAdmin funksiya haeder - den gelen id boyunca bir sany shop_owneri almak ucin ulanylyar.
 			admin.GET("one", middlewares.CheckAdmin(), controllers.GetAdmin)
