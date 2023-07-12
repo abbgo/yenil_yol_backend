@@ -10,3 +10,10 @@ type Admin struct {
 	UpdatedAt    string `json:"-"`
 	DeletedAt    string `json:"-"`
 }
+
+type AdminUpdate struct {
+	ID           string `json:"id,omitempty" binding:"required"`
+	FullName     string `json:"full_name,omitempty" binding:"required"`
+	PhoneNumber  string `json:"phone_number,omitempty" binding:"required"`
+	IsSuperAdmin bool   `json:"is_super_admin,omitempty"`
+}

@@ -26,7 +26,7 @@ type ShopOwnerLogin struct {
 
 // bu model ShopOwner - in maglumatyny uytgetmegi ucin doredildi
 type ShopOwnerUpdate struct {
-	ID          string `json:"id,omitempty"`
+	ID          string `json:"id,omitempty" binding:"required"`
 	FullName    string `json:"full_name,omitempty" binding:"required"`
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 }

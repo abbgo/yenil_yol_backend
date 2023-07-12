@@ -18,8 +18,8 @@ func AdminRoutes(back *gin.RouterGroup) {
 			// LoginAdmin admin - i login etmek ucin ulanylyar.
 			admin.POST("login", controllers.LoginAdmin)
 
-			// 	// UpdateShopOwner shop_owner - in maglumatlaryny uytgetmek ucin ulanylyar.
-			// 	shopOwner.PUT("update", controllers.UpdateShopOwner)
+			// UpdateAdmin admin - in maglumatlaryny uytgetmek ucin ulanylyar.
+			admin.PUT("update", controllers.UpdateAdmin)
 
 			// 	// ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 			// 	// ucin ulanylyar
