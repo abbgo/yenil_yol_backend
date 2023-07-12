@@ -30,11 +30,10 @@ func RegisterAdmin(c *gin.Context) {
 		return
 	}
 
-	// gelen telefon belgi barlanylyar
-	if !helpers.ValidatePhoneNumber(admin.PhoneNumber) {
+	if err := models.ValidateRegisterAdmin(admin.PhoneNumber); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
-			"message": "invalid phone number",
+			"message": err.Error(),
 		})
 		return
 	}
