@@ -2,6 +2,7 @@ package adminApi
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/admin"
+	"github/abbgo/yenil_yol/backend/helpers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,9 +22,9 @@ func AdminRoutes(back *gin.RouterGroup) {
 			// UpdateAdmin admin - in maglumatlaryny uytgetmek ucin ulanylyar.
 			admin.PUT("update", controllers.UpdateAdmin)
 
-			// 	// ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
-			// 	// ucin ulanylyar
-			// 	shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
+			// Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
+			// ucin ulanylyar
+			admin.POST("refresh", helpers.RefreshTokenForAdmin)
 
 			// 	// GetShopOwner funksiya haeder - den gelen id boyunca bir sany shop_owneri almak ucin ulanylyar.
 			// 	shopOwner.GET("one", controllers.GetShopOwner)
