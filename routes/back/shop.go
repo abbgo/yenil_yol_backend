@@ -38,7 +38,4 @@ func BackRoutes(back *gin.RouterGroup) {
 		}
 	}
 
-	back.POST("image", controllers.AddOrUpdateImage)
-	back.DELETE("image", controllers.DeleteImage)
-
 }
