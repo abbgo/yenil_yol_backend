@@ -44,11 +44,14 @@ func Routes() *gin.Engine {
 	{
 		// bu rout - ler magazynyn eyeleri ucin doredilen rout - laryn toplumy
 		adminApi.ShopOwnerRoutes(admin)
+
+		// bu route - ler admin - ler ucin doredilen route - laryn toplumy
+		adminApi.AdminRoutes(admin)
 	}
 
 	back := routes.Group("/api/back")
 	{
-		// bu rout - ler magazynyn eyeleri ucin doredilen rout - laryn toplumy
+		// bu route - ler magazynyn eyeleri ucin doredilen rout - laryn toplumy
 		backApi.BackRoutes(back)
 	}
 
