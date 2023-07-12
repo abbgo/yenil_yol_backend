@@ -6,6 +6,7 @@ import (
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
+	"os"
 	"strconv"
 
 	"net/http"
@@ -476,6 +477,92 @@ func RestoreShopOwnerByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully restored",
+	})
+
+}
+
+func DeletePermanentlyShopOwnerByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den shop id alynyar
+	ID := c.Param("id")
+
+	// database - de gelen id degisli maglumat barmy sol barlanyar
+	rowShopOwner, err := db.Query(context.Background(), "SELECT so.id,s.image FROM shop_owners so INNER JOIN shops s ON s.shop_owner_id = so.id WHERE so.id = $1 AND so.deleted_at IS NOT NULL", ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	var id string
+	var shopImages []string
+	for rowShopOwner.Next() {
+		var shopImage string
+		if err := rowShopOwner.Scan(&id, &shopImage); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
+		shopImages = append(shopImages, shopImage)
+	}
+
+	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
+	if id == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "record not found",
+		})
+		return
+	}
+
+	// eger maglumat bar bolsa sonda shop - yn suratlaryny papkadan pozulyar
+	for _, v := range shopImages {
+		if err := os.Remove(helpers.ServerPath + v); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
+	}
+
+	// shop - yn suraty pozulandan sonra database - den shop - lar pozulyar
+	_, err = db.Exec(context.Background(), "DELETE FROM shops WHERE shop_owner_id = $1", ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// shop - lar pozulandan sonra shop_owner database - den pozulyar
+	_, err = db.Exec(context.Background(), "DELETE FROM shop_owners WHERE id = $1", ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully deleted",
 	})
 
 }

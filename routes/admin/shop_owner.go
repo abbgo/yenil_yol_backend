@@ -38,6 +38,9 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 			// RestoreShopOwnerByID funksiya id boyunca shop_owner - i korzinadan cykarmak ucin ulanylyar.
 			shopOwner.GET(":id/restore", controllers.RestoreShopOwnerByID)
 
+			// DeletePermanentlyShopOwnerByID funksiya id boyunca shop_owner - i duybinden pozmak ucin ulanylyar
+			shopOwner.DELETE(":id/delete", controllers.DeletePermanentlyShopOwnerByID)
+
 		}
 	}
 
