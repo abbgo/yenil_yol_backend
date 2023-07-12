@@ -30,10 +30,13 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 			shopOwner.GET("one", controllers.GetShopOwner)
 
 			// GetShopOwners funksiya hemme shop_owner - leri almak ucin ulanylyar.
-			shopOwner.GET(":limit/:page", controllers.GetShopOwners)
+			shopOwner.GET("", controllers.GetShopOwners)
 
-			// GetShopOwners funksiya hemme shop_owner - leri almak ucin ulanylyar.
+			// DeleteShopOwnerByID funksiya id boyunca shop_owner - i korzina salmak ucin ulanylyar.
 			shopOwner.DELETE(":id", controllers.DeleteShopOwnerByID)
+
+			// RestoreShopOwnerByID funksiya id boyunca shop_owner - i korzinadan cykarmak ucin ulanylyar.
+			shopOwner.GET(":id/restore", controllers.RestoreShopOwnerByID)
 
 		}
 	}

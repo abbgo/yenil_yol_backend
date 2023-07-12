@@ -266,7 +266,7 @@ func GetShopOwners(c *gin.Context) {
 	defer db.Close()
 
 	// request parametr - den limit alynyar
-	limitStr := c.Param("limit")
+	limitStr := c.Query("limit")
 	if limitStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -284,7 +284,7 @@ func GetShopOwners(c *gin.Context) {
 	}
 
 	// // request parametr - den page alynyar
-	pageStr := c.Param("page")
+	pageStr := c.Query("page")
 	if pageStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -424,6 +424,58 @@ func DeleteShopOwnerByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully deleted",
+	})
+
+}
+
+func RestoreShopOwnerByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den shop id alynyar
+	ID := c.Param("id")
+
+	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
+	var id string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// eger database sol id degisli maglumat yok bolsa error return edilyar
+	if id == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "record not found",
+		})
+		return
+	}
+
+	// hemme zat dogry bolsa maglumat restore edilyar
+	_, err = db.Exec(context.Background(), "CALL restore_shop_owner($1)", ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully restored",
 	})
 
 }
