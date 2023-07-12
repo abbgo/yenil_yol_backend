@@ -15,8 +15,9 @@ import (
 var JwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 type JWTClaimForAdmin struct {
-	PhoneNumber string `json:"phone_number"`
-	AdminID     string `json:"admin_id"`
+	PhoneNumber  string `json:"phone_number"`
+	AdminID      string `json:"admin_id"`
+	IsSuperAdmin string `json:"is_super_admin"`
 	jwt.StandardClaims
 }
 

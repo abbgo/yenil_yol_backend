@@ -15,8 +15,8 @@ func AdminRoutes(back *gin.RouterGroup) {
 			admin.POST("register", controllers.RegisterAdmin)
 			// 	// admin.POST("register", middlewares.IsSuperAdmin(), adminController.RegisterAdmin)
 
-			// 	// LoginShopOwner shop_owner - i login etmek ucin ulanylyar.
-			// 	shopOwner.POST("login", controllers.LoginShopOwner)
+			// LoginAdmin admin - i login etmek ucin ulanylyar.
+			admin.POST("login", controllers.LoginAdmin)
 
 			// 	// UpdateShopOwner shop_owner - in maglumatlaryny uytgetmek ucin ulanylyar.
 			// 	shopOwner.PUT("update", controllers.UpdateShopOwner)
