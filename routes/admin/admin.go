@@ -34,16 +34,16 @@ func AdminRoutes(back *gin.RouterGroup) {
 			admin.GET("one", middlewares.CheckAdmin(), controllers.GetAdmin)
 
 			// GetAdmins funksiya hemme admin - leri almak ucin ulanylyar.
-			admin.GET("", controllers.GetAdmins)
+			admin.GET("", middlewares.IsSuperAdmin(), controllers.GetAdmins)
 
 			// DeleteAdminByID funksiya id boyunca admin - i korzina salmak ucin ulanylyar.
-			admin.DELETE(":id", controllers.DeleteAdminByID)
+			admin.DELETE(":id", middlewares.IsSuperAdmin(), controllers.DeleteAdminByID)
 
 			// RestoreAdminByID funksiya id boyunca admin - i korzinadan cykarmak ucin ulanylyar.
-			admin.GET(":id/restore", controllers.RestoreAdminByID)
+			admin.GET(":id/restore", middlewares.IsSuperAdmin(), controllers.RestoreAdminByID)
 
 			// DeletePermanentlyAdminByID funksiya id boyunca admin - i doly ( korzinadan ) pozmak ucin ulanylyar
-			admin.DELETE(":id/delete", controllers.DeletePermanentlyAdminByID)
+			admin.DELETE(":id/delete", middlewares.IsSuperAdmin(), controllers.DeletePermanentlyAdminByID)
 
 		}
 	}
