@@ -31,8 +31,8 @@ func BrendRoutes(back *gin.RouterGroup) {
 			// RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
 			backBrendApi.GET(":id/restore", controllers.RestoreBrendByID)
 
-			// // DeletePermanentlyShopByID -> id boyunca shop - y doly (korzinadan) pozmak ucin ulanylyar
-			// backBrendApi.DELETE(":id/delete", controllers.DeletePermanentlyShopByID)
+			// DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
+			backBrendApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
 
 		}
 	}

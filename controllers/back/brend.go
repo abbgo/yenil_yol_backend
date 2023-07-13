@@ -425,3 +425,67 @@ func RestoreBrendByID(c *gin.Context) {
 	})
 
 }
+
+func DeletePermanentlyBrendByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den brend id alynyar
+	ID := c.Param("id")
+
+	// database - de gelen id degisli maglumat barmy sol barlanyar
+	var id string
+	var image sql.NullString
+	if err := db.QueryRow(context.Background(), "SELECT id,image FROM brends WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// eger database - de gelen id degisli brend yok bolsa error return edilyar
+	if id == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "record not found",
+		})
+		return
+	}
+
+	// eger shop bar bolsa sonda brend - in suraty papkadan pozulyar
+	if image.String != "" {
+		if err := os.Remove(helpers.ServerPath + image.String); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
+	}
+
+	// brend - in suraty pozulandan sonra database - den brend pozulyar
+	_, err = db.Exec(context.Background(), "DELETE FROM brends WHERE id = $1", ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully deleted",
+	})
+
+}
