@@ -66,9 +66,9 @@ func AddOrUpdateImage(c *gin.Context) {
 	// case "language":
 	// 	path = "language"
 	// 	file_name = "image"
-	// case "banner":
-	// 	path = "banner"
-	// 	file_name = "image"
+	case "brend":
+		path = "brend"
+		file_name = "image"
 	case "shop":
 		path = "shop"
 		file_name = "image"
@@ -97,15 +97,6 @@ func AddOrUpdateImage(c *gin.Context) {
 		})
 		return
 	}
-	// defer func() {
-	// 	if err := result.Close(); err != nil {
-	// 		c.JSON(http.StatusBadRequest, gin.H{
-	// 			"status":  false,
-	// 			"message": err.Error(),
-	// 		})
-	// 		return
-	// 	}
-	// }()
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
