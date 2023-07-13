@@ -25,8 +25,8 @@ func BrendRoutes(back *gin.RouterGroup) {
 			// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 			backBrendApi.GET("", controllers.GetBrends)
 
-			// // DeleteShopByID -> id boyunca shop - y korzina salmak ucin ulanylyar
-			// backBrendApi.DELETE(":id", controllers.DeleteShopByID)
+			// DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
+			backBrendApi.DELETE(":id", controllers.DeleteBrendByID)
 
 			// // RestoreShopByID -> id boyunca shop - y korzinadan cykarmak ucin ulanylyar
 			// backBrendApi.GET(":id/restore", controllers.RestoreShopByID)
