@@ -30,7 +30,7 @@ type AdminUpdatePassword struct {
 	Password string `json:"password,omitempty" binding:"required"`
 }
 
-func ValidateRegisterAdmin(phoneNumber string) error {
+func ValidateAdmin(phoneNumber, adminID string, isRegisterFunction bool) error {
 
 	db, err := config.ConnDB()
 	if err != nil {
@@ -38,10 +38,30 @@ func ValidateRegisterAdmin(phoneNumber string) error {
 	}
 	defer db.Close()
 
-	var phone_number string
-	db.QueryRow(context.Background(), "SELECT phone_number FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&phone_number)
-	if phone_number != "" {
-		return errors.New("this admin already exists")
+	if isRegisterFunction {
+		var phone_number string
+		db.QueryRow(context.Background(), "SELECT phone_number FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&phone_number)
+		if phone_number != "" {
+			return errors.New("this admin already exists")
+		}
+	} else {
+		if adminID == "" {
+			return errors.New("admin_id is required")
+		}
+
+		// database - de request body - den gelen id bilen gabat gelyan admin barmy ya-da yokmy sol barlanyar
+		// eger yok bolsa onda error return edilyar
+		var id string
+		if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", adminID).Scan(&id); err != nil {
+			return errors.New("admin not found")
+		}
+
+		var admin_id string
+		db.QueryRow(context.Background(), "SELECT id FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&admin_id)
+		if admin_id != adminID && admin_id != "" {
+			return errors.New("this admin already exists")
+		}
+
 	}
 
 	if !helpers.ValidatePhoneNumber(phoneNumber) {
