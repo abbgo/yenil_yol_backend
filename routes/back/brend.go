@@ -15,8 +15,8 @@ func BrendRoutes(back *gin.RouterGroup) {
 			// CreateBrend -> Brend gosmak ulanylar
 			backBrendApi.POST("", controllers.CreateBrend)
 
-			// // UpdateShopByID -> id boyunca Shop - yn maglumatlaryny update etmek ucin ulanylyar
-			// backBrendApi.PUT("", controllers.UpdateShopByID)
+			// UpdateBrendByID -> id boyunca Brend - in maglumatlaryny update etmek ucin ulanylyar
+			backBrendApi.PUT("", controllers.UpdateBrendByID)
 
 			// // GetShopByID -> id - si boyunca Shop - yn maglumatlaryny almak ucin ulanylyar
 			// backBrendApi.GET(":id", controllers.GetShopByID)
