@@ -18,8 +18,8 @@ func BrendRoutes(back *gin.RouterGroup) {
 			// UpdateBrendByID -> id boyunca Brend - in maglumatlaryny update etmek ucin ulanylyar
 			backBrendApi.PUT("", controllers.UpdateBrendByID)
 
-			// // GetShopByID -> id - si boyunca Shop - yn maglumatlaryny almak ucin ulanylyar
-			// backBrendApi.GET(":id", controllers.GetShopByID)
+			// GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
+			backBrendApi.GET(":id", controllers.GetBrendByID)
 
 			// // GetShops -> Ahli Shop - laryn maglumatlaryny request query - den gelen
 			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
