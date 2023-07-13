@@ -52,15 +52,12 @@ func CreateShop(c *gin.Context) {
 		return
 	}
 
-	//  request body - dan gelen telefon belgi barlanylyar
-	for _, v := range shop.ShopPhones {
-		if !helpers.ValidatePhoneNumber(v) {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": "invalid phone number",
-			})
-			return
-		}
+	if err := models.ValidateCreateShop(shop.ShopPhones, shop.OrderNumber); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
 	}
 
 	// eger request body - dan gelen surat bos bolsa database surata derek nil gosmaly
@@ -73,7 +70,7 @@ func CreateShop(c *gin.Context) {
 
 	// eger maglumatlar dogry bolsa onda shops tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
 	var shop_id string
-	if err = db.QueryRow(context.Background(), "INSERT INTO shops (name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_delivery,shop_owner_id,slug_tm,slug_ru) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, image, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en")).Scan(&shop_id); err != nil {
+	if err = db.QueryRow(context.Background(), "INSERT INTO shops (name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_delivery,shop_owner_id,slug_tm,slug_ru,order_number) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, image, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber).Scan(&shop_id); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),

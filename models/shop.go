@@ -1,5 +1,12 @@
 package models
 
+import (
+	"context"
+	"errors"
+	"github/abbgo/yenil_yol/backend/config"
+	"github/abbgo/yenil_yol/backend/helpers"
+)
+
 type Shop struct {
 	ID          string   `json:"id,omitempty"`
 	NameTM      string   `json:"name_tm,omitempty" binding:"required"`
@@ -14,6 +21,7 @@ type Shop struct {
 	SlugTM      string   `json:"slug_tm,omitempty"`
 	SlugRU      string   `json:"slug_ru,omitempty"`
 	ShopPhones  []string `json:"shop_phones" binding:"required"`
+	OrderNumber uint     `json:"order_number,omitempty"`
 	CreatedAt   string   `json:"-"`
 	UpdatedAt   string   `json:"-"`
 	DeletedAt   string   `json:"-"`
@@ -26,4 +34,29 @@ type ShopPhone struct {
 	CreatedAt   string `json:"-"`
 	UpdatedAt   string `json:"-"`
 	DeletedAt   string `json:"-"`
+}
+
+func ValidateCreateShop(phoneNumbers []string, orderNumber uint) error {
+
+	db, err := config.ConnDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// telefon belgiler barlanylyar
+	for _, v := range phoneNumbers {
+		if !helpers.ValidatePhoneNumber(v) {
+			return errors.New("invalid phone number")
+		}
+	}
+
+	if orderNumber != 0 {
+		var order_number uint
+		if err = db.QueryRow(context.Background(), "SELECT order_number FROM shops where order_number = $1", orderNumber).Scan(&order_number); err == nil {
+			return errors.New("this order number already exists")
+		}
+	}
+
+	return nil
 }
