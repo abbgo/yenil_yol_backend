@@ -52,7 +52,7 @@ func CreateShop(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateCreateShop(shop.ShopPhones, shop.OrderNumber); err != nil {
+	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, true, ""); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
@@ -125,15 +125,12 @@ func UpdateShopByID(c *gin.Context) {
 		return
 	}
 
-	//  request body - dan gelen telefon belgi barlanylyar
-	for _, v := range shop.ShopPhones {
-		if !helpers.ValidatePhoneNumber(v) {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": "invalid phone number",
-			})
-			return
-		}
+	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, false, shop.ID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
 	}
 
 	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
