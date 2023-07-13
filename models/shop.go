@@ -63,7 +63,7 @@ func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool
 			}
 			var shop_id string
 			db.QueryRow(context.Background(), "SELECT id FROM shops where order_number = $1 AND deleted_at IS NULL", orderNumber).Scan(&shop_id)
-			if shop_id != shopId {
+			if shop_id != shopId && shop_id != "" {
 				return errors.New("this order number already exists")
 			}
 		}
