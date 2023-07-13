@@ -31,7 +31,7 @@ type ShopOwnerUpdate struct {
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 }
 
-func ValidateRegisterShopOwner(phoneNumber string) error {
+func ValidateShopOwner(phoneNumber, shopOwnerID string, isRegisterFunction bool) error {
 
 	db, err := config.ConnDB()
 	if err != nil {
@@ -39,10 +39,29 @@ func ValidateRegisterShopOwner(phoneNumber string) error {
 	}
 	defer db.Close()
 
-	var phone_number string
-	db.QueryRow(context.Background(), "SELECT phone_number FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&phone_number)
-	if phone_number != "" {
-		return errors.New("this shop owner already exists")
+	if isRegisterFunction {
+		var phone_number string
+		db.QueryRow(context.Background(), "SELECT phone_number FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&phone_number)
+		if phone_number != "" {
+			return errors.New("this shop owner already exists")
+		}
+	} else {
+		if shopOwnerID == "" {
+			return errors.New("shop_owner_id is required")
+		}
+
+		// database - de request body - den gelen id bilen gabat gelyan shop_owner barmy ya-da yokmy sol barlanyar
+		// eger yok bolsa onda error return edilyar
+		var id string
+		if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", shopOwnerID).Scan(&id); err != nil {
+			return errors.New("record not found")
+		}
+
+		var shop_owner_id string
+		db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&shop_owner_id)
+		if shop_owner_id != shopOwnerID && shop_owner_id != "" {
+			return errors.New("this shop owner already exists")
+		}
 	}
 
 	if !helpers.ValidatePhoneNumber(phoneNumber) {
