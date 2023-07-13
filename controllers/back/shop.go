@@ -172,26 +172,27 @@ func UpdateShopByID(c *gin.Context) {
 	if shop.Image == "" {
 		fileName = oldShopImage
 	} else {
+		if fileName != "" {
+			// sonra helper_images tablisa shop ucin gosulan surat pozulyar
+			_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", fileName)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  false,
+					"message": err.Error(),
+				})
+				return
+			}
+
+			// surat papkadan pozulyar
+			if err := os.Remove(helpers.ServerPath + oldShopImage); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  false,
+					"message": err.Error(),
+				})
+				return
+			}
+		}
 		fileName = shop.Image
-
-		// sonra helper_images tablisa shop ucin gosulan surat pozulyar
-		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", fileName)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
-			return
-		}
-
-		// surat papkadan pozulyar
-		if err := os.Remove(helpers.ServerPath + oldShopImage); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
-			return
-		}
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
