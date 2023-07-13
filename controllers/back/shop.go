@@ -374,7 +374,6 @@ func GetShops(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
-			"error":   "yalnys 1",
 		})
 		return
 	}

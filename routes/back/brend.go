@@ -21,11 +21,9 @@ func BrendRoutes(back *gin.RouterGroup) {
 			// GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
 			backBrendApi.GET(":id", controllers.GetBrendByID)
 
-			// // GetShops -> Ahli Shop - laryn maglumatlaryny request query - den gelen
-			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-			// // eger request query - den shop_owner_id gelse sol shop_owner degisli
-			// // shop - laryn maglumatlary alynyar
-			// backBrendApi.GET("", controllers.GetShops)
+			// GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
+			// limit we page boyunca pagination ulanyp almak ucin ulanylyar
+			backBrendApi.GET("", controllers.GetBrends)
 
 			// // DeleteShopByID -> id boyunca shop - y korzina salmak ucin ulanylyar
 			// backBrendApi.DELETE(":id", controllers.DeleteShopByID)
