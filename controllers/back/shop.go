@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
@@ -260,15 +261,19 @@ func GetShopByID(c *gin.Context) {
 	defer rowShop.Close()
 
 	var shop ResponseShop
+	var shopImage sql.NullString
 	for rowShop.Next() {
 		var shopPhone models.ShopPhone
-		if err := rowShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.HasDelivery, &shop.ShopOwnerID, &shopPhone.ID, &shopPhone.PhoneNumber); err != nil {
+		if err := rowShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shopImage, &shop.HasDelivery, &shop.ShopOwnerID, &shopPhone.ID, &shopPhone.PhoneNumber); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
 				"message": err.Error(),
 				"error":   "yalnys bar",
 			})
 			return
+		}
+		if shopImage.String != "" {
+			shop.Image = shopImage.String
 		}
 		shop.ShopPhones = append(shop.ShopPhones, shopPhone)
 	}
@@ -405,12 +410,16 @@ func GetShops(c *gin.Context) {
 	var shops []ResponseShop
 	for rowsShop.Next() {
 		var shop ResponseShop
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.Image); err != nil {
+		var shopImage sql.NullString
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shopImage); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
 				"message": err.Error(),
 			})
 			return
+		}
+		if shopImage.String != "" {
+			shop.Image = shopImage.String
 		}
 		shops = append(shops, shop)
 	}
