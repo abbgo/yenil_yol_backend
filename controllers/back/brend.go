@@ -117,17 +117,17 @@ func UpdateBrendByID(c *gin.Context) {
 	if brend.Image == "" {
 		fileName = olBrendImage.String
 	} else {
-		if fileName != "" {
-			// sonra helper_images tablisa brend ucin gosulan surat pozulyar
-			_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", fileName)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"status":  false,
-					"message": err.Error(),
-				})
-				return
-			}
+		// sonra helper_images tablisa brend ucin gosulan surat pozulyar
+		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", brend.Image)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
 
+		if olBrendImage.String != "" {
 			// surat papkadan pozulyar
 			if err := os.Remove(helpers.ServerPath + olBrendImage.String); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
