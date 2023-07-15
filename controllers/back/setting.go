@@ -114,17 +114,17 @@ func UpdateSetting(c *gin.Context) {
 	if setting.Logo == "" {
 		newLogo = oldLogo.String
 	} else {
-		if oldLogo.String != "" {
-			// sonra helper_images tablisadan logo ucin gosulan surat pozulyar
-			_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", oldLogo.String)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"status":  false,
-					"message": err.Error(),
-				})
-				return
-			}
+		// sonra helper_images tablisadan logo ucin gosulan surat pozulyar
+		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", setting.Logo)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
 
+		if oldLogo.String != "" {
 			// surat papkadan pozulyar
 			if err := os.Remove(helpers.ServerPath + oldLogo.String); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
@@ -145,17 +145,17 @@ func UpdateSetting(c *gin.Context) {
 	if setting.Favicon == "" {
 		newFavicon = oldFavicon.String
 	} else {
-		if oldFavicon.String != "" {
-			// sonra helper_images tablisadan favicon ucin gosulan surat pozulyar
-			_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", oldFavicon.String)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"status":  false,
-					"message": err.Error(),
-				})
-				return
-			}
+		// sonra helper_images tablisadan favicon ucin gosulan surat pozulyar
+		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", setting.Favicon)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"status":  false,
+				"message": err.Error(),
+			})
+			return
+		}
 
+		if oldFavicon.String != "" {
 			// surat papkadan pozulyar
 			if err := os.Remove(helpers.ServerPath + oldFavicon.String); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
