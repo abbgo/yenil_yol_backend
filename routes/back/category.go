@@ -15,8 +15,8 @@ func BrendCategories(back *gin.RouterGroup) {
 			// CreateCategory -> Category gosmak ulanylar
 			backCategoryApi.POST("", controllers.CreateCategory)
 
-			// // UpdateBrendByID -> id boyunca Brend - in maglumatlaryny update etmek ucin ulanylyar
-			// backCategoryApi.PUT("", controllers.UpdateBrendByID)
+			// UpdateCategoryByID -> id boyunca Category - in maglumatlaryny update etmek ucin ulanylyar
+			backCategoryApi.PUT("", controllers.UpdateCategoryByID)
 
 			// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
 			// backCategoryApi.GET(":id", controllers.GetBrendByID)

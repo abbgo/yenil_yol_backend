@@ -11,3 +11,10 @@ type Category struct {
 	UpdatedAt string `json:"-"`
 	DeletedAt string `json:"-"`
 }
+
+type CategoryUpdate struct {
+	ID     string `json:"id,omitempty" binding:"required"`
+	NameTM string `json:"name_tm,omitempty" binding:"required"`
+	NameRU string `json:"name_ru,omitempty" binding:"required"`
+	Image  string `json:"image,omitempty"`
+}
