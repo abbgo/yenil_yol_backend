@@ -24,22 +24,22 @@ func CreateCategory(c *gin.Context) {
 	defer db.Close()
 
 	// request body - dan gelen maglumatlar alynyar
-	var brend models.Brend
-	if err := c.BindJSON(&brend); err != nil {
+	var category models.Category
+	if err := c.BindJSON(&category); err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// eger request body - dan gelen surat bos bolsa database surata derek nil gosmaly
 	var image interface{}
-	if brend.Image == "" {
+	if category.Image == "" {
 		image = nil
 	} else {
-		image = brend.Image
+		image = category.Image
 	}
 
-	// eger maglumatlar dogry bolsa onda brends tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
-	_, err = db.Exec(context.Background(), "INSERT INTO brends (name,image,slug) VALUES ($1,$2,$3)", brend.Name, image, slug.MakeLang(brend.Name, "en"))
+	// eger maglumatlar dogry bolsa onda categories tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
+	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru) VALUES ($1,$2,$3,$4,$5)", category.NameTM, category.NameRU, image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -48,7 +48,7 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
-	// brend - yn maglumatlary gosulandan sonra helper_images tablisa shop ucin gosulan surat pozulyar
+	// brend - yn maglumatlary gosulandan sonra helper_images tablisa category ucin gosulan surat pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

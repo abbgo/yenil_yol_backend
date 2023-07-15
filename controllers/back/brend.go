@@ -53,7 +53,7 @@ func CreateBrend(c *gin.Context) {
 		return
 	}
 
-	// brend - yn maglumatlary gosulandan sonra helper_images tablisa shop ucin gosulan surat pozulyar
+	// brend - yn maglumatlary gosulandan sonra helper_images tablisa brend ucin gosulan surat pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
