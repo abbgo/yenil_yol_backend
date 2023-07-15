@@ -61,7 +61,10 @@ func Routes() *gin.Engine {
 		backApi.BrendRoutes(back)
 
 		// bu route - ler category - ler ucin doredilen rout - laryn toplumy
-		backApi.BrendCategories(back)
+		backApi.CategoryRoutes(back)
+
+		// bu route - ler saytyn sazlamalary ucin doredilen rout - laryn toplumy
+		backApi.SettingRoutes(back)
 	}
 
 	return routes

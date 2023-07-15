@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func BrendCategories(back *gin.RouterGroup) {
+func CategoryRoutes(back *gin.RouterGroup) {
 
 	backCategoryApi := back.Group("/categories")
 	{
