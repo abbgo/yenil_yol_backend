@@ -175,7 +175,8 @@ func GetBrendByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var brend models.Brend
-	if err := db.QueryRow(context.Background(), "SELECT id,name,image FROM brends WHERE id = $1 AND deleted_at IS NULL", brendID).Scan(&brend.ID, &brend.Name, &brend.Image); err != nil {
+	var brendImage sql.NullString
+	if err := db.QueryRow(context.Background(), "SELECT id,name,image FROM brends WHERE id = $1 AND deleted_at IS NULL", brendID).Scan(&brend.ID, &brend.Name, &brendImage); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
@@ -190,6 +191,10 @@ func GetBrendByID(c *gin.Context) {
 			"message": "record not found",
 		})
 		return
+	}
+
+	if brendImage.String != "" {
+		brend.Image = brendImage.String
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -300,12 +305,16 @@ func GetBrends(c *gin.Context) {
 	var brends []models.Brend
 	for rowsBrend.Next() {
 		var brend models.Brend
-		if err := rowsBrend.Scan(&brend.ID, &brend.Name, &brend.Image); err != nil {
+		var brendImage sql.NullString
+		if err := rowsBrend.Scan(&brend.ID, &brend.Name, &brendImage); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
 				"message": err.Error(),
 			})
 			return
+		}
+		if brendImage.String != "" {
+			brend.Image = brendImage.String
 		}
 		brends = append(brends, brend)
 	}
