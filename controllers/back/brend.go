@@ -251,8 +251,8 @@ func GetBrends(c *gin.Context) {
 	// limit we page boyunca offset hasaplanyar
 	offset := limit * (page - 1)
 
-	// request query - den shop status alynyar
-	// status -> shop pozulan ya-da pozulanmadygyny anlatyar
+	// request query - den brend status alynyar
+	// status -> brend pozulan ya-da pozulanmadygyny anlatyar
 	// true bolsa pozulan
 	// false bolsa pozulmadyk
 	statusQuery := c.DefaultQuery("status", "false")
@@ -287,21 +287,20 @@ func GetBrends(c *gin.Context) {
 	}
 
 	// database - den brend - lar alynyar
-	rowsShop, err := db.Query(context.Background(), rowQuery, limit, offset)
+	rowsBrend, err := db.Query(context.Background(), rowQuery, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
-			"error":   "yalnys 2",
 		})
 		return
 	}
-	defer rowsShop.Close()
+	defer rowsBrend.Close()
 
 	var brends []models.Brend
-	for rowsShop.Next() {
+	for rowsBrend.Next() {
 		var brend models.Brend
-		if err := rowsShop.Scan(&brend.ID, &brend.Name, &brend.Image); err != nil {
+		if err := rowsBrend.Scan(&brend.ID, &brend.Name, &brend.Image); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
 				"message": err.Error(),

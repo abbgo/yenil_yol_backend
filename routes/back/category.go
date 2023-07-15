@@ -21,9 +21,9 @@ func BrendCategories(back *gin.RouterGroup) {
 			// GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
 			backCategoryApi.GET(":id", controllers.GetCategoryByID)
 
-			// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
-			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-			// backCategoryApi.GET("", controllers.GetBrends)
+			// GetCategories -> Ahli Category - leryn maglumatlaryny request query - den gelen
+			// limit we page boyunca pagination ulanyp almak ucin ulanylyar
+			backCategoryApi.GET("", controllers.GetCategories)
 
 			// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
 			// backCategoryApi.DELETE(":id", controllers.DeleteBrendByID)
