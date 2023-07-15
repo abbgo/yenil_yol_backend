@@ -28,8 +28,8 @@ func BrendCategories(back *gin.RouterGroup) {
 			// DeleteCategoryByID -> id boyunca category - ni korzina salmak ucin ulanylyar
 			backCategoryApi.DELETE(":id", controllers.DeleteCategoryByID)
 
-			// // RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
-			// backCategoryApi.GET(":id/restore", controllers.RestoreBrendByID)
+			// RestoreCategoryByID -> id boyunca category - ni korzinadan cykarmak ucin ulanylyar
+			backCategoryApi.GET(":id/restore", controllers.RestoreCategoryByID)
 
 			// // DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
 			// backCategoryApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
