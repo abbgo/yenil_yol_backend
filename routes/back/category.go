@@ -18,8 +18,8 @@ func BrendCategories(back *gin.RouterGroup) {
 			// UpdateCategoryByID -> id boyunca Category - in maglumatlaryny update etmek ucin ulanylyar
 			backCategoryApi.PUT("", controllers.UpdateCategoryByID)
 
-			// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
-			// backCategoryApi.GET(":id", controllers.GetBrendByID)
+			// GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
+			backCategoryApi.GET(":id", controllers.GetCategoryByID)
 
 			// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
 			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar

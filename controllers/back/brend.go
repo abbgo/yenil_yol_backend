@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
@@ -173,7 +172,6 @@ func GetBrendByID(c *gin.Context) {
 
 	// request parametrden brend id alynyar
 	brendID := c.Param("id")
-	fmt.Println("brendID: ", brendID)
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var brend models.Brend
@@ -181,7 +179,6 @@ func GetBrendByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
-			"error":   "yalnys 1",
 		})
 		return
 	}
