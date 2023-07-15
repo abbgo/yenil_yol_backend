@@ -2,9 +2,12 @@ package controllers
 
 import (
 	"context"
+	"database/sql"
 	"github/abbgo/yenil_yol/backend/config"
+	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -60,6 +63,124 @@ func CreateSetting(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully added",
+	})
+
+}
+
+func UpdateSetting(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	defer db.Close()
+
+	// request body - dan gelen maglumatlar alynyar
+	var setting models.SettingUpdate
+	if err := c.BindJSON(&setting); err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
+	var oldLogo, oldFavicon sql.NullString
+	if err := db.QueryRow(context.Background(), "SELECT logo,favicon FROM settings WHERE deleted_at IS NULL").Scan(&oldLogo, &oldFavicon); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// eger database - de sol maglumat yok bolsa onda error return edilyar
+	if oldFavicon.String == "" {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "record not found",
+		})
+		return
+	}
+
+	// bu yerde logo ucin newLogo atly uytgeyan ululyk doredilyar
+	// eger request body - dan logo gelmese onda onki logo uytgedilmeyar diymek bolyar
+	// sonun ucin onki logany goyyas , eger request body - dan logo gelen bolsa
+	// onda taze logany kone logo bilen calysyas
+	var newLogo string
+	if setting.Logo == "" {
+		newLogo = oldLogo.String
+	} else {
+		if oldLogo.String != "" {
+			// sonra helper_images tablisadan logo ucin gosulan surat pozulyar
+			_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", oldLogo.String)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  false,
+					"message": err.Error(),
+				})
+				return
+			}
+
+			// surat papkadan pozulyar
+			if err := os.Remove(helpers.ServerPath + oldLogo.String); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  false,
+					"message": err.Error(),
+				})
+				return
+			}
+		}
+		newLogo = setting.Logo
+	}
+
+	// bu yerde favicon ucin newFavicon atly uytgeyan ululyk doredilyar
+	// eger request body - dan favicon gelmese onda onki favicon uytgedilmeyar diymek bolyar
+	// sonun ucin onki favicony goyyas , eger request body - dan favicon gelen bolsa
+	// onda taze favicony kone favicon bilen calysyas
+	var newFavicon string
+	if setting.Favicon == "" {
+		newFavicon = oldFavicon.String
+	} else {
+		if oldFavicon.String != "" {
+			// sonra helper_images tablisadan favicon ucin gosulan surat pozulyar
+			_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", oldFavicon.String)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  false,
+					"message": err.Error(),
+				})
+				return
+			}
+
+			// surat papkadan pozulyar
+			if err := os.Remove(helpers.ServerPath + oldFavicon.String); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  false,
+					"message": err.Error(),
+				})
+				return
+			}
+		}
+		newFavicon = setting.Favicon
+	}
+
+	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
+	_, err = db.Exec(context.Background(), "UPDATE settings SET logo=$1 , favicon=$2 , email=$3 , phone_number=$4", newLogo, newFavicon, setting.Email, setting.PhoneNumber)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully updated",
 	})
 
 }
