@@ -13,7 +13,7 @@ func SettingRoutes(back *gin.RouterGroup) {
 		{
 
 			// CreateCategory -> Category gosmak ulanylar
-			backSettingApi.POST("", controllers.CreateCategory)
+			backSettingApi.POST("", controllers.CreateSetting)
 
 			// // UpdateCategoryByID -> id boyunca Category - in maglumatlaryny update etmek ucin ulanylyar
 			// backSettingApi.PUT("", controllers.UpdateCategoryByID)
