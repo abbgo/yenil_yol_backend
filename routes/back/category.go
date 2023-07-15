@@ -25,8 +25,8 @@ func BrendCategories(back *gin.RouterGroup) {
 			// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 			backCategoryApi.GET("", controllers.GetCategories)
 
-			// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
-			// backCategoryApi.DELETE(":id", controllers.DeleteBrendByID)
+			// DeleteCategoryByID -> id boyunca category - ni korzina salmak ucin ulanylyar
+			backCategoryApi.DELETE(":id", controllers.DeleteCategoryByID)
 
 			// // RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
 			// backCategoryApi.GET(":id/restore", controllers.RestoreBrendByID)
