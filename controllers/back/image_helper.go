@@ -14,10 +14,7 @@ func AddOrUpdateImage(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -28,19 +25,13 @@ func AddOrUpdateImage(c *gin.Context) {
 	oldImage := c.PostForm("old_path")
 	if oldImage != "" {
 		if err := os.Remove(helpers.ServerPath + oldImage); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		_, err := db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", oldImage)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 	}
@@ -73,28 +64,19 @@ func AddOrUpdateImage(c *gin.Context) {
 		path = "shop"
 		file_name = "image"
 	default:
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "invalid image",
-		})
+		helpers.HandleError(c, 400, "invalid image")
 		return
 	}
 
 	image, err := helpers.FileUpload(file_name, path, "image", c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	_, err = db.Exec(context.Background(), "INSERT INTO helper_images (image) VALUES ($1)", image)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -113,55 +95,37 @@ func DeleteImage(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
 
 	var image DeleteImg
 	if err := c.Bind(&image); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	if image.Image == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "path of image is required",
-		})
+		helpers.HandleError(c, 400, "path of image is required")
 		return
 	}
 
 	var helperImageID string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM helper_images WHERE image = $1 AND deleted_at IS NULL", image.Image).Scan(&helperImageID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
 	if helperImageID != "" {
 		_, err := db.Exec(context.Background(), "DELETE FROM helper_images WHERE id = $1", helperImageID)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 	}
 
 	if err := os.Remove(helpers.ServerPath + image.Image); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
