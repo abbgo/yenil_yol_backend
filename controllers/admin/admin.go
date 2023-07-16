@@ -205,6 +205,7 @@ func GetAdmin(c *gin.Context) {
 	admin_id, ok := adminID.(string)
 	if !ok {
 		helpers.HandleError(c, 400, "adminID must be string")
+		return
 	}
 
 	adm, err := GetAdminByID(admin_id)

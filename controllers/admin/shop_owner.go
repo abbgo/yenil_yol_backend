@@ -19,10 +19,7 @@ func RegisterShopOwner(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -30,37 +27,27 @@ func RegisterShopOwner(c *gin.Context) {
 	// request - den gelen maglumatlar alynyar
 	var shopOwner models.ShopOwner
 	if err := c.BindJSON(&shopOwner); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// gelen maglumatlar barlanylyar
 	if err := models.ValidateShopOwner(shopOwner.PhoneNumber, "", true); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// parol hashlenyan
 	hashPassword, err := helpers.HashPassword(shopOwner.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// hemme zat yerbe yer bolsa maglumatlar shop_owners tablisa gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO shop_owners (full_name,phone_number,password,slug) VALUES ($1,$2,$3,$4)", shopOwner.FullName, shopOwner.PhoneNumber, hashPassword, slug.MakeLang(shopOwner.FullName, "en"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-			"error":   "1",
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -76,10 +63,7 @@ func LoginShopOwner(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -87,15 +71,12 @@ func LoginShopOwner(c *gin.Context) {
 	// request - den maglumatlar alynyar
 	var shopOwner models.ShopOwnerLogin
 	if err := c.BindJSON(&shopOwner); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	if !helpers.ValidatePhoneNumber(shopOwner.PhoneNumber) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": errors.New("invalid phone number"),
-		})
+		helpers.HandleError(c, 400, "invalid phone number")
 		return
 	}
 
@@ -103,60 +84,42 @@ func LoginShopOwner(c *gin.Context) {
 	var id, password string
 	row, err := db.Query(context.Background(), "SELECT id,password FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", shopOwner.PhoneNumber)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer row.Close()
 
 	for row.Next() {
 		if err := row.Scan(&id, &password); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 	}
 
 	// eger request - den gelen telefon belgili shop_owner database - de yok bolsa onda error response edilyar
 	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "this show_owner does not exist",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// eger shop_owner bar bolsa onda paroly dogry yazypdyrmy yazmandyrmy sol barlanyar
 	credentialError := helpers.CheckPassword(shopOwner.Password, password)
 	if credentialError != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "invalid credentials",
-		})
+		helpers.HandleError(c, 400, "invalid credentials")
 		return
 	}
 
 	// maglumatlar dogry bolsa auth ucin access_toke bilen resfresh_token generate edilyar
 	accessTokenString, refreshTokenString, err := helpers.GenerateAccessTokenForAdmin(shopOwner.PhoneNumber, id, false)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// front tarapa ugratmak ucin shop_owner - in id - si boyunca maglumatlary get edilyar
 	adm, err := GetShopOwnerByID(id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -203,10 +166,7 @@ func UpdateShopOwner(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -214,25 +174,19 @@ func UpdateShopOwner(c *gin.Context) {
 	// request body - den shop_owner - in maglumatlary alynyar
 	var shopOwner models.ShopOwnerUpdate
 	if err := c.BindJSON(&shopOwner); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	if models.ValidateShopOwner(shopOwner.PhoneNumber, shopOwner.ID, false); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger shop_owner database - de bar bolsa onda onun maglumatlary request body - dan gelen maglumatlar bilen update edilyar
 	_, err = db.Exec(context.Background(), "UPDATE shop_owners SET full_name = $1 , phone_number = $2 , slug = $3 WHERE id = $4", shopOwner.FullName, shopOwner.PhoneNumber, slug.MakeLang(shopOwner.FullName, "en"), shopOwner.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -247,10 +201,7 @@ func GetShopOwners(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -258,36 +209,24 @@ func GetShopOwners(c *gin.Context) {
 	// request parametr - den limit alynyar
 	limitStr := c.Query("limit")
 	if limitStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "limit is required",
-		})
+		helpers.HandleError(c, 400, "limit is required")
 		return
 	}
 	limit, err := strconv.ParseUint(limitStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// // request parametr - den page alynyar
 	pageStr := c.Query("page")
 	if pageStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "page is required",
-		})
+		helpers.HandleError(c, 400, "page is required")
 		return
 	}
 	page, err := strconv.ParseUint(pageStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -297,10 +236,7 @@ func GetShopOwners(c *gin.Context) {
 	// database - den shop_owner - lerin sany alynyar
 	countOfShopOwners := 0
 	if err := db.QueryRow(context.Background(), "SELECT COUNT(id) FROM shop_owners WHERE deleted_at IS NULL").Scan(&countOfShopOwners); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -308,10 +244,7 @@ func GetShopOwners(c *gin.Context) {
 	var shopOwners []models.ShopOwner
 	rowsShopOwner, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowsShopOwner.Close()
@@ -319,10 +252,7 @@ func GetShopOwners(c *gin.Context) {
 	for rowsShopOwner.Next() {
 		var shopOwner models.ShopOwner
 		if err := rowsShopOwner.Scan(&shopOwner.FullName, &shopOwner.PhoneNumber); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 		shopOwners = append(shopOwners, shopOwner)
@@ -340,22 +270,20 @@ func GetShopOwner(c *gin.Context) {
 
 	shopOwnerID, hasID := c.Get("shop_owner_id")
 	if !hasID {
-		c.JSON(http.StatusBadRequest, "shopOwnerID is required")
+		helpers.HandleError(c, 400, "shopOwnerID is required")
 		return
 	}
 
 	var ok bool
 	shopOwner_id, ok := shopOwnerID.(string)
 	if !ok {
-		c.JSON(http.StatusBadRequest, "shopOwnerID must be uint")
+		helpers.HandleError(c, 400, "shopOwnerID must be string")
+		return
 	}
 
 	adm, err := GetShopOwnerByID(shopOwner_id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -370,10 +298,7 @@ func DeleteShopOwnerByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -384,29 +309,20 @@ func DeleteShopOwnerByID(c *gin.Context) {
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 400, "record not found")
 		return
 	}
 
 	// hemme zat dogry bolsa shop_owner - in we sol shop_owner - a degisli shops - laryn deleted_at - ine current_time goyulyar
 	_, err = db.Exec(context.Background(), "CALL delete_shop_owner($1)", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -422,10 +338,7 @@ func RestoreShopOwnerByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -436,29 +349,20 @@ func RestoreShopOwnerByID(c *gin.Context) {
 	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database sol id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// hemme zat dogry bolsa maglumat restore edilyar
 	_, err = db.Exec(context.Background(), "CALL restore_shop_owner($1)", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -474,10 +378,7 @@ func DeletePermanentlyShopOwnerByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -488,10 +389,7 @@ func DeletePermanentlyShopOwnerByID(c *gin.Context) {
 	// database - de gelen id degisli maglumat barmy sol barlanyar
 	rowShopOwner, err := db.Query(context.Background(), "SELECT so.id,s.image FROM shop_owners so INNER JOIN shops s ON s.shop_owner_id = so.id WHERE so.id = $1 AND so.deleted_at IS NOT NULL", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	var id string
@@ -499,10 +397,7 @@ func DeletePermanentlyShopOwnerByID(c *gin.Context) {
 	for rowShopOwner.Next() {
 		var shopImage string
 		if err := rowShopOwner.Scan(&id, &shopImage); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 		shopImages = append(shopImages, shopImage)
@@ -510,20 +405,14 @@ func DeletePermanentlyShopOwnerByID(c *gin.Context) {
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// eger maglumat bar bolsa sonda shop - yn suratlaryny papkadan pozulyar
 	for _, v := range shopImages {
 		if err := os.Remove(helpers.ServerPath + v); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 	}
@@ -531,20 +420,14 @@ func DeletePermanentlyShopOwnerByID(c *gin.Context) {
 	// shop - yn suraty pozulandan sonra database - den shop - lar pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM shops WHERE shop_owner_id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// shop - lar pozulandan sonra shop_owner database - den pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM shop_owners WHERE id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
