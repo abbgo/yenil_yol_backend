@@ -19,10 +19,7 @@ func CreateCategory(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -30,7 +27,7 @@ func CreateCategory(c *gin.Context) {
 	// request body - dan gelen maglumatlar alynyar
 	var category models.Category
 	if err := c.BindJSON(&category); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -45,20 +42,14 @@ func CreateCategory(c *gin.Context) {
 	// eger maglumatlar dogry bolsa onda categories tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
 	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru) VALUES ($1,$2,$3,$4,$5)", category.NameTM, category.NameRU, image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// brend - yn maglumatlary gosulandan sonra helper_images tablisa category ucin gosulan surat pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -74,10 +65,7 @@ func UpdateCategoryByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -85,7 +73,7 @@ func UpdateCategoryByID(c *gin.Context) {
 	// request body - dan gelen maglumatlar alynyar
 	var category models.CategoryUpdate
 	if err := c.BindJSON(&category); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -93,19 +81,13 @@ func UpdateCategoryByID(c *gin.Context) {
 	var categoryID string
 	var oldCategoryImage sql.NullString
 	if err := db.QueryRow(context.Background(), "SELECT id,image FROM categories WHERE id = $1 AND deleted_at IS NULL", category.ID).Scan(&categoryID, &oldCategoryImage); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de sol maglumat yok bolsa onda error return edilyar
 	if categoryID == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
@@ -120,20 +102,14 @@ func UpdateCategoryByID(c *gin.Context) {
 		// sonra helper_images tablisa category ucin gosulan surat pozulyar
 		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", category.Image)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		if oldCategoryImage.String != "" {
 			// surat papkadan pozulyar
 			if err := os.Remove(helpers.ServerPath + oldCategoryImage.String); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"status":  false,
-					"message": err.Error(),
-				})
+				helpers.HandleError(c, 400, err.Error())
 				return
 			}
 		}
@@ -143,10 +119,7 @@ func UpdateCategoryByID(c *gin.Context) {
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
 	_, err = db.Exec(context.Background(), "UPDATE categories SET name_tm=$1 , name_ru=$2 , image=$3 , slug_tm=$4 , slug_ru=$5 WHERE id=$6", category.NameTM, category.NameRU, fileName, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -162,10 +135,7 @@ func GetCategoryByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -177,19 +147,13 @@ func GetCategoryByID(c *gin.Context) {
 	var category models.Category
 	var categoryImage sql.NullString
 	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,image FROM categories WHERE id = $1 AND deleted_at IS NULL", categoryID).Scan(&category.ID, &category.NameTM, &categoryImage); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if category.ID == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
@@ -209,10 +173,7 @@ func GetCategories(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -220,36 +181,24 @@ func GetCategories(c *gin.Context) {
 	// request parametr - den limit alynyar
 	limitStr := c.Query("limit")
 	if limitStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "limit is required",
-		})
+		helpers.HandleError(c, 400, "limit is required")
 		return
 	}
 	limit, err := strconv.ParseUint(limitStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// request parametr - den page alynyar
 	pageStr := c.Query("page")
 	if pageStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "page is required",
-		})
+		helpers.HandleError(c, 400, "page is required")
 		return
 	}
 	page, err := strconv.ParseUint(pageStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -263,10 +212,7 @@ func GetCategories(c *gin.Context) {
 	statusQuery := c.DefaultQuery("status", "false")
 	status, err := strconv.ParseBool(statusQuery)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -278,10 +224,7 @@ func GetCategories(c *gin.Context) {
 	// database - den category - laryn sany alynyar
 	var countOfCategories uint
 	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfCategories); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -294,10 +237,7 @@ func GetCategories(c *gin.Context) {
 	// database - den brend - lar alynyar
 	rowsCategory, err := db.Query(context.Background(), rowQuery, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowsCategory.Close()
@@ -307,10 +247,7 @@ func GetCategories(c *gin.Context) {
 		var category models.Category
 		var categoryImage sql.NullString
 		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &categoryImage); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 		if categoryImage.String != "" {
@@ -332,10 +269,7 @@ func DeleteCategoryByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -346,29 +280,20 @@ func DeleteCategoryByID(c *gin.Context) {
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM categories WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// hemme zat dogry bolsa shop we sol category - nin deleted_at - ine current_time goyulyar
 	_, err = db.Exec(context.Background(), "UPDATE categories SET deleted_at = NOW() WHERE id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -384,10 +309,7 @@ func RestoreCategoryByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -398,29 +320,20 @@ func RestoreCategoryByID(c *gin.Context) {
 	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM categories WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database sol id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// hemme zat dogry bolsa category restore edilyar
 	_, err = db.Exec(context.Background(), "UPDATE categories SET deleted_at = NULL WHERE id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -436,10 +349,7 @@ func DeletePermanentlyCategoryByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -451,29 +361,20 @@ func DeletePermanentlyCategoryByID(c *gin.Context) {
 	var id string
 	var image sql.NullString
 	if err := db.QueryRow(context.Background(), "SELECT id,image FROM categories WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de gelen id degisli category yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// eger shop bar bolsa sonda category - nin suraty papkadan pozulyar
 	if image.String != "" {
 		if err := os.Remove(helpers.ServerPath + image.String); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 	}
@@ -481,10 +382,7 @@ func DeletePermanentlyCategoryByID(c *gin.Context) {
 	// brend - in suraty pozulandan sonra database - den category pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM categories WHERE id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
