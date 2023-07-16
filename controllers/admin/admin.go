@@ -32,31 +32,21 @@ func RegisterAdmin(c *gin.Context) {
 	}
 
 	if err := models.ValidateAdmin(admin.PhoneNumber, "", true); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// parol hashlenyan
 	hashPassword, err := helpers.HashPassword(admin.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// hemme zat yerbe yer bolsa maglumatlar shop_owners tablisa gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO admins (full_name,phone_number,password,is_super_admin) VALUES ($1,$2,$3,$4)", admin.FullName, admin.PhoneNumber, hashPassword, admin.IsSuperAdmin)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-			"error":   "1",
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -72,10 +62,7 @@ func LoginAdmin(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -83,15 +70,12 @@ func LoginAdmin(c *gin.Context) {
 	// request - den maglumatlar alynyar
 	var admin models.ShopOwnerLogin
 	if err := c.BindJSON(&admin); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	if !helpers.ValidatePhoneNumber(admin.PhoneNumber) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": errors.New("invalid phone number"),
-		})
+		helpers.HandleError(c, 400, "invalid phone number")
 		return
 	}
 
@@ -99,49 +83,34 @@ func LoginAdmin(c *gin.Context) {
 	var id, password string
 	var is_super_admin bool
 	if err := db.QueryRow(context.Background(), "SELECT id,password,is_super_admin FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", admin.PhoneNumber).Scan(&id, &password, &is_super_admin); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger request - den gelen telefon belgili admin database - de yok bolsa onda error response edilyar
 	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "this admin does not exist",
-		})
+		helpers.HandleError(c, 404, "this admin does not exist")
 		return
 	}
 
 	// eger shop_owner bar bolsa onda paroly dogry yazypdyrmy yazmandyrmy sol barlanyar
 	credentialError := helpers.CheckPassword(admin.Password, password)
 	if credentialError != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "invalid credentials",
-		})
+		helpers.HandleError(c, 400, "invalid credentials")
 		return
 	}
 
 	// maglumatlar dogry bolsa auth ucin access_toke bilen resfresh_token generate edilyar
 	accessTokenString, refreshTokenString, err := helpers.GenerateAccessTokenForAdmin(admin.PhoneNumber, id, is_super_admin)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// front tarapa ugratmak ucin admin - in id - si boyunca maglumatlary get edilyar
 	adm, err := GetAdminByID(id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -188,10 +157,7 @@ func UpdateAdmin(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -199,32 +165,24 @@ func UpdateAdmin(c *gin.Context) {
 	// request body - den admin - in maglumatlary alynyar
 	var admin models.AdminUpdate
 	if err := c.BindJSON(&admin); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	if err := models.ValidateAdmin(admin.PhoneNumber, admin.ID, false); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
+		return
 	}
 
 	if !helpers.ValidatePhoneNumber(admin.PhoneNumber) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": errors.New("invalid phone number"),
-		})
+		helpers.HandleError(c, 400, "invalid phone number")
 		return
 	}
 
 	// eger admin database - de bar bolsa onda onun maglumatlary request body - dan gelen maglumatlar bilen update edilyar
 	_, err = db.Exec(context.Background(), "UPDATE admins SET full_name = $1 , phone_number = $2 , is_super_admin = $3 WHERE id = $4", admin.FullName, admin.PhoneNumber, admin.IsSuperAdmin, admin.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -239,22 +197,19 @@ func GetAdmin(c *gin.Context) {
 
 	adminID, hasID := c.Get("admin_id")
 	if !hasID {
-		c.JSON(http.StatusBadRequest, "adminID is required")
+		helpers.HandleError(c, 400, "adminID is required")
 		return
 	}
 
 	var ok bool
 	admin_id, ok := adminID.(string)
 	if !ok {
-		c.JSON(http.StatusBadRequest, "adminID must be uint")
+		helpers.HandleError(c, 400, "adminID must be string")
 	}
 
 	adm, err := GetAdminByID(admin_id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -268,10 +223,7 @@ func GetAdmins(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -279,36 +231,24 @@ func GetAdmins(c *gin.Context) {
 	// request parametr - den limit alynyar
 	limitStr := c.Query("limit")
 	if limitStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "limit is required",
-		})
+		helpers.HandleError(c, 400, "limit is required")
 		return
 	}
 	limit, err := strconv.ParseUint(limitStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// // request parametr - den page alynyar
 	pageStr := c.Query("page")
 	if pageStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "page is required",
-		})
+		helpers.HandleError(c, 400, "page is required")
 		return
 	}
 	page, err := strconv.ParseUint(pageStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -318,10 +258,7 @@ func GetAdmins(c *gin.Context) {
 	// database - den admin - lerin sany alynyar
 	countOfAdmins := 0
 	if err := db.QueryRow(context.Background(), "SELECT COUNT(id) FROM admins WHERE deleted_at IS NULL").Scan(&countOfAdmins); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -329,10 +266,7 @@ func GetAdmins(c *gin.Context) {
 	var admins []models.Admin
 	rowsAdmin, err := db.Query(context.Background(), "SELECT full_name,phone_number,is_super_admin FROM admins WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowsAdmin.Close()
@@ -340,10 +274,7 @@ func GetAdmins(c *gin.Context) {
 	for rowsAdmin.Next() {
 		var admin models.Admin
 		if err := rowsAdmin.Scan(&admin.FullName, &admin.PhoneNumber, &admin.IsSuperAdmin); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 		admins = append(admins, admin)
@@ -362,10 +293,7 @@ func DeleteAdminByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -376,29 +304,20 @@ func DeleteAdminByID(c *gin.Context) {
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// hemme zat dogry bolsa admin - in  deleted_at - ine current_time goyulyar
 	_, err = db.Exec(context.Background(), "UPDATE admins SET deleted_at=NOW() WHERE id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -414,10 +333,7 @@ func RestoreAdminByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -428,29 +344,20 @@ func RestoreAdminByID(c *gin.Context) {
 	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database sol id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// hemme zat dogry bolsa maglumat restore edilyar
 	_, err = db.Exec(context.Background(), "UPDATE admins SET deleted_at=NULL WHERE id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -466,10 +373,7 @@ func DeletePermanentlyAdminByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -480,29 +384,20 @@ func DeletePermanentlyAdminByID(c *gin.Context) {
 	// database - de gelen id degisli maglumat barmy sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// pozulandan sonra admin database - den pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM admins WHERE id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -517,10 +412,7 @@ func UpdateAdminPassword(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -528,49 +420,34 @@ func UpdateAdminPassword(c *gin.Context) {
 	// request body - den maglumatlar alynyar
 	var admin models.AdminUpdatePassword
 	if err := c.BindJSON(&admin); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var admin_id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", admin.ID).Scan(&admin_id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger gelen id den bolan maglumat database - de yok bolsa error return edilyar
 	if admin_id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "admin not found",
-		})
+		helpers.HandleError(c, 404, "admin not found")
 		return
 	}
 
 	// maglumat bar bolsa admin - in taze paroly hashlenyar
 	hashPassword, err := helpers.HashPassword(admin.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// taze parol kone parol bilen calsylyar
 	_, err = db.Exec(context.Background(), "UPDATE admins SET password = $1 WHERE id = $2", hashPassword, admin.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
