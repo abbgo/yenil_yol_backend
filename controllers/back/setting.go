@@ -17,10 +17,7 @@ func CreateSetting(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -28,35 +25,26 @@ func CreateSetting(c *gin.Context) {
 	// request body - dan gelen maglumatlar alynyar
 	var setting models.Setting
 	if err := c.BindJSON(&setting); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	if err := models.ValidateSetting(setting.PhoneNumber, setting.Email); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger maglumatlar dogry bolsa onda brends tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
 	_, err = db.Exec(context.Background(), "INSERT INTO settings (logo,favicon,email,phone_number) VALUES ($1,$2,$3,$4)", setting.Logo, setting.Favicon, setting.Email, setting.PhoneNumber)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// setting - yn maglumatlary gosulandan sonra helper_images tablisa setting ucin gosulan surat pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1 OR image =$2", setting.Logo, setting.Favicon)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -72,10 +60,7 @@ func UpdateSetting(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -83,26 +68,20 @@ func UpdateSetting(c *gin.Context) {
 	// request body - dan gelen maglumatlar alynyar
 	var setting models.SettingUpdate
 	if err := c.BindJSON(&setting); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var oldLogo, oldFavicon sql.NullString
 	if err := db.QueryRow(context.Background(), "SELECT logo,favicon FROM settings WHERE deleted_at IS NULL").Scan(&oldLogo, &oldFavicon); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de sol maglumat yok bolsa onda error return edilyar
 	if oldFavicon.String == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
@@ -117,20 +96,14 @@ func UpdateSetting(c *gin.Context) {
 		// sonra helper_images tablisadan logo ucin gosulan surat pozulyar
 		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", setting.Logo)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		if oldLogo.String != "" {
 			// surat papkadan pozulyar
 			if err := os.Remove(helpers.ServerPath + oldLogo.String); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"status":  false,
-					"message": err.Error(),
-				})
+				helpers.HandleError(c, 400, err.Error())
 				return
 			}
 		}
@@ -148,20 +121,14 @@ func UpdateSetting(c *gin.Context) {
 		// sonra helper_images tablisadan favicon ucin gosulan surat pozulyar
 		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", setting.Favicon)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		if oldFavicon.String != "" {
 			// surat papkadan pozulyar
 			if err := os.Remove(helpers.ServerPath + oldFavicon.String); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"status":  false,
-					"message": err.Error(),
-				})
+				helpers.HandleError(c, 400, err.Error())
 				return
 			}
 		}
@@ -171,10 +138,7 @@ func UpdateSetting(c *gin.Context) {
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
 	_, err = db.Exec(context.Background(), "UPDATE settings SET logo=$1 , favicon=$2 , email=$3 , phone_number=$4", newLogo, newFavicon, setting.Email, setting.PhoneNumber)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
