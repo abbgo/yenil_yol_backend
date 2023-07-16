@@ -38,10 +38,7 @@ func CreateShop(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -49,15 +46,12 @@ func CreateShop(c *gin.Context) {
 	// request body - dan gelen maglumatlar alynyar
 	var shop models.Shop
 	if err := c.BindJSON(&shop); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, true, ""); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -72,30 +66,21 @@ func CreateShop(c *gin.Context) {
 	// eger maglumatlar dogry bolsa onda shops tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
 	var shop_id string
 	if err = db.QueryRow(context.Background(), "INSERT INTO shops (name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_delivery,shop_owner_id,slug_tm,slug_ru,order_number) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, image, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber).Scan(&shop_id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// shop_phones tablisa maglumat gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO shop_phones (phone_number,shop_id) VALUES (unnest($1::varchar[]),$2)", pq.Array(shop.ShopPhones), shop_id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// shop - yn maglumatlary gosulandan sonra helper_images tablisa shop ucin gosulan surat pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -111,10 +96,7 @@ func UpdateShopByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -122,25 +104,19 @@ func UpdateShopByID(c *gin.Context) {
 	// request body - dan gelen maglumatlar alynyar
 	var shop models.Shop
 	if err := c.BindJSON(&shop); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, false, shop.ID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	rowShop, err := db.Query(context.Background(), "SELECT id,image FROM shops WHERE id = $1 AND deleted_at IS NULL", shop.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowShop.Close()
@@ -148,20 +124,14 @@ func UpdateShopByID(c *gin.Context) {
 	var oldShopImage, shopID string
 	for rowShop.Next() {
 		if err := rowShop.Scan(&shopID, &oldShopImage); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 	}
 
 	// eger database - de sol maglumat yok bolsa onda error return edilyar
 	if shopID == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "shop not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
@@ -176,20 +146,14 @@ func UpdateShopByID(c *gin.Context) {
 		// sonra helper_images tablisa shop ucin gosulan surat pozulyar
 		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", shop.Image)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		if oldShopImage != "" {
 			// surat papkadan pozulyar
 			if err := os.Remove(helpers.ServerPath + oldShopImage); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"status":  false,
-					"message": err.Error(),
-				})
+				helpers.HandleError(c, 400, err.Error())
 				return
 			}
 		}
@@ -199,30 +163,21 @@ func UpdateShopByID(c *gin.Context) {
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
 	_, err = db.Exec(context.Background(), "UPDATE shops SET name_tm=$1 , name_ru=$2 , address_tm=$3 , address_ru=$4 , latitude=$5 , longitude=$6 , image=$7 , has_delivery=$8 , shop_owner_id=$9 , slug_tm=$10 , slug_ru=$11 , order_number=$12 WHERE id=$13", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, fileName, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// shop - yn onli nomerleri pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM shop_phones WHERE shop_id = $1", shop.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// shop_phones tablisa maglumat gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO shop_phones (phone_number,shop_id) VALUES (unnest($1::varchar[]),$2)", pq.Array(shop.ShopPhones), shop.ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -238,10 +193,7 @@ func GetShopByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -252,10 +204,7 @@ func GetShopByID(c *gin.Context) {
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	rowShop, err := db.Query(context.Background(), "SELECT s.id,s.name_tm,s.name_ru,s.address_tm,s.address_ru,s.latitude,s.longitude,s.image,s.has_delivery,s.shop_owner_id,sp.id,sp.phone_number FROM shops s INNER JOIN shop_phones sp ON sp.shop_id = s.id WHERE s.id = $1 AND s.deleted_at IS NULL AND sp.deleted_at IS NULL", shopID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowShop.Close()
@@ -265,11 +214,7 @@ func GetShopByID(c *gin.Context) {
 	for rowShop.Next() {
 		var shopPhone models.ShopPhone
 		if err := rowShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shopImage, &shop.HasDelivery, &shop.ShopOwnerID, &shopPhone.ID, &shopPhone.PhoneNumber); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-				"error":   "yalnys bar",
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 		if shopImage.String != "" {
@@ -280,10 +225,7 @@ func GetShopByID(c *gin.Context) {
 
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if shop.ID == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
@@ -299,10 +241,7 @@ func GetShops(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -310,36 +249,24 @@ func GetShops(c *gin.Context) {
 	// request parametr - den limit alynyar
 	limitStr := c.Query("limit")
 	if limitStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "limit is required",
-		})
+		helpers.HandleError(c, 400, "limit is required")
 		return
 	}
 	limit, err := strconv.ParseUint(limitStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// request parametr - den page alynyar
 	pageStr := c.Query("page")
 	if pageStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": "page is required",
-		})
+		helpers.HandleError(c, 400, "page is required")
 		return
 	}
 	page, err := strconv.ParseUint(pageStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -356,10 +283,7 @@ func GetShops(c *gin.Context) {
 	statusQuery := c.DefaultQuery("status", "false")
 	status, err := strconv.ParseBool(statusQuery)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -376,10 +300,7 @@ func GetShops(c *gin.Context) {
 	// database - den shop - laryn sany alynyar
 	var countOfShops uint
 	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfShops); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -398,11 +319,7 @@ func GetShops(c *gin.Context) {
 	// database - den shop - lar alynyar
 	rowsShop, err := db.Query(context.Background(), rowQuery, limit, offset)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-			"error":   "yalnys 2",
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowsShop.Close()
@@ -412,10 +329,7 @@ func GetShops(c *gin.Context) {
 		var shop ResponseShop
 		var shopImage sql.NullString
 		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shopImage); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  false,
-				"message": err.Error(),
-			})
+			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 		if shopImage.String != "" {
@@ -437,10 +351,7 @@ func DeleteShopByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -451,30 +362,20 @@ func DeleteShopByID(c *gin.Context) {
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM shops WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// hemme zat dogry bolsa shop we sol shop - yn we sol shop - a degisli shop_phones tablisalaryn deleted_at - ine current_time goyulyar
 	_, err = db.Exec(context.Background(), "CALL delete_shop($1)", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-			"error":   "yalnys bar",
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -490,10 +391,7 @@ func RestoreShopByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -504,29 +402,20 @@ func RestoreShopByID(c *gin.Context) {
 	// alynan id den bolan shop database - de barmy ya yok sol barlanyar
 	var id string
 	if err := db.QueryRow(context.Background(), "SELECT id FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database sol id degisli shop yok bolsa error return edilyar
 	if id == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// hemme zat dogry bolsa shop restore edilyar
 	_, err = db.Exec(context.Background(), "CALL restore_shop($1)", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
@@ -542,10 +431,7 @@ func DeletePermanentlyShopByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -556,38 +442,26 @@ func DeletePermanentlyShopByID(c *gin.Context) {
 	// database - de gelen id degisli maglumat barmy sol barlanyar
 	var image string
 	if err := db.QueryRow(context.Background(), "SELECT image FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&image); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// eger database - de gelen id degisli shop yok bolsa error return edilyar
 	if image == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "record not found",
-		})
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// eger shop bar bolsa sonda shop - yn suraty papkadan pozulyar
 	if err := os.Remove(helpers.ServerPath + image); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// shop - yn suraty pozulandan sonra database - den shop pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM shops WHERE id = $1", ID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
