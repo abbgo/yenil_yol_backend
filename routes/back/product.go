@@ -21,9 +21,9 @@ func ProductRoutes(back *gin.RouterGroup) {
 			// GetProductByID -> id - si boyunca Product - yn maglumatlaryny almak ucin ulanylyar
 			backProductApi.GET(":id", controllers.GetProductByID)
 
-			// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
-			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-			// backProductApi.GET("", controllers.GetBrends)
+			// GetProducts -> Ahli Product - leryn maglumatlaryny request query - den gelen
+			// limit we page boyunca pagination ulanyp almak ucin ulanylyar
+			backProductApi.GET("", controllers.GetProducts)
 
 			// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
 			// backProductApi.DELETE(":id", controllers.DeleteBrendByID)
