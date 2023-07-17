@@ -8,31 +8,31 @@ import (
 
 func TranslationPagesRoutes(back *gin.RouterGroup) {
 
-	backTrpageApi := back.Group("/translation-page")
+	backPageTrApi := back.Group("/page-translations")
 	{
 		{
 
-			// CreatePage -> Page gosmak ulanylar
-			backTrpageApi.POST("", controllers.CreatePage)
+			// CreateTranslationPage -> TranslationPage gosmak ulanylar
+			backPageTrApi.POST("", controllers.CreatePageTr)
 
 			// // UpdatePageByID -> id boyunca Page - in maglumatlaryny update etmek ucin ulanylyar
-			// backTrpageApi.PUT("", controllers.UpdatePageByID)
+			// backPageTrApi.PUT("", controllers.UpdatePageByID)
 
 			// // GetPageByID -> id - si boyunca pAGE - in maglumatlaryny almak ucin ulanylyar
-			// backTrpageApi.GET(":id", controllers.GetPageByID)
+			// backPageTrApi.GET(":id", controllers.GetPageByID)
 
 			// // GetPages -> Ahli Page - leryn maglumatlaryny request query - den gelen
 			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-			// backTrpageApi.GET("", controllers.GetPages)
+			// backPageTrApi.GET("", controllers.GetPages)
 
 			// // DeletePageByID -> id boyunca page - i korzina salmak ucin ulanylyar
-			// backTrpageApi.DELETE(":id", controllers.DeletePageByID)
+			// backPageTrApi.DELETE(":id", controllers.DeletePageByID)
 
 			// // RestorePageByID -> id boyunca page - i korzinadan cykarmak ucin ulanylyar
-			// backTrpageApi.GET(":id/restore", controllers.RestorePageByID)
+			// backPageTrApi.GET(":id/restore", controllers.RestorePageByID)
 
 			// // DeletePermanentlyPageByID -> id boyunca page - i doly (korzinadan) pozmak ucin ulanylyar
-			// backTrpageApi.DELETE(":id/delete", controllers.DeletePermanentlyPageByID)
+			// backPageTrApi.DELETE(":id/delete", controllers.DeletePermanentlyPageByID)
 
 		}
 	}
