@@ -65,6 +65,9 @@ func Routes() *gin.Engine {
 
 		// bu route - ler saytyn sazlamalary ucin doredilen rout - laryn toplumy
 		backApi.SettingRoutes(back)
+
+		// bu route - ler product ucin doredilen rout - laryn toplumy
+		backApi.ProductRoutes(back)
 	}
 
 	return routes
