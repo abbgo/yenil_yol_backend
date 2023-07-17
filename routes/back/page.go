@@ -12,8 +12,8 @@ func PagesRoutes(back *gin.RouterGroup) {
 	{
 		{
 
-			// CreateBrend -> Brend gosmak ulanylar
-			backBrendApi.POST("", controllers.CreateBrend)
+			// CreatePage -> Page gosmak ulanylar
+			backBrendApi.POST("", controllers.CreatePage)
 
 			// // UpdateBrendByID -> id boyunca Brend - in maglumatlaryny update etmek ucin ulanylyar
 			// backBrendApi.PUT("", controllers.UpdateBrendByID)

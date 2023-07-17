@@ -39,7 +39,7 @@ func CreateBrend(c *gin.Context) {
 		image = brend.Image
 	}
 
-	// eger maglumatlar dogry bolsa onda brends tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
+	// eger maglumatlar dogry bolsa onda brends tablisa maglumatlar gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO brends (name,image,slug) VALUES ($1,$2,$3)", brend.Name, image, slug.MakeLang(brend.Name, "en"))
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
