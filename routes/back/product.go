@@ -25,8 +25,8 @@ func ProductRoutes(back *gin.RouterGroup) {
 			// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 			backProductApi.GET("", controllers.GetProducts)
 
-			// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
-			// backProductApi.DELETE(":id", controllers.DeleteBrendByID)
+			// DeleteProductByID -> id boyunca product - y korzina salmak ucin ulanylyar
+			backProductApi.DELETE(":id", controllers.DeleteProductByID)
 
 			// // RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
 			// backProductApi.GET(":id/restore", controllers.RestoreBrendByID)

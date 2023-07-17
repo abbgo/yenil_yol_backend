@@ -299,3 +299,43 @@ func GetProducts(c *gin.Context) {
 	})
 
 }
+
+func DeleteProductByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den product id alynyar
+	ID := c.Param("id")
+
+	// gelen id den bolan maglumat database - de barmy sol barlanyar
+	var id string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM products WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
+	if id == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	// hemme zat dogry bolsa shop we sol brend - in deleted_at - ine current_time goyulyar
+	_, err = db.Exec(context.Background(), "UPDATE products SET deleted_at = NOW() WHERE id = $1", ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully deleted",
+	})
+
+}
