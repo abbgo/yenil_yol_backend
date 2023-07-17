@@ -21,9 +21,9 @@ func PagesRoutes(back *gin.RouterGroup) {
 			// GetPageByID -> id - si boyunca pAGE - in maglumatlaryny almak ucin ulanylyar
 			backBrendApi.GET(":id", controllers.GetPageByID)
 
-			// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
-			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-			// backBrendApi.GET("", controllers.GetBrends)
+			// GetPages -> Ahli Page - leryn maglumatlaryny request query - den gelen
+			// limit we page boyunca pagination ulanyp almak ucin ulanylyar
+			backBrendApi.GET("", controllers.GetPages)
 
 			// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
 			// backBrendApi.DELETE(":id", controllers.DeleteBrendByID)

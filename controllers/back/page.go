@@ -8,6 +8,7 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -162,6 +163,102 @@ func GetPageByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
 		"page":   page,
+	})
+
+}
+
+func GetPages(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den limit alynyar
+	limitStr := c.Query("limit")
+	if limitStr == "" {
+		helpers.HandleError(c, 400, "limit is required")
+		return
+	}
+	limit, err := strconv.ParseUint(limitStr, 10, 64)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// request parametr - den page alynyar
+	pageStr := c.Query("page")
+	if pageStr == "" {
+		helpers.HandleError(c, 400, "page is required")
+		return
+	}
+	page, err := strconv.ParseUint(pageStr, 10, 64)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := limit * (page - 1)
+
+	// request query - den page status alynyar
+	// status -> page pozulan ya-da pozulanmadygyny anlatyar
+	// true bolsa pozulan
+	// false bolsa pozulmadyk
+	statusQuery := c.DefaultQuery("status", "false")
+	status, err := strconv.ParseBool(statusQuery)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// request query - den status - a gora page - leryn sanyny almak ucin query yazylyar
+	queryCount := `SELECT COUNT(id) FROM pages WHERE deleted_at IS NULL`
+	if status {
+		queryCount = `SELECT COUNT(id) FROM brends WHERE deleted_at IS NOT NULL`
+	}
+	// database - den page - laryn sany alynyar
+	var countOfPages uint
+	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfPages); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// request query - den status - a gora page - lary almak ucin query yazylyar
+	rowQuery := `SELECT id,name,image FROM pages WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	if status {
+		rowQuery = `SELECT id,name,image FROM pages WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	}
+
+	// database - den brend - lar alynyar
+	rowsPage, err := db.Query(context.Background(), rowQuery, limit, offset)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsPage.Close()
+
+	var pages []models.Page
+	for rowsPage.Next() {
+		var page models.Page
+		var pageImage sql.NullString
+		if err := rowsPage.Scan(&page.ID, &page.Name, &pageImage); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		if pageImage.String != "" {
+			page.Image = pageImage.String
+		}
+		pages = append(pages, page)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true,
+		"pages":  pages,
+		"total":  countOfPages,
 	})
 
 }
