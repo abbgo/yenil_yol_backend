@@ -371,7 +371,7 @@ func DeletePermanentlyBrendByID(c *gin.Context) {
 		return
 	}
 
-	// eger shop bar bolsa sonda brend - in suraty papkadan pozulyar
+	// eger brend bar bolsa sonda brend - in suraty papkadan pozulyar
 	if image.String != "" {
 		if err := os.Remove(helpers.ServerPath + image.String); err != nil {
 			helpers.HandleError(c, 400, err.Error())

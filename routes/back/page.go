@@ -31,8 +31,8 @@ func PagesRoutes(back *gin.RouterGroup) {
 			// RestorePageByID -> id boyunca page - i korzinadan cykarmak ucin ulanylyar
 			backBrendApi.GET(":id/restore", controllers.RestorePageByID)
 
-			// // DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
-			// backBrendApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
+			// DeletePermanentlyPageByID -> id boyunca page - i doly (korzinadan) pozmak ucin ulanylyar
+			backBrendApi.DELETE(":id/delete", controllers.DeletePermanentlyPageByID)
 
 		}
 	}
