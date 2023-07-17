@@ -8,31 +8,31 @@ import (
 
 func ProductRoutes(back *gin.RouterGroup) {
 
-	backBrendApi := back.Group("/products")
+	backProductApi := back.Group("/products")
 	{
 		{
 
-			// // CreateBrend -> Brend gosmak ulanylar
-			backBrendApi.POST("", controllers.CreateBrend)
+			// // CreateProduct -> Product gosmak ulanylar
+			backProductApi.POST("", controllers.CreateProduct)
 
 			// // UpdateBrendByID -> id boyunca Brend - in maglumatlaryny update etmek ucin ulanylyar
-			// backBrendApi.PUT("", controllers.UpdateBrendByID)
+			// backProductApi.PUT("", controllers.UpdateBrendByID)
 
 			// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
-			// backBrendApi.GET(":id", controllers.GetBrendByID)
+			// backProductApi.GET(":id", controllers.GetBrendByID)
 
 			// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
 			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-			// backBrendApi.GET("", controllers.GetBrends)
+			// backProductApi.GET("", controllers.GetBrends)
 
 			// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
-			// backBrendApi.DELETE(":id", controllers.DeleteBrendByID)
+			// backProductApi.DELETE(":id", controllers.DeleteBrendByID)
 
 			// // RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
-			// backBrendApi.GET(":id/restore", controllers.RestoreBrendByID)
+			// backProductApi.GET(":id/restore", controllers.RestoreBrendByID)
 
 			// // DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
-			// backBrendApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
+			// backProductApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
 
 		}
 	}
