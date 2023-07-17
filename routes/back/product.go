@@ -28,8 +28,8 @@ func ProductRoutes(back *gin.RouterGroup) {
 			// DeleteProductByID -> id boyunca product - y korzina salmak ucin ulanylyar
 			backProductApi.DELETE(":id", controllers.DeleteProductByID)
 
-			// // RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
-			// backProductApi.GET(":id/restore", controllers.RestoreBrendByID)
+			// RestoreProductByID -> id boyunca product - y korzinadan cykarmak ucin ulanylyar
+			backProductApi.GET(":id/restore", controllers.RestoreProductByID)
 
 			// // DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
 			// backProductApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
