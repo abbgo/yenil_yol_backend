@@ -127,3 +127,41 @@ func UpdatePageByID(c *gin.Context) {
 	})
 
 }
+
+func GetPageByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametrden page id alynyar
+	pageID := c.Param("id")
+
+	// database - den request parametr - den gelen id boyunca maglumat cekilyar
+	var page models.Page
+	var pageImage sql.NullString
+	if err := db.QueryRow(context.Background(), "SELECT id,name,image FROM pages WHERE id = $1 AND deleted_at IS NULL", pageID).Scan(&page.ID, &page.Name, &pageImage); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger databse sol maglumat yok bolsa error return edilyar
+	if page.ID == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	if pageImage.String != "" {
+		page.Image = pageImage.String
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true,
+		"page":   page,
+	})
+
+}

@@ -18,8 +18,8 @@ func PagesRoutes(back *gin.RouterGroup) {
 			// UpdatePageByID -> id boyunca Page - in maglumatlaryny update etmek ucin ulanylyar
 			backBrendApi.PUT("", controllers.UpdatePageByID)
 
-			// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
-			// backBrendApi.GET(":id", controllers.GetBrendByID)
+			// GetPageByID -> id - si boyunca pAGE - in maglumatlaryny almak ucin ulanylyar
+			backBrendApi.GET(":id", controllers.GetPageByID)
 
 			// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
 			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
