@@ -132,3 +132,57 @@ func UpdateProductByID(c *gin.Context) {
 	})
 
 }
+
+func GetProductByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametrden product id alynyar
+	productID := c.Param("id")
+
+	// database - den request parametr - den gelen id boyunca maglumat cekilyar
+	var product models.Product
+	var productImage sql.NullString
+	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,image,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,shop_id,category_id,brend_id FROM products WHERE id = $1 AND deleted_at IS NULL", productID).Scan(
+		&product.ID,
+		&product.NameTM,
+		&product.NameRU,
+		&productImage,
+		&product.Price,
+		&product.OldPrice,
+		&product.Status,
+		&product.ColorNameTM,
+		&product.ColorNameRU,
+		&product.GenderNameTM,
+		&product.GenderNameRU,
+		&product.Code,
+		&product.ShopID,
+		&product.CategoryID,
+		&product.BrendID,
+	); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger databse sol maglumat yok bolsa error return edilyar
+	if product.ID == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	if productImage.String != "" {
+		product.Image = productImage.String
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"product": product,
+	})
+
+}

@@ -18,8 +18,8 @@ func ProductRoutes(back *gin.RouterGroup) {
 			// UpdateProductByID -> id boyunca Product - in maglumatlaryny update etmek ucin ulanylyar
 			backProductApi.PUT("", controllers.UpdateProductByID)
 
-			// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
-			// backProductApi.GET(":id", controllers.GetBrendByID)
+			// GetProductByID -> id - si boyunca Product - yn maglumatlaryny almak ucin ulanylyar
+			backProductApi.GET(":id", controllers.GetProductByID)
 
 			// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
 			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
