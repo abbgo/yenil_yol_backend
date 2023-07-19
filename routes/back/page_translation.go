@@ -28,8 +28,8 @@ func TranslationPagesRoutes(back *gin.RouterGroup) {
 			// DeletePageTrByID -> id boyunca PageTranslation - i korzina salmak ucin ulanylyar
 			backPageTrApi.DELETE(":id", controllers.DeletePageTrByID)
 
-			// // RestorePageByID -> id boyunca page - i korzinadan cykarmak ucin ulanylyar
-			// backPageTrApi.GET(":id/restore", controllers.RestorePageByID)
+			// RestorePageTrByID -> id boyunca PageTranslation - i korzinadan cykarmak ucin ulanylyar
+			backPageTrApi.GET(":id/restore", controllers.RestorePageTrByID)
 
 			// // DeletePermanentlyPageByID -> id boyunca page - i doly (korzinadan) pozmak ucin ulanylyar
 			// backPageTrApi.DELETE(":id/delete", controllers.DeletePermanentlyPageByID)

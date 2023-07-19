@@ -323,13 +323,13 @@ func RestorePageByID(c *gin.Context) {
 		return
 	}
 
-	// eger database sol id degisli brend yok bolsa error return edilyar
+	// eger database sol id degisli page yok bolsa error return edilyar
 	if id == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
-	// hemme zat dogry bolsa brend restore edilyar
+	// hemme zat dogry bolsa page restore edilyar
 	_, err = db.Exec(context.Background(), "UPDATE pages SET deleted_at = NULL WHERE id = $1", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
