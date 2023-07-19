@@ -21,9 +21,9 @@ func TranslationPagesRoutes(back *gin.RouterGroup) {
 			// GetPageTrByID -> id - si boyunca PageTranslation - in maglumatlaryny almak ucin ulanylyar
 			backPageTrApi.GET(":id", controllers.GetPageTrByID)
 
-			// // GetPages -> Ahli Page - leryn maglumatlaryny request query - den gelen
-			// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-			// backPageTrApi.GET("", controllers.GetPages)
+			// GetPageTrs -> Ahli PageTranslation - leryn maglumatlaryny request query - den gelen
+			// page_id boyunca almak ucin ulanylyar
+			backPageTrApi.GET("", controllers.GetPageTrs)
 
 			// // DeletePageByID -> id boyunca page - i korzina salmak ucin ulanylyar
 			// backPageTrApi.DELETE(":id", controllers.DeletePageByID)

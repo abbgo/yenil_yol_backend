@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -153,13 +155,68 @@ func GetPageTrByID(c *gin.Context) {
 		return
 	}
 
-	// if pageImage.String != "" {
-	// 	page.Image = pageImage.String
-	// }
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":           true,
 		"page_translation": pageTr,
+	})
+
+}
+
+func GetPageTrs(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// // request parametr - den page_id alynyar
+	pageID := c.Query("page_id")
+	if pageID == "" {
+		helpers.HandleError(c, 400, "page_id is required")
+		return
+	}
+
+	// request query - den page status alynyar
+	// status -> page pozulan ya-da pozulanmadygyny anlatyar
+	// true bolsa pozulan
+	// false bolsa pozulmadyk
+	statusQuery := c.DefaultQuery("status", "false")
+	status, err := strconv.ParseBool(statusQuery)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// request query - den status - a gora page - lary almak ucin query yazylyar
+	rowQuery := fmt.Sprintf("SELECT id,title_tm,title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NULL AND page_id = %v", pageID)
+	if status {
+		rowQuery = fmt.Sprintf("SELECT id,title_tm,title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NOT NULL AND page_id = %v", pageID)
+	}
+
+	// database - den page_translation - lar alynyar
+	rowsPageTr, err := db.Query(context.Background(), rowQuery)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsPageTr.Close()
+
+	var pageTrs []models.PageTranslation
+	for rowsPageTr.Next() {
+		var pageTr models.PageTranslation
+		if err := rowsPageTr.Scan(&pageTr.ID, &pageTr.TitleTM, &pageTr.TitleRU, &pageTr.DescriptionTM, &pageTr.DescriptionRU, &pageTr.PageID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		pageTrs = append(pageTrs, pageTr)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":            true,
+		"page_translations": pageTrs,
 	})
 
 }
