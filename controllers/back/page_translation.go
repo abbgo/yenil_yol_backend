@@ -300,3 +300,51 @@ func RestorePageTrByID(c *gin.Context) {
 	})
 
 }
+
+func DeletePermanentlyPageTrByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den page_translation id alynyar
+	ID := c.Param("id")
+
+	// database - de gelen id degisli maglumat barmy sol barlanyar
+	var id string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM page_translations WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger database - de gelen id degisli page_translation yok bolsa error return edilyar
+	if id == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	// // eger page bar bolsa sonda page - in suraty papkadan pozulyar
+	// if image.String != "" {
+	// 	if err := os.Remove(helpers.ServerPath + image.String); err != nil {
+	// 		helpers.HandleError(c, 400, err.Error())
+	// 		return
+	// 	}
+	// }
+
+	// page - in suraty pozulandan sonra database - den page_translation pozulyar
+	_, err = db.Exec(context.Background(), "DELETE FROM page_translations WHERE id = $1", ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully deleted",
+	})
+
+}
