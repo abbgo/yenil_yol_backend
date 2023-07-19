@@ -75,3 +75,47 @@ func CreatePageTr(c *gin.Context) {
 	})
 
 }
+
+func UpdatePageTrByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - dan gelen maglumatlar alynyar
+	var pageTr models.PageTranslationUpdate
+	if err := c.BindJSON(&pageTr); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
+	var pageTrID string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM page_translations WHERE id = $1 AND deleted_at IS NULL", pageTr.ID).Scan(&pageTrID); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger database - de sol maglumat yok bolsa onda error return edilyar
+	if pageTrID == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
+	_, err = db.Exec(context.Background(), "UPDATE page_translations SET title_tm=$1 , title_ru=$2 , description_tm=$3 , description_ru=$4 , page_id=$5 WHERE id=$6", pageTr.TitleTM, pageTr.TitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully updated",
+	})
+
+}

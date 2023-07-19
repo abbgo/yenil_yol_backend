@@ -12,11 +12,11 @@ func TranslationPagesRoutes(back *gin.RouterGroup) {
 	{
 		{
 
-			// CreateTranslationPage -> TranslationPage gosmak ulanylar
+			// CreateTranslationPage -> PageTranslation gosmak ulanylar
 			backPageTrApi.POST("", controllers.CreatePageTr)
 
-			// // UpdatePageByID -> id boyunca Page - in maglumatlaryny update etmek ucin ulanylyar
-			// backPageTrApi.PUT("", controllers.UpdatePageByID)
+			// UpdatePageTrByID -> id boyunca PageTranslation - in maglumatlaryny update etmek ucin ulanylyar
+			backPageTrApi.PUT("", controllers.UpdatePageTrByID)
 
 			// // GetPageByID -> id - si boyunca pAGE - in maglumatlaryny almak ucin ulanylyar
 			// backPageTrApi.GET(":id", controllers.GetPageByID)
