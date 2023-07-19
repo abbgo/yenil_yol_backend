@@ -119,3 +119,47 @@ func UpdatePageTrByID(c *gin.Context) {
 	})
 
 }
+
+func GetPageTrByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametrden page_translation id alynyar
+	pageTrID := c.Param("id")
+
+	// database - den request parametr - den gelen id boyunca maglumat cekilyar
+	var pageTr models.PageTranslation
+	if err := db.QueryRow(context.Background(), "SELECT id,title_tm,title_ru,description_tm,description_ru,page_id FROM page_translations WHERE id = $1 AND deleted_at IS NULL", pageTrID).Scan(
+		&pageTr.ID,
+		&pageTr.TitleTM,
+		&pageTr.TitleRU,
+		&pageTr.DescriptionTM,
+		&pageTr.DescriptionRU,
+		&pageTr.PageID,
+	); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger databse sol maglumat yok bolsa error return edilyar
+	if pageTr.ID == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	// if pageImage.String != "" {
+	// 	page.Image = pageImage.String
+	// }
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":           true,
+		"page_translation": pageTr,
+	})
+
+}
