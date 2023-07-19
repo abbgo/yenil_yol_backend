@@ -327,14 +327,6 @@ func DeletePermanentlyPageTrByID(c *gin.Context) {
 		return
 	}
 
-	// // eger page bar bolsa sonda page - in suraty papkadan pozulyar
-	// if image.String != "" {
-	// 	if err := os.Remove(helpers.ServerPath + image.String); err != nil {
-	// 		helpers.HandleError(c, 400, err.Error())
-	// 		return
-	// 	}
-	// }
-
 	// page - in suraty pozulandan sonra database - den page_translation pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM page_translations WHERE id = $1", ID)
 	if err != nil {

@@ -289,8 +289,7 @@ func DeletePageByID(c *gin.Context) {
 		return
 	}
 
-	// hemme zat dogry bolsa shop we sol page - in deleted_at - ine current_time goyulyar
-	_, err = db.Exec(context.Background(), "UPDATE pages SET deleted_at = NOW() WHERE id = $1", ID)
+	_, err = db.Exec(context.Background(), "CALL deleted_page($1)", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
