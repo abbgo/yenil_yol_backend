@@ -13,7 +13,7 @@ func CustomerRoutes(front *gin.RouterGroup) {
 	customerRoutes := front.Group("/customers")
 	{
 		// RegisterCustomer -> kliendi registrasiya etmek ucin ulanylyar
-		customerRoutes.GET("register", frontController.RegisterCustomer)
+		customerRoutes.POST("register", frontController.RegisterCustomer)
 
 		// // LoginAdmin admin - i login etmek ucin ulanylyar.
 		// customerRoutes.POST("login", controllers.LoginAdmin)

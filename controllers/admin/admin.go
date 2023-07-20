@@ -43,7 +43,7 @@ func RegisterAdmin(c *gin.Context) {
 		return
 	}
 
-	// hemme zat yerbe yer bolsa maglumatlar shop_owners tablisa gosulyar
+	// hemme zat yerbe yer bolsa maglumatlar admins tablisa gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO admins (full_name,phone_number,password,is_super_admin) VALUES ($1,$2,$3,$4)", admin.FullName, admin.PhoneNumber, hashPassword, admin.IsSuperAdmin)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -53,7 +53,7 @@ func RegisterAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":       true,
 		"phone_number": admin.PhoneNumber,
-		"password":     admin.Password,
+		"full_name":    admin.FullName,
 	})
 
 }
