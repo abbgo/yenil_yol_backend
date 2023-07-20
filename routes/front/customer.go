@@ -19,8 +19,8 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		// UpdateCustomer -> Customer - in maglumatlaryny uytgetmek ucin ulanylyar.
 		customerRoutes.PUT("update", controllers.UpdateCustomer)
 
-		// // UpdateAdmin admin - in maglumatlaryny uytgetmek ucin ulanylyar.
-		// customerRoutes.PUT("update-password",  controllers.UpdateAdminPassword)
+		// UpdateCustomerPassword -> Customer - in maglumatlaryny uytgetmek ucin ulanylyar.
+		customerRoutes.PUT("update-password", controllers.UpdateCustomerPassword)
 
 		// // Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 		// // ucin ulanylyar

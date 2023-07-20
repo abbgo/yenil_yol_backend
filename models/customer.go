@@ -23,6 +23,11 @@ type CustomerUpdate struct {
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 }
 
+type CustomerUpdatePassword struct {
+	ID       string `json:"id,omitempty" binding:"required"`
+	Password string `json:"password,omitempty" binding:"required"`
+}
+
 func ValidateCustomer(phoneNumber, customerID string, isRegisterFunction bool) error {
 
 	db, err := config.ConnDB()

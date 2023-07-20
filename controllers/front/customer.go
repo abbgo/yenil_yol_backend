@@ -185,3 +185,53 @@ func UpdateCustomer(c *gin.Context) {
 	})
 
 }
+
+func UpdateCustomerPassword(c *gin.Context) {
+
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - den maglumatlar alynyar
+	var customer models.CustomerUpdatePassword
+	if err := c.BindJSON(&customer); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
+	var customer_id string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", customer.ID).Scan(&customer_id); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger gelen id den bolan maglumat database - de yok bolsa error return edilyar
+	if customer_id == "" {
+		helpers.HandleError(c, 404, "customer not found")
+		return
+	}
+
+	// maglumat bar bolsa admin - in taze paroly hashlenyar
+	hashPassword, err := helpers.HashPassword(customer.Password)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// taze parol kone parol bilen calsylyar
+	_, err = db.Exec(context.Background(), "UPDATE customers SET password = $1 WHERE id = $2", hashPassword, customer.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "password of customer successfuly updated",
+	})
+
+}
