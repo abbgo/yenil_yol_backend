@@ -372,3 +372,43 @@ func DeleteCustomerByID(c *gin.Context) {
 	})
 
 }
+
+func RestoreCustomerByID(c *gin.Context) {
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den customer id alynyar
+	ID := c.Param("id")
+
+	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
+	var id string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger database sol id degisli maglumat yok bolsa error return edilyar
+	if id == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	// hemme zat dogry bolsa maglumat restore edilyar
+	_, err = db.Exec(context.Background(), "UPDATE customers SET deleted_at=NULL WHERE id = $1", ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully restored",
+	})
+
+}

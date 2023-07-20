@@ -334,7 +334,7 @@ func RestoreAdminByID(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametr - den shop id alynyar
+	// request parametr - den admin id alynyar
 	ID := c.Param("id")
 
 	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar

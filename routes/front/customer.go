@@ -37,8 +37,8 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		// DeleteCustomerByID -> id boyunca Customer - i korzina salmak ucin ulanylyar.
 		customerRoutes.DELETE(":id", controllers.DeleteCustomerByID)
 
-		// // RestoreAdminByID funksiya id boyunca admin - i korzinadan cykarmak ucin ulanylyar.
-		// customerRoutes.GET(":id/restore",  controllers.RestoreAdminByID)
+		// RestoreCustomerByID -> id boyunca customer - i korzinadan cykarmak ucin ulanylyar.
+		customerRoutes.GET(":id/restore", controllers.RestoreCustomerByID)
 
 		// // DeletePermanentlyAdminByID funksiya id boyunca admin - i doly ( korzinadan ) pozmak ucin ulanylyar
 		// customerRoutes.DELETE(":id/delete",  controllers.DeletePermanentlyAdminByID)
