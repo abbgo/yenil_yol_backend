@@ -49,7 +49,7 @@ func ValidateProduct(price, oldPrice float32) error {
 		return errors.New("price or old_price cannot be less than 0")
 	}
 
-	if price > oldPrice {
+	if price > oldPrice && oldPrice != 0 {
 		return errors.New("price cannot be less than old_price")
 	}
 

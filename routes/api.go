@@ -33,9 +33,11 @@ func Routes() *gin.Engine {
 	front := routes.Group("/api")
 	{
 
-		// bu group - a degisli api - lerden maglumat alynanda ( :lang ) paramter boyunca uytgedilip
-		// terjime alynyar
+		// bu route - ler musderiler ucin doredilen rout - laryn toplumy
 		frontApi.CustomerRoutes(front)
+
+		// bu route - ler halanlarym ucin doredilen rout - laryn toplumy
+		frontApi.LikeRoutes(front)
 	}
 
 	admin := routes.Group("/api")
