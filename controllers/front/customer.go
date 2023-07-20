@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetHeaderData(c *gin.Context) {
+func RegisterCustomer(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
