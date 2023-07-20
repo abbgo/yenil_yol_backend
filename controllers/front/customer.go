@@ -150,3 +150,38 @@ func GetCustomerByID(id string) (models.Customer, error) {
 	return customer, nil
 
 }
+
+func UpdateCustomer(c *gin.Context) {
+
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - den admin - in maglumatlary alynyar
+	var customer models.CustomerUpdate
+	if err := c.BindJSON(&customer); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	if err := models.ValidateCustomer(customer.PhoneNumber, customer.ID, false); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger customer database - de bar bolsa onda onun maglumatlary request body - dan gelen maglumatlar bilen update edilyar
+	_, err = db.Exec(context.Background(), "UPDATE customers SET full_name = $1 , phone_number = $2 WHERE id = $3", customer.FullName, customer.PhoneNumber, customer.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully updated",
+	})
+
+}

@@ -16,11 +16,11 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		// LoginCustomer -> Customer - i login etmek ucin ulanylyar.
 		customerRoutes.POST("login", controllers.LoginCustomer)
 
-		// // UpdateAdmin admin - in maglumatlaryny uytgetmek ucin ulanylyar.
-		// customerRoutes.PUT("update", middlewares.IsSuperAdmin(), controllers.UpdateAdmin)
+		// UpdateCustomer -> Customer - in maglumatlaryny uytgetmek ucin ulanylyar.
+		customerRoutes.PUT("update", controllers.UpdateCustomer)
 
 		// // UpdateAdmin admin - in maglumatlaryny uytgetmek ucin ulanylyar.
-		// customerRoutes.PUT("update-password", middlewares.IsSuperAdmin(), controllers.UpdateAdminPassword)
+		// customerRoutes.PUT("update-password",  controllers.UpdateAdminPassword)
 
 		// // Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 		// // ucin ulanylyar
@@ -30,16 +30,16 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		// customerRoutes.GET("one", middlewares.CheckAdmin(), controllers.GetAdmin)
 
 		// // GetAdmins funksiya hemme admin - leri almak ucin ulanylyar.
-		// customerRoutes.GET("", middlewares.IsSuperAdmin(), controllers.GetAdmins)
+		// customerRoutes.GET("",  controllers.GetAdmins)
 
 		// // DeleteAdminByID funksiya id boyunca admin - i korzina salmak ucin ulanylyar.
-		// customerRoutes.DELETE(":id", middlewares.IsSuperAdmin(), controllers.DeleteAdminByID)
+		// customerRoutes.DELETE(":id",  controllers.DeleteAdminByID)
 
 		// // RestoreAdminByID funksiya id boyunca admin - i korzinadan cykarmak ucin ulanylyar.
-		// customerRoutes.GET(":id/restore", middlewares.IsSuperAdmin(), controllers.RestoreAdminByID)
+		// customerRoutes.GET(":id/restore",  controllers.RestoreAdminByID)
 
 		// // DeletePermanentlyAdminByID funksiya id boyunca admin - i doly ( korzinadan ) pozmak ucin ulanylyar
-		// customerRoutes.DELETE(":id/delete", middlewares.IsSuperAdmin(), controllers.DeletePermanentlyAdminByID)
+		// customerRoutes.DELETE(":id/delete",  controllers.DeletePermanentlyAdminByID)
 		// SecuredCustomerRoutes(frontRoutes)
 	}
 

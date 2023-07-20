@@ -17,6 +17,12 @@ type Customer struct {
 	DeletedAt   string `json:"-"`
 }
 
+type CustomerUpdate struct {
+	ID          string `json:"id,omitempty" binding:"required"`
+	FullName    string `json:"full_name,omitempty" binding:"required"`
+	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
+}
+
 func ValidateCustomer(phoneNumber, customerID string, isRegisterFunction bool) error {
 
 	db, err := config.ConnDB()

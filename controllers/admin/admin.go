@@ -174,11 +174,6 @@ func UpdateAdmin(c *gin.Context) {
 		return
 	}
 
-	if !helpers.ValidatePhoneNumber(admin.PhoneNumber) {
-		helpers.HandleError(c, 400, "invalid phone number")
-		return
-	}
-
 	// eger admin database - de bar bolsa onda onun maglumatlary request body - dan gelen maglumatlar bilen update edilyar
 	_, err = db.Exec(context.Background(), "UPDATE admins SET full_name = $1 , phone_number = $2 , is_super_admin = $3 WHERE id = $4", admin.FullName, admin.PhoneNumber, admin.IsSuperAdmin, admin.ID)
 	if err != nil {
