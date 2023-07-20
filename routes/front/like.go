@@ -14,6 +14,10 @@ func LikeRoutes(front *gin.RouterGroup) {
 		// AddLike -> customer bir pro registrasiya etmek ucin ulanylyar
 		likeRoutes.POST("", middlewares.CheckCustomer(), controllers.AddOrRemoveLike)
 
+		// GetCustomerLikes funksiya frontdan token bar bolan yagdayynda
+		// musderinin halanlarym sahypasyna gosan harytlaryny getiryar
+		likeRoutes.GET("", middlewares.CheckCustomer(), controllers.GetCustomerLikes)
+
 	}
 
 }

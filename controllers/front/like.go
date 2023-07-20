@@ -210,3 +210,32 @@ func GetLikes(customerID string) ([]LikeProduct, error) {
 	return products, nil
 
 }
+
+func GetCustomerLikes(c *gin.Context) {
+
+	custID, hasCustomer := c.Get("customer_id")
+	if !hasCustomer {
+		helpers.HandleError(c, 400, "customer_id is required")
+		return
+	}
+	customerID, ok := custID.(string)
+	if !ok {
+		helpers.HandleError(c, 400, "customer_id must be string")
+		return
+	}
+
+	products, err := GetLikes(customerID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":   true,
+		"products": products,
+	})
+
+}
