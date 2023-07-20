@@ -1,9 +1,7 @@
 package frontApi
 
 import (
-	// backController "github/abbgo/isleg/isleg-backend/controllers/back"
-
-	frontController "github/abbgo/yenil_yol/backend/controllers/front"
+	controllers "github/abbgo/yenil_yol/backend/controllers/front"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,10 +11,10 @@ func CustomerRoutes(front *gin.RouterGroup) {
 	customerRoutes := front.Group("/customers")
 	{
 		// RegisterCustomer -> kliendi registrasiya etmek ucin ulanylyar
-		customerRoutes.POST("register", frontController.RegisterCustomer)
+		customerRoutes.POST("register", controllers.RegisterCustomer)
 
-		// // LoginAdmin admin - i login etmek ucin ulanylyar.
-		// customerRoutes.POST("login", controllers.LoginAdmin)
+		// LoginCustomer -> Customer - i login etmek ucin ulanylyar.
+		customerRoutes.POST("login", controllers.LoginCustomer)
 
 		// // UpdateAdmin admin - in maglumatlaryny uytgetmek ucin ulanylyar.
 		// customerRoutes.PUT("update", middlewares.IsSuperAdmin(), controllers.UpdateAdmin)

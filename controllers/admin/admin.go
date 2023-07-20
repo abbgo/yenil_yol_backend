@@ -93,7 +93,7 @@ func LoginAdmin(c *gin.Context) {
 		return
 	}
 
-	// eger shop_owner bar bolsa onda paroly dogry yazypdyrmy yazmandyrmy sol barlanyar
+	// eger admin bar bolsa onda paroly dogry yazypdyrmy yazmandyrmy sol barlanyar
 	credentialError := helpers.CheckPassword(admin.Password, password)
 	if credentialError != nil {
 		helpers.HandleError(c, 400, "invalid credentials")
@@ -122,34 +122,34 @@ func LoginAdmin(c *gin.Context) {
 
 }
 
-func GetAdminByID(id string) (models.ShopOwner, error) {
+func GetAdminByID(id string) (models.Admin, error) {
 	db, err := config.ConnDB()
 	if err != nil {
-		return models.ShopOwner{}, err
+		return models.Admin{}, err
 	}
 	defer db.Close()
 
 	// parametrler edilip berilen id - boyunca database - den admin - in maglumatlary cekilyar
-	var shopOwner models.ShopOwner
-	rowShopOwner, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM admins WHERE deleted_at IS NULL AND id = $1", id)
+	var admin models.Admin
+	rowAdmin, err := db.Query(context.Background(), "SELECT full_name,phone_number,is_super_admin FROM admins WHERE deleted_at IS NULL AND id = $1", id)
 	if err != nil {
-		return models.ShopOwner{}, err
+		return models.Admin{}, err
 	}
-	defer rowShopOwner.Close()
+	defer rowAdmin.Close()
 
-	for rowShopOwner.Next() {
-		if err := rowShopOwner.Scan(&shopOwner.FullName, &shopOwner.PhoneNumber); err != nil {
-			return models.ShopOwner{}, err
+	for rowAdmin.Next() {
+		if err := rowAdmin.Scan(&admin.FullName, &admin.PhoneNumber, &admin.IsSuperAdmin); err != nil {
+			return models.Admin{}, err
 		}
 	}
 
 	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
-	if shopOwner.PhoneNumber == "" {
-		return models.ShopOwner{}, errors.New("admin not found")
+	if admin.PhoneNumber == "" {
+		return models.Admin{}, errors.New("admin not found")
 	}
 
 	// hemme zat dogry bolsa admin - in maglumatlary return edilyar
-	return shopOwner, nil
+	return admin, nil
 
 }
 

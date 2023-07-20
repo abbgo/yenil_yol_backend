@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
@@ -53,5 +54,99 @@ func RegisterCustomer(c *gin.Context) {
 		"phone_number": customer.PhoneNumber,
 		"full_name":    customer.FullName,
 	})
+
+}
+
+func LoginCustomer(c *gin.Context) {
+
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request - den maglumatlar alynyar
+	var customer models.ShopOwnerLogin
+	if err := c.BindJSON(&customer); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	if !helpers.ValidatePhoneNumber(customer.PhoneNumber) {
+		helpers.HandleError(c, 400, "invalid phone number")
+		return
+	}
+
+	// database - den telefon belgisi request - den gelen telefon belga den bolan maglumat cekilyar
+	var id, password string
+	if err := db.QueryRow(context.Background(), "SELECT id,password FROM customers WHERE phone_number = $1 AND deleted_at IS NULL", customer.PhoneNumber).Scan(&id, &password); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// eger request - den gelen telefon belgili admin database - de yok bolsa onda error response edilyar
+	if id == "" {
+		helpers.HandleError(c, 404, "this customer does not exist")
+		return
+	}
+
+	// eger customer bar bolsa onda paroly dogry yazypdyrmy yazmandyrmy sol barlanyar
+	credentialError := helpers.CheckPassword(customer.Password, password)
+	if credentialError != nil {
+		helpers.HandleError(c, 400, "invalid credentials")
+		return
+	}
+
+	// maglumatlar dogry bolsa auth ucin access_toke bilen resfresh_token generate edilyar
+	accessTokenString, refreshTokenString, err := helpers.GenerateAccessTokenForAdmin(customer.PhoneNumber, id, false)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// front tarapa ugratmak ucin admin - in id - si boyunca maglumatlary get edilyar
+	adm, err := GetCustomerByID(id)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":  accessTokenString,
+		"refresh_token": refreshTokenString,
+		"admin":         adm,
+	})
+
+}
+
+func GetCustomerByID(id string) (models.Customer, error) {
+	db, err := config.ConnDB()
+	if err != nil {
+		return models.Customer{}, err
+	}
+	defer db.Close()
+
+	// parametrler edilip berilen id - boyunca database - den customer - in maglumatlary cekilyar
+	var customer models.Customer
+	rowCustomer, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM customers WHERE deleted_at IS NULL AND id = $1", id)
+	if err != nil {
+		return models.Customer{}, err
+	}
+	defer rowCustomer.Close()
+
+	for rowCustomer.Next() {
+		if err := rowCustomer.Scan(&customer.FullName, &customer.PhoneNumber); err != nil {
+			return models.Customer{}, err
+		}
+	}
+
+	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
+	if customer.PhoneNumber == "" {
+		return models.Customer{}, errors.New("customer not found")
+	}
+
+	// hemme zat dogry bolsa admin - in maglumatlary return edilyar
+	return customer, nil
 
 }
