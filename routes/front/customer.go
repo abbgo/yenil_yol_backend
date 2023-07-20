@@ -31,8 +31,8 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		// GetCustomer -> haeder - den gelen id boyunca bir sany customer - i almak ucin ulanylyar.
 		customerRoutes.GET("one", middlewares.CheckCustomer(), controllers.GetCustomer)
 
-		// // GetAdmins funksiya hemme admin - leri almak ucin ulanylyar.
-		// customerRoutes.GET("",  controllers.GetAdmins)
+		// GetCustomers -> hemme Customer - leri almak ucin ulanylyar.
+		customerRoutes.GET("", controllers.GetCustomers)
 
 		// // DeleteAdminByID funksiya id boyunca admin - i korzina salmak ucin ulanylyar.
 		// customerRoutes.DELETE(":id",  controllers.DeleteAdminByID)

@@ -7,6 +7,7 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -259,6 +260,75 @@ func GetCustomer(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"customer": adm,
+	})
+
+}
+
+func GetCustomers(c *gin.Context) {
+
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den limit alynyar
+	limitStr := c.Query("limit")
+	if limitStr == "" {
+		helpers.HandleError(c, 400, "limit is required")
+		return
+	}
+	limit, err := strconv.ParseUint(limitStr, 10, 32)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// // request parametr - den page alynyar
+	pageStr := c.Query("page")
+	if pageStr == "" {
+		helpers.HandleError(c, 400, "page is required")
+		return
+	}
+	page, err := strconv.ParseUint(pageStr, 10, 32)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := limit * (page - 1)
+
+	// database - den admin - lerin sany alynyar
+	countOfCustomers := 0
+	if err := db.QueryRow(context.Background(), "SELECT COUNT(id) FROM customers WHERE deleted_at IS NULL").Scan(&countOfCustomers); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// databae - den request - den gelen limit we page boyunca limitlap customer - ler alynyar
+	var customers []models.Customer
+	rowsCustomer, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM customers WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsCustomer.Close()
+
+	for rowsCustomer.Next() {
+		var customer models.Customer
+		if err := rowsCustomer.Scan(&customer.FullName, &customer.PhoneNumber); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		customers = append(customers, customer)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":    true,
+		"customers": customers,
+		"total":     countOfCustomers,
 	})
 
 }
