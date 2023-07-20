@@ -30,7 +30,7 @@ func AdminRoutes(back *gin.RouterGroup) {
 			// ucin ulanylyar
 			admin.POST("refresh", middlewares.CheckAdmin(), helpers.RefreshTokenForAdmin)
 
-			// GetAdmin funksiya haeder - den gelen id boyunca bir sany shop_owneri almak ucin ulanylyar.
+			// GetAdmin funksiya haeder - den gelen id boyunca bir sany admin - i almak ucin ulanylyar.
 			admin.GET("one", middlewares.CheckAdmin(), controllers.GetAdmin)
 
 			// GetAdmins funksiya hemme admin - leri almak ucin ulanylyar.

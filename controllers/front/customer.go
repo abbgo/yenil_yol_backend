@@ -235,3 +235,30 @@ func UpdateCustomerPassword(c *gin.Context) {
 	})
 
 }
+
+func GetCustomer(c *gin.Context) {
+
+	customerID, hasID := c.Get("customer_id")
+	if !hasID {
+		helpers.HandleError(c, 400, "customerID is required")
+		return
+	}
+
+	var ok bool
+	customer_id, ok := customerID.(string)
+	if !ok {
+		helpers.HandleError(c, 400, "customerID must be string")
+		return
+	}
+
+	adm, err := GetCustomerByID(customer_id)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"customer": adm,
+	})
+
+}

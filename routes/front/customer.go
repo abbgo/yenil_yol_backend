@@ -2,6 +2,8 @@ package frontApi
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/front"
+	"github/abbgo/yenil_yol/backend/helpers"
+	"github/abbgo/yenil_yol/backend/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,12 +24,12 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		// UpdateCustomerPassword -> Customer - in maglumatlaryny uytgetmek ucin ulanylyar.
 		customerRoutes.PUT("update-password", controllers.UpdateCustomerPassword)
 
-		// // Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
-		// // ucin ulanylyar
-		// customerRoutes.POST("refresh", middlewares.CheckAdmin(), helpers.RefreshTokenForAdmin)
+		// Customer - in access tokenin tazelelap refresh bilen access tokeni bile bermek
+		// ucin ulanylyar
+		customerRoutes.POST("refresh", helpers.RefreshTokenForAdmin)
 
-		// // GetAdmin funksiya haeder - den gelen id boyunca bir sany shop_owneri almak ucin ulanylyar.
-		// customerRoutes.GET("one", middlewares.CheckAdmin(), controllers.GetAdmin)
+		// GetCustomer -> haeder - den gelen id boyunca bir sany customer - i almak ucin ulanylyar.
+		customerRoutes.GET("one", middlewares.CheckCustomer(), controllers.GetCustomer)
 
 		// // GetAdmins funksiya hemme admin - leri almak ucin ulanylyar.
 		// customerRoutes.GET("",  controllers.GetAdmins)
