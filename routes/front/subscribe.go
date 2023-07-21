@@ -11,12 +11,15 @@ func SubscribeRoutes(front *gin.RouterGroup) {
 
 	subscribeRoutes := front.Group("/subscribes")
 	{
-		// AddLike -> customer bir pro registrasiya etmek ucin ulanylyar
+		// AddOrRemoveSubscribe -> customer -e subscribe shop gosmak ya-da pozmak ucin ulanylyar
+		// gosmak ucin request query - de status = true
+		// pozmak ucin request query - de status = false ugratmaly
+		// by api - nin islemegi ucin customer token gerek
 		subscribeRoutes.POST("", middlewares.CheckCustomer(), controllers.AddOrRemoveSubscribe)
 
-		// // GetCustomerLikes funksiya frontdan token bar bolan yagdayynda
-		// // musderinin halanlarym sahypasyna gosan harytlaryny getiryar
-		// likeRoutes.GET("", middlewares.CheckCustomer(), controllers.GetCustomerLikes)
+		// GetCustomerSubscribes funksiya frontdan token bar bolan yagdayynda
+		// musderinin subscribe sahypasyna gosan shop - laryny getiryar
+		subscribeRoutes.GET("", middlewares.CheckCustomer(), controllers.GetCustomerSubscribes)
 
 	}
 

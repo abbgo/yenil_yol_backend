@@ -11,7 +11,10 @@ func LikeRoutes(front *gin.RouterGroup) {
 
 	likeRoutes := front.Group("/likes")
 	{
-		// AddLike -> customer bir pro registrasiya etmek ucin ulanylyar
+		// AddOrRemoveSubscribe -> customer -e like gosmak ya-da pozmak ucin ulanylyar
+		// gosmak ucin request query - de status = true
+		// pozmak ucin request query - de status = false ugratmaly
+		// bu api - yn islemegi ucin customer token gerek
 		likeRoutes.POST("", middlewares.CheckCustomer(), controllers.AddOrRemoveLike)
 
 		// GetCustomerLikes funksiya frontdan token bar bolan yagdayynda

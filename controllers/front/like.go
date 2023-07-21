@@ -209,10 +209,7 @@ func GetCustomerLikes(c *gin.Context) {
 
 	products, err := GetLikes(customerID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 

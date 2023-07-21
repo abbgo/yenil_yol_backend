@@ -203,3 +203,29 @@ func GetSubscribes(customerID string) ([]models.Shop, error) {
 	return shops, nil
 
 }
+
+func GetCustomerSubscribes(c *gin.Context) {
+
+	custID, hasCustomer := c.Get("customer_id")
+	if !hasCustomer {
+		helpers.HandleError(c, 400, "customer_id is required")
+		return
+	}
+	customerID, ok := custID.(string)
+	if !ok {
+		helpers.HandleError(c, 400, "customer_id must be string")
+		return
+	}
+
+	shops, err := GetSubscribes(customerID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true,
+		"shops":  shops,
+	})
+
+}
