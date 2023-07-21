@@ -38,6 +38,9 @@ func Routes() *gin.Engine {
 
 		// bu route - ler halanlarym ucin doredilen rout - laryn toplumy
 		frontApi.LikeRoutes(front)
+
+		// bu route - ler subscribe ucin doredilen rout - laryn toplumy
+		frontApi.SubscribeRoutes(front)
 	}
 
 	admin := routes.Group("/api")
