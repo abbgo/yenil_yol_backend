@@ -4,6 +4,7 @@ import (
 	"context"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
+	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"strconv"
 
@@ -12,24 +13,6 @@ import (
 
 type ProductID struct {
 	IDS []string `json:"product_ids"`
-}
-
-type LikeProduct struct {
-	ID           string  `json:"id,omitempty"`
-	NameTM       string  `json:"name_tm,omitempty"`
-	NameRU       string  `json:"name_ru,omitempty"`
-	Image        string  `json:"image,omitempty"`
-	Price        float32 `json:"price,omitempty"`
-	OldPrice     float32 `json:"old_price,omitempty"`
-	Status       bool    `json:"status,omitempty"`
-	ColorNameTM  string  `json:"color_name_tm,omitempty"`
-	ColorNameRU  string  `json:"color_name_ru,omitempty"`
-	GenderNameTM string  `json:"gender_name_tm,omitempty"`
-	GenderNameRU string  `json:"gender_name_ru,omitempty"`
-	Code         string  `json:"code,omitempty"`
-	ShopID       string  `json:"shop_id,omitempty"`
-	CategoryID   string  `json:"category_id,omitempty"`
-	BrendID      string  `json:"brend_id,omitempty"`
 }
 
 func AddOrRemoveLike(c *gin.Context) {
@@ -166,25 +149,25 @@ func AddOrRemoveLike(c *gin.Context) {
 
 }
 
-func GetLikes(customerID string) ([]LikeProduct, error) {
+func GetLikes(customerID string) ([]models.Product, error) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		return []LikeProduct{}, err
+		return []models.Product{}, err
 	}
 	defer db.Close()
 
 	rowsProduct, err := db.Query(context.Background(),
-		"SELECT p.id,p.name_tm,p.name_ru,p.image,p.price,p.old_price,p.status,p.color_name_tm,p.color_name_ru,p.gender_name_tm,p.gender_name_ru,p.code,p.shop_id,p.category_id,p.brend_id FROM products p LEFT JOIN likes l ON l.product_id = p.id WHERE l.customer_id = $1 AND l.deleted_at IS NULL AND p.deleted_at IS NULL",
+		"SELECT p.id,p.name_tm,p.name_ru,p.image,p.price,p.old_price,p.status,p.color_name_tm,p.color_name_ru,p.gender_name_tm,p.gender_name_ru,p.code,p.shop_id,p.category_id,p.brend_id FROM products p INNER JOIN likes l ON l.product_id = p.id WHERE l.customer_id = $1 AND l.deleted_at IS NULL AND p.deleted_at IS NULL",
 		customerID)
 	if err != nil {
-		return []LikeProduct{}, err
+		return []models.Product{}, err
 	}
 	defer rowsProduct.Close()
 
-	var products []LikeProduct
+	var products []models.Product
 	for rowsProduct.Next() {
-		var product LikeProduct
+		var product models.Product
 		if err := rowsProduct.Scan(&product.ID,
 			&product.NameTM,
 			&product.NameRU,
@@ -201,7 +184,7 @@ func GetLikes(customerID string) ([]LikeProduct, error) {
 			&product.CategoryID,
 			&product.BrendID,
 		); err != nil {
-			return []LikeProduct{}, err
+			return []models.Product{}, err
 		}
 
 		products = append(products, product)

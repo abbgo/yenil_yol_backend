@@ -12,7 +12,7 @@ func SubscribeRoutes(front *gin.RouterGroup) {
 	subscribeRoutes := front.Group("/subscribes")
 	{
 		// AddLike -> customer bir pro registrasiya etmek ucin ulanylyar
-		subscribeRoutes.POST("", middlewares.CheckCustomer(), controllers.AddOrRemoveLike)
+		subscribeRoutes.POST("", middlewares.CheckCustomer(), controllers.AddOrRemoveSubscribe)
 
 		// // GetCustomerLikes funksiya frontdan token bar bolan yagdayynda
 		// // musderinin halanlarym sahypasyna gosan harytlaryny getiryar
