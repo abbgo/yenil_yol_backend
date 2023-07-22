@@ -150,10 +150,12 @@ func GetPageTrByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var pageTr models.PageTranslation
-	if err := db.QueryRow(context.Background(), "SELECT id,title_tm,title_ru,description_tm,description_ru,page_id FROM page_translations WHERE id = $1 AND deleted_at IS NULL", pageTrID).Scan(
+	if err := db.QueryRow(context.Background(), "SELECT id,title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE id = $1 AND deleted_at IS NULL", pageTrID).Scan(
 		&pageTr.ID,
 		&pageTr.TitleTM,
 		&pageTr.TitleRU,
+		&pageTr.TextTitleTM,
+		&pageTr.TextTitleRU,
 		&pageTr.DescriptionTM,
 		&pageTr.DescriptionRU,
 		&pageTr.PageID,
@@ -204,9 +206,9 @@ func GetPageTrs(c *gin.Context) {
 	}
 
 	// request query - den status - a gora page - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT id,title_tm,title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NULL AND page_id = %v", pageID)
+	rowQuery := fmt.Sprintf("SELECT id,title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NULL AND page_id = %v", pageID)
 	if status {
-		rowQuery = fmt.Sprintf("SELECT id,title_tm,title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NOT NULL AND page_id = %v", pageID)
+		rowQuery = fmt.Sprintf("SELECT id,title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NOT NULL AND page_id = %v", pageID)
 	}
 
 	// database - den page_translation - lar alynyar
@@ -220,7 +222,7 @@ func GetPageTrs(c *gin.Context) {
 	var pageTrs []models.PageTranslation
 	for rowsPageTr.Next() {
 		var pageTr models.PageTranslation
-		if err := rowsPageTr.Scan(&pageTr.ID, &pageTr.TitleTM, &pageTr.TitleRU, &pageTr.DescriptionTM, &pageTr.DescriptionRU, &pageTr.PageID); err != nil {
+		if err := rowsPageTr.Scan(&pageTr.ID, &pageTr.TitleTM, &pageTr.TitleRU, &pageTr.TextTitleTM, &pageTr.TextTitleRU, &pageTr.DescriptionTM, &pageTr.DescriptionRU, &pageTr.PageID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
