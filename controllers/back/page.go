@@ -145,7 +145,13 @@ func GetPageByID(c *gin.Context) {
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var page models.Page
 	var pageImage sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,name,image FROM pages WHERE id = $1 AND deleted_at IS NULL", pageID).Scan(&page.ID, &page.Name, &pageImage); err != nil {
+	if err := db.QueryRow(context.Background(), "SELECT id,name,image,title_tm,title_ru FROM pages WHERE id = $1 AND deleted_at IS NULL", pageID).Scan(
+		&page.ID,
+		&page.Name,
+		&pageImage,
+		&page.TitleTM,
+		&page.TitleRU,
+	); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
