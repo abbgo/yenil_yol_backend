@@ -122,7 +122,7 @@ func UpdatePageTrByID(c *gin.Context) {
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE page_translations SET title_tm=$1 , title_ru=$2 , description_tm=$3 , description_ru=$4 , page_id=$5 WHERE id=$6", pageTr.TitleTM, pageTr.TitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.ID)
+	_, err = db.Exec(context.Background(), "UPDATE page_translations SET title_tm=$1 , title_ru=$2 , description_tm=$3 , description_ru=$4 , page_id=$5 , text_title_tm=$6 , text_title_ru=$7 WHERE id=$8", pageTr.TitleTM, pageTr.TitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
