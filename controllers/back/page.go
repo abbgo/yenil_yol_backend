@@ -234,9 +234,9 @@ func GetPages(c *gin.Context) {
 	}
 
 	// request query - den status - a gora page - lary almak ucin query yazylyar
-	rowQuery := `SELECT id,name,image FROM pages WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	rowQuery := `SELECT id,name,image,title_tm,title_ru FROM pages WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	if status {
-		rowQuery = `SELECT id,name,image FROM pages WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+		rowQuery = `SELECT id,name,image,title_tm,title_ru FROM pages WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	}
 
 	// database - den brend - lar alynyar
@@ -250,13 +250,19 @@ func GetPages(c *gin.Context) {
 	var pages []models.Page
 	for rowsPage.Next() {
 		var page models.Page
-		var pageImage sql.NullString
-		if err := rowsPage.Scan(&page.ID, &page.Name, &pageImage); err != nil {
+		var pageImage, titleTm, titleRu sql.NullString
+		if err := rowsPage.Scan(&page.ID, &page.Name, &pageImage, &titleTm, &titleRu); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 		if pageImage.String != "" {
 			page.Image = pageImage.String
+		}
+		if titleTm.String != "" {
+			page.TitleTM = titleTm.String
+		}
+		if titleRu.String != "" {
+			page.TitleRU = titleRu.String
 		}
 		pages = append(pages, page)
 	}
