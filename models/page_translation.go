@@ -4,6 +4,8 @@ type PageTranslation struct {
 	ID            string `json:"id,omitempty"`
 	TitleTM       string `json:"title_tm,omitempty"`
 	TitleRU       string `json:"title_ru,omitempty"`
+	TextTitleTM   string `json:"text_title_tm,omitempty"`
+	TextTitleRU   string `json:"text_title_ru,omitempty"`
 	DescriptionTM string `json:"description_tm,omitempty"`
 	DescriptionRU string `json:"description_ru,omitempty"`
 	PageID        string `json:"page_id,omitempty" binding:"required"`
@@ -16,6 +18,8 @@ type PageTranslationUpdate struct {
 	ID            string `json:"id,omitempty" binding:"required"`
 	TitleTM       string `json:"title_tm,omitempty"`
 	TitleRU       string `json:"title_ru,omitempty"`
+	TextTitleTM   string `json:"text_title_tm,omitempty"`
+	TextTitleRU   string `json:"text_title_ru,omitempty"`
 	DescriptionTM string `json:"description_tm,omitempty"`
 	DescriptionRU string `json:"description_ru,omitempty"`
 	PageID        string `json:"page_id,omitempty" binding:"required"`
