@@ -39,7 +39,7 @@ func CreatePage(c *gin.Context) {
 	}
 
 	// eger maglumatlar dogry bolsa onda pages tablisa maglumatlar gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO pages (name,image) VALUES ($1,$2)", page.Name, image)
+	_, err = db.Exec(context.Background(), "INSERT INTO pages (name,image,title_tm,title_ru) VALUES ($1,$2,$3,$4)", page.Name, image, page.TitleTM, page.TitleRU)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

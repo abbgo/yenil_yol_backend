@@ -78,7 +78,7 @@ func CreatePageTr(c *gin.Context) {
 	// 	return
 	// }
 
-	_, err = db.Exec(context.Background(), "INSERT INTO page_translations (title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id) VALUES ($1,$2,$3,$4,$5,$6,$7)", pageTr.TitleTM, pageTr.TitleRU, pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID)
+	_, err = db.Exec(context.Background(), "INSERT INTO page_translations (text_title_tm,text_title_ru,description_tm,description_ru,page_id) VALUES ($1,$2,$3,$4,$5)", pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -122,7 +122,7 @@ func UpdatePageTrByID(c *gin.Context) {
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE page_translations SET title_tm=$1 , title_ru=$2 , description_tm=$3 , description_ru=$4 , page_id=$5 , text_title_tm=$6 , text_title_ru=$7 WHERE id=$8", pageTr.TitleTM, pageTr.TitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.ID)
+	_, err = db.Exec(context.Background(), "UPDATE page_translations SET description_tm=$1 , description_ru=$2 , page_id=$3 , text_title_tm=$4 , text_title_ru=$5 WHERE id=$6", pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -150,10 +150,8 @@ func GetPageTrByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var pageTr models.PageTranslation
-	if err := db.QueryRow(context.Background(), "SELECT id,title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE id = $1 AND deleted_at IS NULL", pageTrID).Scan(
+	if err := db.QueryRow(context.Background(), "SELECT id,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE id = $1 AND deleted_at IS NULL", pageTrID).Scan(
 		&pageTr.ID,
-		&pageTr.TitleTM,
-		&pageTr.TitleRU,
 		&pageTr.TextTitleTM,
 		&pageTr.TextTitleRU,
 		&pageTr.DescriptionTM,
@@ -206,9 +204,9 @@ func GetPageTrs(c *gin.Context) {
 	}
 
 	// request query - den status - a gora page - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT id,title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NULL AND page_id = %v", pageID)
+	rowQuery := fmt.Sprintf("SELECT id,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NULL AND page_id = %v", pageID)
 	if status {
-		rowQuery = fmt.Sprintf("SELECT id,title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NOT NULL AND page_id = %v", pageID)
+		rowQuery = fmt.Sprintf("SELECT id,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NOT NULL AND page_id = %v", pageID)
 	}
 
 	// database - den page_translation - lar alynyar
@@ -222,7 +220,7 @@ func GetPageTrs(c *gin.Context) {
 	var pageTrs []models.PageTranslation
 	for rowsPageTr.Next() {
 		var pageTr models.PageTranslation
-		if err := rowsPageTr.Scan(&pageTr.ID, &pageTr.TitleTM, &pageTr.TitleRU, &pageTr.TextTitleTM, &pageTr.TextTitleRU, &pageTr.DescriptionTM, &pageTr.DescriptionRU, &pageTr.PageID); err != nil {
+		if err := rowsPageTr.Scan(&pageTr.ID, &pageTr.TextTitleTM, &pageTr.TextTitleRU, &pageTr.DescriptionTM, &pageTr.DescriptionRU, &pageTr.PageID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
