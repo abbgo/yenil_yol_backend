@@ -116,7 +116,7 @@ func UpdatePageByID(c *gin.Context) {
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE pages SET name=$1 , image=$2 WHERE id=$3", page.Name, fileName, page.ID)
+	_, err = db.Exec(context.Background(), "UPDATE pages SET name=$1 , image=$2 , title_tm=$3 , title_ru=$4 WHERE id=$5", page.Name, fileName, page.TitleTM, page.TitleRU, page.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
