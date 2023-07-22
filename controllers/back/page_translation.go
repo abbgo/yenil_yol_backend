@@ -78,7 +78,7 @@ func CreatePageTr(c *gin.Context) {
 	// 	return
 	// }
 
-	_, err = db.Exec(context.Background(), "INSERT INTO page_translations (text_title_tm,text_title_ru,description_tm,description_ru,page_id) VALUES ($1,$2,$3,$4,$5)", pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID)
+	_, err = db.Exec(context.Background(), "INSERT INTO page_translations (text_title_tm,text_title_ru,description_tm,description_ru,page_id,order_number) VALUES ($1,$2,$3,$4,$5,$6)", pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.OrderNumber)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
