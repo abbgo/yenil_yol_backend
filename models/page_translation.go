@@ -7,6 +7,7 @@ type PageTranslation struct {
 	DescriptionTM string `json:"description_tm,omitempty"`
 	DescriptionRU string `json:"description_ru,omitempty"`
 	PageID        string `json:"page_id,omitempty" binding:"required"`
+	OrderNumber   uint   `json:"order_number,omitempty"`
 	CreatedAt     string `json:"-"`
 	UpdatedAt     string `json:"-"`
 	DeletedAt     string `json:"-"`
@@ -19,4 +20,5 @@ type PageTranslationUpdate struct {
 	DescriptionTM string `json:"description_tm,omitempty"`
 	DescriptionRU string `json:"description_ru,omitempty"`
 	PageID        string `json:"page_id,omitempty" binding:"required"`
+	OrderNumber   uint   `json:"order_number,omitempty"`
 }
