@@ -78,6 +78,14 @@ func CreatePageTr(c *gin.Context) {
 	// 	return
 	// }
 
+	if pageTr.OrderNumber != 0 {
+		var order_number uint
+		if err = db.QueryRow(context.Background(), "SELECT order_number FROM page_translations WHERE order_number = $1 AND page_id = $2  AND deleted_at IS NULL", pageTr.OrderNumber, pageTr.PageID).Scan(&order_number); err == nil {
+			helpers.HandleError(c, 400, "this order number already exists")
+			return
+		}
+	}
+
 	_, err = db.Exec(context.Background(), "INSERT INTO page_translations (text_title_tm,text_title_ru,description_tm,description_ru,page_id,order_number) VALUES ($1,$2,$3,$4,$5,$6)", pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.OrderNumber)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -121,8 +129,17 @@ func UpdatePageTrByID(c *gin.Context) {
 		return
 	}
 
+	if pageTr.OrderNumber != 0 {
+		var pageTr_id string
+		db.QueryRow(context.Background(), "SELECT id FROM page_translations WHERE order_number = $1 AND page_id = $2 AND deleted_at IS NULL", pageTr.OrderNumber, pageTr.PageID).Scan(&pageTr_id)
+		if pageTr_id != pageTr.ID && pageTr_id != "" {
+			helpers.HandleError(c, 400, "this order number already exists")
+			return
+		}
+	}
+
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE page_translations SET description_tm=$1 , description_ru=$2 , page_id=$3 , text_title_tm=$4 , text_title_ru=$5 WHERE id=$6", pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.ID)
+	_, err = db.Exec(context.Background(), "UPDATE page_translations SET description_tm=$1 , description_ru=$2 , page_id=$3 , text_title_tm=$4 , text_title_ru=$5 , order_number=$6 WHERE id=$7", pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID, pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.OrderNumber, pageTr.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
