@@ -222,9 +222,9 @@ func GetPageTrs(c *gin.Context) {
 	}
 
 	// request query - den status - a gora page - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT id,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NULL AND page_id = %v", pageID)
+	rowQuery := fmt.Sprintf("SELECT id,text_title_tm,text_title_ru,description_tm,description_ru,page_id,order_number FROM page_translations WHERE deleted_at IS NULL AND page_id = %v", pageID)
 	if status {
-		rowQuery = fmt.Sprintf("SELECT id,text_title_tm,text_title_ru,description_tm,description_ru,page_id FROM page_translations WHERE deleted_at IS NOT NULL AND page_id = %v", pageID)
+		rowQuery = fmt.Sprintf("SELECT id,text_title_tm,text_title_ru,description_tm,description_ru,page_id,order_number FROM page_translations WHERE deleted_at IS NOT NULL AND page_id = %v", pageID)
 	}
 
 	// database - den page_translation - lar alynyar
@@ -238,7 +238,7 @@ func GetPageTrs(c *gin.Context) {
 	var pageTrs []models.PageTranslation
 	for rowsPageTr.Next() {
 		var pageTr models.PageTranslation
-		if err := rowsPageTr.Scan(&pageTr.ID, &pageTr.TextTitleTM, &pageTr.TextTitleRU, &pageTr.DescriptionTM, &pageTr.DescriptionRU, &pageTr.PageID); err != nil {
+		if err := rowsPageTr.Scan(&pageTr.ID, &pageTr.TextTitleTM, &pageTr.TextTitleRU, &pageTr.DescriptionTM, &pageTr.DescriptionRU, &pageTr.PageID, &pageTr.OrderNumber); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
