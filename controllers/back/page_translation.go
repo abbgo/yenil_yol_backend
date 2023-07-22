@@ -29,47 +29,60 @@ func CreatePageTr(c *gin.Context) {
 		return
 	}
 
-	var title_tm interface{}
-	if pageTr.TitleTM == "" {
-		title_tm = nil
-	} else {
-		title_tm = pageTr.TitleTM
-	}
+	// var title_tm interface{}
+	// if pageTr.TitleTM == "" {
+	// 	title_tm = nil
+	// } else {
+	// 	title_tm = pageTr.TitleTM
+	// }
 
-	var title_ru interface{}
-	if pageTr.TitleRU == "" {
-		title_ru = nil
-	} else {
-		title_ru = pageTr.TitleRU
-	}
+	// var title_ru interface{}
+	// if pageTr.TitleRU == "" {
+	// 	title_ru = nil
+	// } else {
+	// 	title_ru = pageTr.TitleRU
+	// }
 
-	var description_tm interface{}
-	if pageTr.DescriptionTM == "" {
-		description_tm = nil
-	} else {
-		description_tm = pageTr.DescriptionTM
-	}
+	// var text_title_tm interface{}
+	// if pageTr.TextTitleTM == "" {
+	// 	text_title_tm = nil
+	// } else {
+	// 	text_title_tm = pageTr.TextTitleTM
+	// }
 
-	var description_ru interface{}
-	if pageTr.DescriptionRU == "" {
-		description_ru = nil
-	} else {
-		description_ru = pageTr.DescriptionRU
-	}
+	// var text_title_ru interface{}
+	// if pageTr.TextTitleRU == "" {
+	// 	text_title_ru = nil
+	// } else {
+	// 	text_title_ru = pageTr.TextTitleRU
+	// }
+
+	// var description_tm interface{}
+	// if pageTr.DescriptionTM == "" {
+	// 	description_tm = nil
+	// } else {
+	// 	description_tm = pageTr.DescriptionTM
+	// }
+
+	// var description_ru interface{}
+	// if pageTr.DescriptionRU == "" {
+	// 	description_ru = nil
+	// } else {
+	// 	description_ru = pageTr.DescriptionRU
+	// }
 
 	// eger maglumatlar dogry bolsa onda page_translations tablisa maglumatlar gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO page_translations (title_tm,title_ru,description_tm,description_ru,page_id) VALUES ($1,$2,$3,$4,$5)", title_tm, title_ru, description_tm, description_ru, pageTr.PageID)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
-	// // brend - yn maglumatlary gosulandan sonra helper_images tablisa page ucin gosulan surat pozulyar
-	// _, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
+	// _, err = db.Exec(context.Background(), "INSERT INTO page_translations (title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id) VALUES ($1,$2,$3,$4,$5)", title_tm, title_ru, text_title_tm, text_title_ru, description_tm, description_ru, pageTr.PageID)
 	// if err != nil {
 	// 	helpers.HandleError(c, 400, err.Error())
 	// 	return
 	// }
+
+	_, err = db.Exec(context.Background(), "INSERT INTO page_translations (title_tm,title_ru,text_title_tm,text_title_ru,description_tm,description_ru,page_id) VALUES ($1,$2,$3,$4,$5,$6,$7)", pageTr.TitleTM, pageTr.TitleRU, pageTr.TextTitleTM, pageTr.TextTitleRU, pageTr.DescriptionTM, pageTr.DescriptionRU, pageTr.PageID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
