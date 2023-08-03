@@ -50,21 +50,21 @@ func GetShops(c *gin.Context) {
 			shop.Image = shopImage.String
 		}
 
-		rowsShopPhones, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
-		if err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-		defer rowsShopPhones.Close()
+		// rowsShopPhones, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
+		// if err != nil {
+		// 	helpers.HandleError(c, 400, err.Error())
+		// 	return
+		// }
+		// defer rowsShopPhones.Close()
 
-		for rowsShopPhones.Next() {
-			var phoneNumber string
-			if err := rowsShopPhones.Scan(&phoneNumber); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
-			shop.ShopPhones = append(shop.ShopPhones, phoneNumber)
-		}
+		// for rowsShopPhones.Next() {
+		// 	var phoneNumber string
+		// 	if err := rowsShopPhones.Scan(&phoneNumber); err != nil {
+		// 		helpers.HandleError(c, 400, err.Error())
+		// 		return
+		// 	}
+		// 	shop.ShopPhones = append(shop.ShopPhones, phoneNumber)
+		// }
 
 		shops = append(shops, shop)
 	}
