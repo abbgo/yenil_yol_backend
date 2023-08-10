@@ -18,6 +18,8 @@ type Shop struct {
 	Longitude  float64  `json:"longitude,omitempty"`
 	Image      string   `json:"image,omitempty"`
 	ShopPhones []string `json:"shop_phones"`
+	AddresssTM string   `json:"address_tm,omitempty"`
+	AddresssRU string   `json:"address_ru,omitempty"`
 }
 
 func GetShops(c *gin.Context) {
@@ -31,7 +33,7 @@ func GetShops(c *gin.Context) {
 	defer db.Close()
 
 	// database - den shop - lar alynyar
-	rowsShop, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,latitude,longitude,image FROM shops WHERE deleted_at IS NULL")
+	rowsShop, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,latitude,longitude,image,address_tm,address_ru FROM shops WHERE deleted_at IS NULL")
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -42,7 +44,7 @@ func GetShops(c *gin.Context) {
 	for rowsShop.Next() {
 		var shop Shop
 		var shopImage sql.NullString
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shopImage); err != nil {
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shopImage, &shop.AddresssTM, &shop.AddresssRU); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
