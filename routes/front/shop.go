@@ -1,7 +1,6 @@
 package frontApi
 
 import (
-	backControllers "github/abbgo/yenil_yol/backend/controllers/back"
 	controllers "github/abbgo/yenil_yol/backend/controllers/front"
 
 	"github.com/gin-gonic/gin"
@@ -29,7 +28,7 @@ func ShopRoutes(front *gin.RouterGroup) {
 
 		// GetShopByID -> Dine bir Shop - yn maglumatlaryny request param - dan gelen
 		// id boyunca alynyar
-		shopRoutes.GET(":id", backControllers.GetShopByID)
+		shopRoutes.GET(":id", controllers.GetShopByID)
 
 	}
 
