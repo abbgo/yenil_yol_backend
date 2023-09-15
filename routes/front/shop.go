@@ -1,6 +1,7 @@
 package frontApi
 
 import (
+	backControllers "github/abbgo/yenil_yol/backend/controllers/back"
 	controllers "github/abbgo/yenil_yol/backend/controllers/front"
 
 	"github.com/gin-gonic/gin"
@@ -8,7 +9,7 @@ import (
 
 func ShopRoutes(front *gin.RouterGroup) {
 
-	likeRoutes := front.Group("/shops")
+	shopRoutes := front.Group("/shops")
 	{
 		// // AddOrRemoveSubscribe -> customer -e like gosmak ya-da pozmak ucin ulanylyar
 		// // gosmak ucin request query - de status = true
@@ -24,7 +25,11 @@ func ShopRoutes(front *gin.RouterGroup) {
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		// eger request query - den shop_owner_id gelse sol shop_owner degisli
 		// shop - laryn maglumatlary alynyar
-		likeRoutes.GET("", controllers.GetShops)
+		shopRoutes.GET("", controllers.GetShops)
+
+		// GetShopByID -> Dine bir Shop - yn maglumatlaryny request param - dan gelen
+		// id boyunca alynyar
+		shopRoutes.GET(":id", backControllers.GetShopByID)
 
 	}
 
