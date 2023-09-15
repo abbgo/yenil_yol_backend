@@ -50,7 +50,7 @@ func CreateShop(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, true, ""); err != nil {
+	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, true, "", shop.ShopOwnerID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -108,7 +108,7 @@ func UpdateShopByID(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, false, shop.ID); err != nil {
+	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, false, shop.ID, shop.ShopOwnerID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

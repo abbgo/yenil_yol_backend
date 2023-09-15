@@ -36,7 +36,7 @@ type ShopPhone struct {
 	DeletedAt   string `json:"-"`
 }
 
-func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool, shopId string) error {
+func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool, shopId, shopOwnerID string) error {
 
 	db, err := config.ConnDB()
 	if err != nil {
@@ -51,10 +51,21 @@ func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool
 		}
 	}
 
+	if shopOwnerID == "" {
+		return errors.New("shop_owner_id is required")
+	}
+	var shop_owner_id string
+	if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", shopOwnerID).Scan(&shop_owner_id); err != nil {
+		return err
+	}
+	if shop_owner_id == "" {
+		return errors.New("shop_owner not found")
+	}
+
 	if orderNumber != 0 {
 		if isCreateFunction {
 			var order_number uint
-			if err = db.QueryRow(context.Background(), "SELECT order_number FROM shops where order_number = $1 AND deleted_at IS NULL", orderNumber).Scan(&order_number); err == nil {
+			if err = db.QueryRow(context.Background(), "SELECT order_number FROM shops where order_number = $1 AND deleted_at IS NULL AND shop_owner_id = $2", orderNumber, shopOwnerID).Scan(&order_number); err == nil {
 				return errors.New("this order number already exists")
 			}
 		} else {
