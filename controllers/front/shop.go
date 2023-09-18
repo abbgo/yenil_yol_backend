@@ -5,23 +5,25 @@ import (
 	"database/sql"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
+	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Shop struct {
-	ID          string   `json:"id,omitempty"`
-	NameTM      string   `json:"name_tm,omitempty"`
-	NameRU      string   `json:"name_ru,omitempty"`
-	Latitude    float64  `json:"latitude,omitempty"`
-	Longitude   float64  `json:"longitude,omitempty"`
-	Image       string   `json:"image,omitempty"`
-	ShopPhones  []string `json:"shop_phones"`
-	AddressTM   string   `json:"address_tm,omitempty"`
-	AddressRU   string   `json:"address_ru,omitempty"`
-	HasDelivery bool     `json:"has_delivery,omitempty"`
-	ShopOwnerID string   `json:"shop_owner_id,omitempty"`
+	ID          string           `json:"id,omitempty"`
+	NameTM      string           `json:"name_tm,omitempty"`
+	NameRU      string           `json:"name_ru,omitempty"`
+	Latitude    float64          `json:"latitude,omitempty"`
+	Longitude   float64          `json:"longitude,omitempty"`
+	Image       string           `json:"image,omitempty"`
+	ShopPhones  []string         `json:"shop_phones"`
+	AddressTM   string           `json:"address_tm,omitempty"`
+	AddressRU   string           `json:"address_ru,omitempty"`
+	HasDelivery bool             `json:"has_delivery,omitempty"`
+	ShopOwnerID string           `json:"shop_owner_id,omitempty"`
+	Products    []models.Product `json:"products,omitempty"`
 }
 
 func GetShops(c *gin.Context) {
@@ -80,7 +82,7 @@ func GetShops(c *gin.Context) {
 
 }
 
-func GetShopByID(c *gin.Context) {
+func GetShopByIDWithProducts(c *gin.Context) {
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -109,16 +111,32 @@ func GetShopByID(c *gin.Context) {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
+
+		// eger databse sol maglumat yok bolsa error return edilyar
+		if shop.ID == "" {
+			helpers.HandleError(c, 404, "record not found")
+			return
+		}
+
 		if shopImage.String != "" {
 			shop.Image = shopImage.String
 		}
 		shop.ShopPhones = append(shop.ShopPhones, shopPhone)
-	}
 
-	// eger databse sol maglumat yok bolsa error return edilyar
-	if shop.ID == "" {
-		helpers.HandleError(c, 404, "record not found")
-		return
+		rowsProducts, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,image,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru FROM products WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		for rowsProducts.Next() {
+			var product models.Product
+			if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Image, &product.Price, &product.OldPrice, &product.Status, &product.ColorNameTM, &product.ColorNameRU, &product.GenderNameTM, &product.GenderNameRU); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			shop.Products = append(shop.Products, product)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

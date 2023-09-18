@@ -28,7 +28,7 @@ func ShopRoutes(front *gin.RouterGroup) {
 
 		// GetShopByID -> Dine bir Shop - yn maglumatlaryny request param - dan gelen
 		// id boyunca alynyar
-		shopRoutes.GET(":id", controllers.GetShopByID)
+		shopRoutes.GET(":id", controllers.GetShopByIDWithProducts)
 
 	}
 
