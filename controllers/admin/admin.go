@@ -16,10 +16,7 @@ func RegisterAdmin(c *gin.Context) {
 
 	db, err := config.ConnDB()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  false,
-			"message": err.Error(),
-		})
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer db.Close()
@@ -27,7 +24,7 @@ func RegisterAdmin(c *gin.Context) {
 	// request - den gelen maglumatlar alynyar
 	var admin models.Admin
 	if err := c.BindJSON(&admin); err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
