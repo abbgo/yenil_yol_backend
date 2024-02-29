@@ -18,7 +18,7 @@ type Shop struct {
 	Latitude    float64          `json:"latitude,omitempty"`
 	Longitude   float64          `json:"longitude,omitempty"`
 	Image       string           `json:"image,omitempty"`
-	ShopPhones  []string         `json:"shop_phones"`
+	ShopPhones  []string         `json:"phones"`
 	AddressTM   string           `json:"address_tm,omitempty"`
 	AddressRU   string           `json:"address_ru,omitempty"`
 	HasDelivery bool             `json:"has_delivery,omitempty"`
