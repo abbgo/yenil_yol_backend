@@ -178,7 +178,7 @@ func UpdateShopOwner(c *gin.Context) {
 		return
 	}
 
-	if models.ValidateShopOwner(shopOwner.PhoneNumber, shopOwner.ID, false); err != nil {
+	if err := models.ValidateShopOwner(shopOwner.PhoneNumber, shopOwner.ID, false); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

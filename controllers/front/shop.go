@@ -96,47 +96,35 @@ func GetShopByIDWithProducts(c *gin.Context) {
 	shopID := c.Param("id")
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
-	rowShop, err := db.Query(context.Background(), "SELECT s.id,s.name_tm,s.name_ru,s.address_tm,s.address_ru,s.latitude,s.longitude,s.image,sp.phone_number FROM shops s INNER JOIN shop_phones sp ON sp.shop_id = s.id WHERE s.id = $1 AND s.deleted_at IS NULL AND sp.deleted_at IS NULL", shopID)
+	var shop Shop
+	var shopImage sql.NullString
+	var shopPhone string
+	db.QueryRow(context.Background(), "SELECT s.id,s.name_tm,s.name_ru,s.address_tm,s.address_ru,s.latitude,s.longitude,s.image,sp.phone_number FROM shops s INNER JOIN shop_phones sp ON sp.shop_id = s.id WHERE s.id = $1 AND s.deleted_at IS NULL AND sp.deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shopImage, &shopPhone)
+
+	// eger databse sol maglumat yok bolsa error return edilyar
+	if shop.ID == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	if shopImage.String != "" {
+		shop.Image = shopImage.String
+	}
+	shop.ShopPhones = append(shop.ShopPhones, shopPhone)
+
+	rowsProducts, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,image,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru FROM products WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-	defer rowShop.Close()
 
-	var shop Shop
-	var shopImage sql.NullString
-	for rowShop.Next() {
-		var shopPhone string
-		if err := rowShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shopImage, &shopPhone); err != nil {
+	for rowsProducts.Next() {
+		var product models.Product
+		if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Image, &product.Price, &product.OldPrice, &product.Status, &product.ColorNameTM, &product.ColorNameRU, &product.GenderNameTM, &product.GenderNameRU); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
-
-		// eger databse sol maglumat yok bolsa error return edilyar
-		if shop.ID == "" {
-			helpers.HandleError(c, 404, "record not found")
-			return
-		}
-
-		if shopImage.String != "" {
-			shop.Image = shopImage.String
-		}
-		shop.ShopPhones = append(shop.ShopPhones, shopPhone)
-
-		rowsProducts, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,image,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru FROM products WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
-		if err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-
-		for rowsProducts.Next() {
-			var product models.Product
-			if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Image, &product.Price, &product.OldPrice, &product.Status, &product.ColorNameTM, &product.ColorNameRU, &product.GenderNameTM, &product.GenderNameRU); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
-			shop.Products = append(shop.Products, product)
-		}
+		shop.Products = append(shop.Products, product)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
