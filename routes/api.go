@@ -77,12 +77,6 @@ func Routes() *gin.Engine {
 
 		// bu route - ler product ucin doredilen rout - laryn toplumy
 		backApi.ProductRoutes(back)
-
-		// bu route - ler page - ler doredilen rout - laryn toplumy
-		backApi.PagesRoutes(back)
-
-		// bu route - ler page_translation - ler doredilen rout - laryn toplumy
-		backApi.TranslationPagesRoutes(back)
 	}
 
 	return routes
