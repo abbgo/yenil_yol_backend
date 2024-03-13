@@ -38,3 +38,42 @@ func CreateDimensionGroup(c *gin.Context) {
 		"message": "data successfully added",
 	})
 }
+
+func UpdateDimensionGroup(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - dan gelen maglumatlar alynyar
+	var dimensionGroup models.DimensionGroup
+	if err := c.BindJSON(&dimensionGroup); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
+	var dimensionGroupID string
+	db.QueryRow(context.Background(), "SELECT id FROM dimension_groups WHERE id = $1 AND deleted_at IS NULL", dimensionGroup.ID).Scan(&dimensionGroupID)
+
+	// eger database - de sol maglumat yok bolsa onda error return edilyar
+	if dimensionGroupID == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
+	_, err = db.Exec(context.Background(), "UPDATE dimension_groups SET name=$1 WHERE id=$2", dimensionGroup.Name, dimensionGroup.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully updated",
+	})
+}

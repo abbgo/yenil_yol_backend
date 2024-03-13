@@ -80,10 +80,7 @@ func UpdateBrendByID(c *gin.Context) {
 	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var brendID string
 	var olBrendImage sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,image FROM brends WHERE id = $1 AND deleted_at IS NULL", brend.ID).Scan(&brendID, &olBrendImage); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id,image FROM brends WHERE id = $1 AND deleted_at IS NULL", brend.ID).Scan(&brendID, &olBrendImage)
 
 	// eger database - de sol maglumat yok bolsa onda error return edilyar
 	if brendID == "" {

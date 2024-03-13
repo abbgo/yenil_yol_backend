@@ -14,8 +14,8 @@ func DimensionGroupRoutes(back *gin.RouterGroup) {
 		// CreateDimensionGroup -> DimensionGroup gosmak ucin ulanylar
 		backDimensionGroupApi.POST("", controllers.CreateDimensionGroup)
 
-		// // UpdateBrendByID -> id boyunca Brend - in maglumatlaryny update etmek ucin ulanylyar
-		// backDimensionGroupApi.PUT("", controllers.UpdateBrendByID)
+		// UpdateDimensionGroup -> id boyunca DimensionGroup - in maglumatlaryny update etmek ucin ulanylyar
+		backDimensionGroupApi.PUT("", controllers.UpdateDimensionGroup)
 
 		// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
 		// backDimensionGroupApi.GET(":id", controllers.GetBrendByID)
