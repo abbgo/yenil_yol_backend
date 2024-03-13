@@ -1,6 +1,6 @@
 package models
 
-type Dimension struct {
+type DimensionGroups struct {
 	ID        string `json:"id,omitempty"`
 	Dimension string `json:"dimension" binding:"required"`
 	CreatedAt string `json:"-"`
