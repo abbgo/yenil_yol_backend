@@ -16,8 +16,8 @@ func DimensionGroupRoutes(back *gin.RouterGroup) {
 		// UpdateDimensionGroup -> id boyunca DimensionGroup - in maglumatlaryny update etmek ucin ulanylyar
 		backDimensionGroupApi.PUT("", controllers.UpdateDimensionGroup)
 
-		// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
-		// backDimensionGroupApi.GET(":id", controllers.GetBrendByID)
+		// GetDimensionGroupByID -> id - si boyunca DimensionGroup - yn maglumatlaryny almak ucin ulanylyar
+		backDimensionGroupApi.GET(":id", controllers.GetDimensionGroupByID)
 
 		// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
 		// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
