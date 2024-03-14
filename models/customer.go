@@ -50,7 +50,8 @@ func ValidateCustomer(phoneNumber, customerID string, isRegisterFunction bool) e
 		// database - de request body - den gelen id bilen gabat gelyan customer barmy ya-da yokmy sol barlanyar
 		// eger yok bolsa onda error return edilyar
 		var id string
-		if err := db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", customerID).Scan(&id); err != nil {
+		db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", customerID).Scan(&id)
+		if id == "" {
 			return errors.New("customer not found")
 		}
 
