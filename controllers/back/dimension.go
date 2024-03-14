@@ -43,3 +43,21 @@ func CreateDimension(c *gin.Context) {
 		"message": "data successfully added",
 	})
 }
+
+func UpdateDimension(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - dan gelen maglumatlar alynyar
+	var dimension models.Dimension
+	if err := c.BindJSON(&dimension); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+}
