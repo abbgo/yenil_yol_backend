@@ -268,14 +268,8 @@ func DeleteAdminByID(c *gin.Context) {
 
 	// request parametr - den admin id alynyar
 	ID := c.Param("id")
-
-	// gelen id den bolan maglumat database - de barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("admins", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -303,14 +297,8 @@ func RestoreAdminByID(c *gin.Context) {
 
 	// request parametr - den admin id alynyar
 	ID := c.Param("id")
-
-	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database sol id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("admins", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -338,14 +326,8 @@ func DeletePermanentlyAdminByID(c *gin.Context) {
 
 	// request parametr - den admin id alynyar
 	ID := c.Param("id")
-
-	// database - de gelen id degisli maglumat barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("admins", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -377,13 +359,8 @@ func UpdateAdminPassword(c *gin.Context) {
 		return
 	}
 
-	// gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var admin_id string
-	db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", admin.ID).Scan(&admin_id)
-
-	// eger gelen id den bolan maglumat database - de yok bolsa error return edilyar
-	if admin_id == "" {
-		helpers.HandleError(c, 404, "admin not found")
+	if err := helpers.ValidateRecordByID("admins", admin.ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
