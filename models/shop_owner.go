@@ -53,7 +53,8 @@ func ValidateShopOwner(phoneNumber, shopOwnerID string, isRegisterFunction bool)
 		// database - de request body - den gelen id bilen gabat gelyan shop_owner barmy ya-da yokmy sol barlanyar
 		// eger yok bolsa onda error return edilyar
 		var id string
-		if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", shopOwnerID).Scan(&id); err != nil {
+		db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", shopOwnerID).Scan(&id)
+		if id == "" {
 			return errors.New("record not found")
 		}
 
