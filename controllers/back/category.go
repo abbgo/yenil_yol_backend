@@ -286,10 +286,7 @@ func DeleteCategoryByID(c *gin.Context) {
 
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM categories WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM categories WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -326,10 +323,7 @@ func RestoreCategoryByID(c *gin.Context) {
 
 	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM categories WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM categories WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
 
 	// eger database sol id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -367,10 +361,7 @@ func DeletePermanentlyCategoryByID(c *gin.Context) {
 	// database - de gelen id degisli maglumat barmy sol barlanyar
 	var id string
 	var image sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,image FROM categories WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id,image FROM categories WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image)
 
 	// eger database - de gelen id degisli category yok bolsa error return edilyar
 	if id == "" {
