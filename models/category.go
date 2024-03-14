@@ -1,9 +1,8 @@
 package models
 
 import (
-	"context"
-	"errors"
 	"github/abbgo/yenil_yol/backend/config"
+	"github/abbgo/yenil_yol/backend/helpers"
 )
 
 type Category struct {
@@ -35,13 +34,8 @@ func ValidateCategory(dimensionGroupID string) error {
 	}
 	defer db.Close()
 
-	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var dimension_group_id string
-	db.QueryRow(context.Background(), "SELECT id FROM dimension_groups WHERE id = $1 AND deleted_at IS NULL", dimensionGroupID).Scan(&dimension_group_id)
-
-	// eger database - de sol maglumat yok bolsa onda error return edilyar
-	if dimensionGroupID == "" {
-		return errors.New("dimension group not found")
+	if err := helpers.ValidateRecordByID("dimension_groups", dimensionGroupID, "NULL", db); err != nil {
+		return err
 	}
 
 	return nil

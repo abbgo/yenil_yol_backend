@@ -15,7 +15,6 @@ import (
 )
 
 func CreateCategory(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -62,11 +61,9 @@ func CreateCategory(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully added",
 	})
-
 }
 
 func UpdateCategoryByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -134,11 +131,9 @@ func UpdateCategoryByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully updated",
 	})
-
 }
 
 func GetCategoryByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -172,11 +167,9 @@ func GetCategoryByID(c *gin.Context) {
 		"status":   true,
 		"category": category,
 	})
-
 }
 
 func GetCategories(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -268,11 +261,9 @@ func GetCategories(c *gin.Context) {
 		"categories": categories,
 		"total":      countOfCategories,
 	})
-
 }
 
 func DeleteCategoryByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -283,14 +274,8 @@ func DeleteCategoryByID(c *gin.Context) {
 
 	// request parametr - den category id alynyar
 	ID := c.Param("id")
-
-	// gelen id den bolan maglumat database - de barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM categories WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("categories", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -305,11 +290,9 @@ func DeleteCategoryByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
 
 func RestoreCategoryByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -320,14 +303,8 @@ func RestoreCategoryByID(c *gin.Context) {
 
 	// request parametr - den category id alynyar
 	ID := c.Param("id")
-
-	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM categories WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database sol id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("categories", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -342,11 +319,9 @@ func RestoreCategoryByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully restored",
 	})
-
 }
 
 func DeletePermanentlyCategoryByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -388,5 +363,4 @@ func DeletePermanentlyCategoryByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
