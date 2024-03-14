@@ -19,12 +19,12 @@ func DimensionGroupRoutes(back *gin.RouterGroup) {
 		// GetDimensionGroupByID -> id - si boyunca DimensionGroup - yn maglumatlaryny almak ucin ulanylyar
 		backDimensionGroupApi.GET(":id", controllers.GetDimensionGroupByID)
 
-		// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
-		// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-		// backDimensionGroupApi.GET("", controllers.GetBrends)
+		// GetDimensionGroups -> Ahli DimensionGroup - laryn maglumatlaryny request query - den gelen
+		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
+		backDimensionGroupApi.GET("", controllers.GetDimensionGroups)
 
-		// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
-		// backDimensionGroupApi.DELETE(":id", controllers.DeleteBrendByID)
+		// DeleteDimensionGroupByID -> id boyunca DimensionGroup - y korzina salmak ucin ulanylyar
+		backDimensionGroupApi.DELETE(":id", controllers.DeleteDimensionGroupByID)
 
 		// // RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
 		// backDimensionGroupApi.GET(":id/restore", controllers.RestoreBrendByID)

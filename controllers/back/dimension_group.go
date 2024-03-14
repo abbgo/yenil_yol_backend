@@ -100,3 +100,98 @@ func GetDimensionGroupByID(c *gin.Context) {
 		"dimension_group": dimensionGroup,
 	})
 }
+
+func GetDimensionGroups(c *gin.Context) {
+	var count uint
+	var dimensionGroups []models.DimensionGroup
+	var requestQuery helpers.StandartQuery
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request query - den maglumatlar helpers.StandartQuery struct boyunca bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// query - den gelyan limit we page boyunca databasede ulanyljak offset hasaplanyar
+	offset := uint(requestQuery.Limit) * (requestQuery.Page - 1)
+
+	// request query - den status - a gora dimension_group - laryn sanyny almak ucin query yazylyar
+	queryCount := `SELECT COUNT(id) FROM dimension_groups WHERE deleted_at IS NULL`
+	if requestQuery.IsDeleted {
+		queryCount = `SELECT COUNT(id) FROM dimension_groups WHERE deleted_at IS NOT NULL`
+	}
+	if err = db.QueryRow(context.Background(), queryCount).Scan(&count); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// request query - den status - a gora dimension_group - lary almak ucin query yazylyar
+	rowQuery := `SELECT id,name FROM dimension_groups WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	if requestQuery.IsDeleted {
+		rowQuery = `SELECT id,name FROM dimension_groups WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	}
+	// database - den brend - lar alynyar
+	rowsBrend, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsBrend.Close()
+
+	for rowsBrend.Next() {
+		var dimensionGroup models.DimensionGroup
+		if err := rowsBrend.Scan(&dimensionGroup.ID, &dimensionGroup.Name); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		dimensionGroups = append(dimensionGroups, dimensionGroup)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":           true,
+		"dimension_groups": dimensionGroups,
+		"total":            count,
+	})
+}
+
+func DeleteDimensionGroupByID(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den dimension_group id alynyar
+	ID := c.Param("id")
+	if err := helpers.ValidateRecordByID("dimension_groups", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
+		return
+	}
+
+	// hemme zat dogry bolsa dimension_group we sona degisli dimension - laryn deleted_at - ine current_time goyulyar
+	_, err = db.Exec(context.Background(), "CALL delete_dimension_group($1)", ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully deleted",
+	})
+}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/go-playground/validator"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -33,6 +34,14 @@ func ValidateRecordByID(tableName, id, nullStr string, db *pgxpool.Pool) error {
 	fmt.Println(query)
 	if err := db.QueryRow(context.Background(), query).Scan(&id); err != nil {
 		return errors.New("record not found")
+	}
+	return nil
+}
+
+func ValidateStructData(s interface{}) error {
+	validate := validator.New()
+	if err := validate.Struct(s); err != nil {
+		return err
 	}
 	return nil
 }
