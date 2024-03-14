@@ -55,9 +55,7 @@ func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool
 		return errors.New("shop_owner_id is required")
 	}
 	var shop_owner_id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", shopOwnerID).Scan(&shop_owner_id); err != nil {
-		return err
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", shopOwnerID).Scan(&shop_owner_id)
 	if shop_owner_id == "" {
 		return errors.New("shop_owner not found")
 	}
