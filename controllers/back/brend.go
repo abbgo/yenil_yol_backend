@@ -15,7 +15,6 @@ import (
 )
 
 func CreateBrend(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -57,11 +56,9 @@ func CreateBrend(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully added",
 	})
-
 }
 
 func UpdateBrendByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -124,11 +121,9 @@ func UpdateBrendByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully updated",
 	})
-
 }
 
 func GetBrendByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -159,11 +154,9 @@ func GetBrendByID(c *gin.Context) {
 		"status": true,
 		"brend":  brend,
 	})
-
 }
 
 func GetBrends(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -255,11 +248,9 @@ func GetBrends(c *gin.Context) {
 		"brens":  brends,
 		"total":  countOfBrends,
 	})
-
 }
 
 func DeleteBrendByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -286,11 +277,9 @@ func DeleteBrendByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
 
 func RestoreBrendByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -317,11 +306,9 @@ func RestoreBrendByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully restored",
 	})
-
 }
 
 func DeletePermanentlyBrendByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -363,5 +350,4 @@ func DeletePermanentlyBrendByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
