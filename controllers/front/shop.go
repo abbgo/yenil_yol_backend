@@ -27,7 +27,6 @@ type Shop struct {
 }
 
 func GetShops(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -79,11 +78,9 @@ func GetShops(c *gin.Context) {
 		"status": true,
 		"shops":  shops,
 	})
-
 }
 
 func GetShopByIDWithProducts(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -131,5 +128,4 @@ func GetShopByIDWithProducts(c *gin.Context) {
 		"status": true,
 		"shop":   shop,
 	})
-
 }

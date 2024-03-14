@@ -16,7 +16,6 @@ type ProductID struct {
 }
 
 func AddOrRemoveLike(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -146,11 +145,9 @@ func AddOrRemoveLike(c *gin.Context) {
 		}
 
 	}
-
 }
 
 func GetLikes(customerID string) ([]models.Product, error) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		return []models.Product{}, err
@@ -191,11 +188,9 @@ func GetLikes(customerID string) ([]models.Product, error) {
 	}
 
 	return products, nil
-
 }
 
 func GetCustomerLikes(c *gin.Context) {
-
 	custID, hasCustomer := c.Get("customer_id")
 	if !hasCustomer {
 		helpers.HandleError(c, 400, "customer_id is required")
@@ -217,5 +212,4 @@ func GetCustomerLikes(c *gin.Context) {
 		"status":   true,
 		"products": products,
 	})
-
 }

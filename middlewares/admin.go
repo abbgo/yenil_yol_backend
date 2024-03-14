@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"context"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 // gelen request - in admin tarapyndan gelip gelmedigini barlayar
 // we admin bolmasa gecirmeyar
 func CheckAdmin() gin.HandlerFunc {
-
 	return func(c *gin.Context) {
 		tokenStr := c.GetHeader("Authorization")
 		if tokenStr == "" {
@@ -61,9 +59,7 @@ func CheckAdmin() gin.HandlerFunc {
 		}
 		defer db.Close()
 
-		var shop_owner_id string
-		db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", claims.AdminID).Scan(&shop_owner_id)
-		if shop_owner_id == "" {
+		if err := helpers.ValidateRecordByID("admins", claims.AdminID, "NULL", db); err != nil {
 			c.AbortWithStatusJSON(404, gin.H{"message": "admin not found"})
 			return
 		}
@@ -71,15 +67,12 @@ func CheckAdmin() gin.HandlerFunc {
 		c.Set("admin_id", claims.AdminID)
 		c.Next()
 	}
-
 }
 
 // IsSuperAdmin middleware dine super adminlere dostup beryar
 // adminleri gecirmeyar
 func IsSuperAdmin() gin.HandlerFunc {
-
 	return func(context *gin.Context) {
-
 		tokenStr := context.GetHeader("Authorization")
 		if tokenStr == "" {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, "Token is required")
@@ -124,5 +117,4 @@ func IsSuperAdmin() gin.HandlerFunc {
 
 		context.Next()
 	}
-
 }
