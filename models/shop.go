@@ -37,7 +37,6 @@ type ShopPhone struct {
 }
 
 func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool, shopId, shopOwnerID string) error {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
@@ -54,10 +53,9 @@ func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool
 	if shopOwnerID == "" {
 		return errors.New("shop_owner_id is required")
 	}
-	var shop_owner_id string
-	db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", shopOwnerID).Scan(&shop_owner_id)
-	if shop_owner_id == "" {
-		return errors.New("shop_owner not found")
+
+	if err := helpers.ValidateRecordByID("shop_owners", shopOwnerID, "NULL", db); err != nil {
+		return err
 	}
 
 	if orderNumber != 0 {

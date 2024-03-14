@@ -13,7 +13,6 @@ import (
 )
 
 func CreateSetting(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -52,11 +51,9 @@ func CreateSetting(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully added",
 	})
-
 }
 
 func UpdateSetting(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -143,5 +140,4 @@ func UpdateSetting(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully updated",
 	})
-
 }

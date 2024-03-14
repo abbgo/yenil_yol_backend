@@ -34,7 +34,6 @@ type ResponseShop struct {
 }
 
 func CreateShop(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -88,11 +87,9 @@ func CreateShop(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully added",
 	})
-
 }
 
 func UpdateShopByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -173,11 +170,9 @@ func UpdateShopByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully updated",
 	})
-
 }
 
 func GetShopByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -221,11 +216,9 @@ func GetShopByID(c *gin.Context) {
 		"status": true,
 		"shop":   shop,
 	})
-
 }
 
 func GetShops(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -331,11 +324,9 @@ func GetShops(c *gin.Context) {
 		"shops":  shops,
 		"total":  countOfShops,
 	})
-
 }
 
 func DeleteShopByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -346,14 +337,8 @@ func DeleteShopByID(c *gin.Context) {
 
 	// request parametr - den shop id alynyar
 	ID := c.Param("id")
-
-	// gelen id den bolan maglumat database - de barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM shops WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("shops", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -368,11 +353,9 @@ func DeleteShopByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
 
 func RestoreShopByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -383,14 +366,8 @@ func RestoreShopByID(c *gin.Context) {
 
 	// request parametr - den shop id alynyar
 	ID := c.Param("id")
-
-	// alynan id den bolan shop database - de barmy ya yok sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database sol id degisli shop yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("shops", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -405,11 +382,9 @@ func RestoreShopByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully restored",
 	})
-
 }
 
 func DeletePermanentlyShopByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -448,5 +423,4 @@ func DeletePermanentlyShopByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }

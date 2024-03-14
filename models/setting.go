@@ -24,7 +24,6 @@ type SettingUpdate struct {
 }
 
 func ValidateSetting(phoneNumber, email string) error {
-
 	if !helpers.ValidatePhoneNumber(phoneNumber) {
 		return errors.New("invalid phone number")
 	}
