@@ -195,3 +195,32 @@ func DeleteDimensionGroupByID(c *gin.Context) {
 		"message": "data successfully deleted",
 	})
 }
+
+func RestoreDimensionGroupByID(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den dimension_group id alynyar
+	ID := c.Param("id")
+	if err := helpers.ValidateRecordByID("dimension_groups", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
+		return
+	}
+
+	// hemme zat dogry bolsa dimension_group we sona degisli dimension - laryn deleted_at - ine NULL goyulyar
+	_, err = db.Exec(context.Background(), "CALL restore_dimension_group($1)", ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully restored",
+	})
+}
