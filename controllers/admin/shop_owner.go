@@ -16,7 +16,6 @@ import (
 )
 
 func RegisterShopOwner(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -56,11 +55,9 @@ func RegisterShopOwner(c *gin.Context) {
 		"phone_number": shopOwner.PhoneNumber,
 		"password":     shopOwner.Password,
 	})
-
 }
 
 func LoginShopOwner(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -116,7 +113,6 @@ func LoginShopOwner(c *gin.Context) {
 		"refresh_token": refreshTokenString,
 		"admin":         adm,
 	})
-
 }
 
 func GetShopOwnerByID(id string) (models.ShopOwner, error) {
@@ -137,11 +133,9 @@ func GetShopOwnerByID(id string) (models.ShopOwner, error) {
 
 	// hemme zat dogry bolsa shop_owner - in maglumatlary return edilyar
 	return shopOwner, nil
-
 }
 
 func UpdateShopOwner(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -172,11 +166,9 @@ func UpdateShopOwner(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully updated",
 	})
-
 }
 
 func GetShopOwners(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -241,11 +233,9 @@ func GetShopOwners(c *gin.Context) {
 		"shop_owners": shopOwners,
 		"total":       countOfShopOwners,
 	})
-
 }
 
 func GetShopOwner(c *gin.Context) {
-
 	shopOwnerID, hasID := c.Get("shop_owner_id")
 	if !hasID {
 		helpers.HandleError(c, 400, "shopOwnerID is required")
@@ -268,11 +258,9 @@ func GetShopOwner(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"shop_owner": adm,
 	})
-
 }
 
 func DeleteShopOwnerByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -283,14 +271,8 @@ func DeleteShopOwnerByID(c *gin.Context) {
 
 	// request parametr - den shop_owner id alynyar
 	ID := c.Param("id")
-
-	// gelen id den bolan maglumat database - de barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 400, "record not found")
+	if err := helpers.ValidateRecordByID("shop_owners", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -305,11 +287,9 @@ func DeleteShopOwnerByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
 
 func RestoreShopOwnerByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -320,14 +300,8 @@ func RestoreShopOwnerByID(c *gin.Context) {
 
 	// request parametr - den shop id alynyar
 	ID := c.Param("id")
-
-	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database sol id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("shop_owners", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -342,11 +316,9 @@ func RestoreShopOwnerByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully restored",
 	})
-
 }
 
 func DeletePermanentlyShopOwnerByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -407,5 +379,4 @@ func DeletePermanentlyShopOwnerByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }

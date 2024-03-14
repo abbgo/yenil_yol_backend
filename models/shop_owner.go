@@ -32,7 +32,6 @@ type ShopOwnerUpdate struct {
 }
 
 func ValidateShopOwner(phoneNumber, shopOwnerID string, isRegisterFunction bool) error {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
@@ -50,12 +49,8 @@ func ValidateShopOwner(phoneNumber, shopOwnerID string, isRegisterFunction bool)
 			return errors.New("shop_owner_id is required")
 		}
 
-		// database - de request body - den gelen id bilen gabat gelyan shop_owner barmy ya-da yokmy sol barlanyar
-		// eger yok bolsa onda error return edilyar
-		var id string
-		db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", shopOwnerID).Scan(&id)
-		if id == "" {
-			return errors.New("record not found")
+		if err := helpers.ValidateRecordByID("shop_owners", shopOwnerID, "NULL", db); err != nil {
+			return err
 		}
 
 		var shop_owner_id string
@@ -70,5 +65,4 @@ func ValidateShopOwner(phoneNumber, shopOwnerID string, isRegisterFunction bool)
 	}
 
 	return nil
-
 }
