@@ -112,10 +112,7 @@ func AddOrRemoveSubscribe(c *gin.Context) {
 		if len(shopIDs.IDS) != 0 { // front - dan maglumat gelyarmi ya-da gelenokmy sony barlayas
 			// front - dan gelen id - ler subscribes tablisada barmy ya-da yokmy sony barlayas
 			var shop_id string
-			if err := db.QueryRow(context.Background(), "SELECT shop_id FROM subscribes WHERE customer_id = $1 AND shop_id = $2 AND deleted_at IS NULL", customerID, shopIDs.IDS[0]).Scan(&shop_id); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
+			db.QueryRow(context.Background(), "SELECT shop_id FROM subscribes WHERE customer_id = $1 AND shop_id = $2 AND deleted_at IS NULL", customerID, shopIDs.IDS[0]).Scan(&shop_id)
 
 			// eger magazyn subscribes tablisada yok bolsa
 			// yzyna yalnyslyk goyberyas
