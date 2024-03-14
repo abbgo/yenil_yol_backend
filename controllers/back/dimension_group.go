@@ -55,13 +55,8 @@ func UpdateDimensionGroup(c *gin.Context) {
 		return
 	}
 
-	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var dimensionGroupID string
-	db.QueryRow(context.Background(), "SELECT id FROM dimension_groups WHERE id = $1 AND deleted_at IS NULL", dimensionGroup.ID).Scan(&dimensionGroupID)
-
-	// eger database - de sol maglumat yok bolsa onda error return edilyar
-	if dimensionGroupID == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("dimension_groups", dimensionGroup.ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
