@@ -74,10 +74,7 @@ func UpdateSetting(c *gin.Context) {
 
 	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var oldLogo, oldFavicon sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT logo,favicon FROM settings WHERE deleted_at IS NULL").Scan(&oldLogo, &oldFavicon); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT logo,favicon FROM settings WHERE deleted_at IS NULL").Scan(&oldLogo, &oldFavicon)
 
 	// eger database - de sol maglumat yok bolsa onda error return edilyar
 	if oldFavicon.String == "" {
