@@ -29,7 +29,6 @@ type CustomerUpdatePassword struct {
 }
 
 func ValidateCustomer(phoneNumber, customerID string, isRegisterFunction bool) error {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
@@ -47,12 +46,8 @@ func ValidateCustomer(phoneNumber, customerID string, isRegisterFunction bool) e
 			return errors.New("customer_id is required")
 		}
 
-		// database - de request body - den gelen id bilen gabat gelyan customer barmy ya-da yokmy sol barlanyar
-		// eger yok bolsa onda error return edilyar
-		var id string
-		db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", customerID).Scan(&id)
-		if id == "" {
-			return errors.New("customer not found")
+		if err := helpers.ValidateRecordByID("customers", customerID, "NULL", db); err != nil {
+			return err
 		}
 
 		var customer_id string
@@ -68,5 +63,4 @@ func ValidateCustomer(phoneNumber, customerID string, isRegisterFunction bool) e
 	}
 
 	return nil
-
 }

@@ -13,7 +13,6 @@ import (
 )
 
 func RegisterCustomer(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -55,11 +54,9 @@ func RegisterCustomer(c *gin.Context) {
 		"phone_number": customer.PhoneNumber,
 		"full_name":    customer.FullName,
 	})
-
 }
 
 func LoginCustomer(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -115,7 +112,6 @@ func LoginCustomer(c *gin.Context) {
 		"refresh_token": refreshTokenString,
 		"admin":         adm,
 	})
-
 }
 
 func GetCustomerByID(id string) (models.Customer, error) {
@@ -136,11 +132,9 @@ func GetCustomerByID(id string) (models.Customer, error) {
 
 	// hemme zat dogry bolsa admin - in maglumatlary return edilyar
 	return customer, nil
-
 }
 
 func UpdateCustomer(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -171,11 +165,9 @@ func UpdateCustomer(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully updated",
 	})
-
 }
 
 func UpdateCustomerPassword(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -190,13 +182,8 @@ func UpdateCustomerPassword(c *gin.Context) {
 		return
 	}
 
-	// gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var customer_id string
-	db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", customer.ID).Scan(&customer_id)
-
-	// eger gelen id den bolan maglumat database - de yok bolsa error return edilyar
-	if customer_id == "" {
-		helpers.HandleError(c, 404, "customer not found")
+	if err := helpers.ValidateRecordByID("customers", customer.ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -218,11 +205,9 @@ func UpdateCustomerPassword(c *gin.Context) {
 		"status":  true,
 		"message": "password of customer successfuly updated",
 	})
-
 }
 
 func GetCustomer(c *gin.Context) {
-
 	customerID, hasID := c.Get("customer_id")
 	if !hasID {
 		helpers.HandleError(c, 400, "customerID is required")
@@ -245,11 +230,9 @@ func GetCustomer(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"customer": adm,
 	})
-
 }
 
 func GetCustomers(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -314,11 +297,9 @@ func GetCustomers(c *gin.Context) {
 		"customers": customers,
 		"total":     countOfCustomers,
 	})
-
 }
 
 func DeleteCustomerByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -329,14 +310,8 @@ func DeleteCustomerByID(c *gin.Context) {
 
 	// request parametr - den customer id alynyar
 	ID := c.Param("id")
-
-	// gelen id den bolan maglumat database - de barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("customers", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -351,11 +326,9 @@ func DeleteCustomerByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
 
 func RestoreCustomerByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -366,14 +339,8 @@ func RestoreCustomerByID(c *gin.Context) {
 
 	// request parametr - den customer id alynyar
 	ID := c.Param("id")
-
-	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database sol id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("customers", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -388,11 +355,9 @@ func RestoreCustomerByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully restored",
 	})
-
 }
 
 func DeletePermanentlyCustomerByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -403,14 +368,8 @@ func DeletePermanentlyCustomerByID(c *gin.Context) {
 
 	// request parametr - den customer id alynyar
 	ID := c.Param("id")
-
-	// database - de gelen id degisli maglumat barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("customers", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -425,5 +384,4 @@ func DeletePermanentlyCustomerByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
