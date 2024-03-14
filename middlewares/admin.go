@@ -64,7 +64,7 @@ func CheckAdmin() gin.HandlerFunc {
 		var shop_owner_id string
 		db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", claims.AdminID).Scan(&shop_owner_id)
 		if shop_owner_id == "" {
-			c.AbortWithStatusJSON(404, gin.H{"message": "shop owner not found"})
+			c.AbortWithStatusJSON(404, gin.H{"message": "admin not found"})
 			return
 		}
 

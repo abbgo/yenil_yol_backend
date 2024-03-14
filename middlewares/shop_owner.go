@@ -62,8 +62,9 @@ func CheckShopOwner() gin.HandlerFunc {
 		defer db.Close()
 
 		var shop_owner_id string
-		if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", claims.AdminID).Scan(&shop_owner_id); err != nil {
-			c.AbortWithStatusJSON(400, gin.H{"message": err.Error()})
+		db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", claims.AdminID).Scan(&shop_owner_id)
+		if shop_owner_id == "" {
+			c.AbortWithStatusJSON(404, gin.H{"message": "shop owner not found"})
 			return
 		}
 
