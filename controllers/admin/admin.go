@@ -13,7 +13,6 @@ import (
 )
 
 func RegisterAdmin(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -52,11 +51,9 @@ func RegisterAdmin(c *gin.Context) {
 		"phone_number": admin.PhoneNumber,
 		"full_name":    admin.FullName,
 	})
-
 }
 
 func LoginAdmin(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -113,7 +110,6 @@ func LoginAdmin(c *gin.Context) {
 		"refresh_token": refreshTokenString,
 		"admin":         adm,
 	})
-
 }
 
 func GetAdminByID(id string) (models.Admin, error) {
@@ -134,11 +130,9 @@ func GetAdminByID(id string) (models.Admin, error) {
 
 	// hemme zat dogry bolsa admin - in maglumatlary return edilyar
 	return admin, nil
-
 }
 
 func UpdateAdmin(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -169,11 +163,9 @@ func UpdateAdmin(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully updated",
 	})
-
 }
 
 func GetAdmin(c *gin.Context) {
-
 	adminID, hasID := c.Get("admin_id")
 	if !hasID {
 		helpers.HandleError(c, 400, "adminID is required")
@@ -196,11 +188,9 @@ func GetAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"admin": adm,
 	})
-
 }
 
 func GetAdmins(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -265,11 +255,9 @@ func GetAdmins(c *gin.Context) {
 		"admins": admins,
 		"total":  countOfAdmins,
 	})
-
 }
 
 func DeleteAdminByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -302,11 +290,9 @@ func DeleteAdminByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
 
 func RestoreAdminByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -339,11 +325,9 @@ func RestoreAdminByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully restored",
 	})
-
 }
 
 func DeletePermanentlyAdminByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -376,11 +360,9 @@ func DeletePermanentlyAdminByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
 
 func UpdateAdminPassword(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -423,5 +405,4 @@ func UpdateAdminPassword(c *gin.Context) {
 		"status":  true,
 		"message": "password of admin successfuly updated",
 	})
-
 }

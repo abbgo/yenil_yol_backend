@@ -48,12 +48,8 @@ func ValidateAdmin(phoneNumber, adminID string, isRegisterFunction bool) error {
 			return errors.New("admin_id is required")
 		}
 
-		// database - de request body - den gelen id bilen gabat gelyan admin barmy ya-da yokmy sol barlanyar
-		// eger yok bolsa onda error return edilyar
-		var id string
-		db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", adminID).Scan(&id)
-		if id == "" {
-			return errors.New("admin not found")
+		if err := helpers.ValidateRecordByID("admins", adminID, "NULL", db); err != nil {
+			return err
 		}
 
 		var admin_id string
