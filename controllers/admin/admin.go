@@ -79,14 +79,11 @@ func LoginAdmin(c *gin.Context) {
 	// database - den telefon belgisi request - den gelen telefon belga den bolan maglumat cekilyar
 	var id, password string
 	var is_super_admin bool
-	if err := db.QueryRow(context.Background(), "SELECT id,password,is_super_admin FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", admin.PhoneNumber).Scan(&id, &password, &is_super_admin); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id,password,is_super_admin FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", admin.PhoneNumber).Scan(&id, &password, &is_super_admin)
 
 	// eger request - den gelen telefon belgili admin database - de yok bolsa onda error response edilyar
 	if id == "" {
-		helpers.HandleError(c, 404, "this admin does not exist")
+		helpers.HandleError(c, 404, "admin not found")
 		return
 	}
 
@@ -128,17 +125,7 @@ func GetAdminByID(id string) (models.Admin, error) {
 
 	// parametrler edilip berilen id - boyunca database - den admin - in maglumatlary cekilyar
 	var admin models.Admin
-	rowAdmin, err := db.Query(context.Background(), "SELECT full_name,phone_number,is_super_admin FROM admins WHERE deleted_at IS NULL AND id = $1", id)
-	if err != nil {
-		return models.Admin{}, err
-	}
-	defer rowAdmin.Close()
-
-	for rowAdmin.Next() {
-		if err := rowAdmin.Scan(&admin.FullName, &admin.PhoneNumber, &admin.IsSuperAdmin); err != nil {
-			return models.Admin{}, err
-		}
-	}
+	db.QueryRow(context.Background(), "SELECT full_name,phone_number,is_super_admin FROM admins WHERE deleted_at IS NULL AND id = $1", id).Scan(&admin.FullName, &admin.PhoneNumber, &admin.IsSuperAdmin)
 
 	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
 	if admin.PhoneNumber == "" {
@@ -296,10 +283,7 @@ func DeleteAdminByID(c *gin.Context) {
 
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -336,10 +320,7 @@ func RestoreAdminByID(c *gin.Context) {
 
 	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
 
 	// eger database sol id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -376,10 +357,7 @@ func DeletePermanentlyAdminByID(c *gin.Context) {
 
 	// database - de gelen id degisli maglumat barmy sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -419,10 +397,7 @@ func UpdateAdminPassword(c *gin.Context) {
 
 	// gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var admin_id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", admin.ID).Scan(&admin_id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", admin.ID).Scan(&admin_id)
 
 	// eger gelen id den bolan maglumat database - de yok bolsa error return edilyar
 	if admin_id == "" {
