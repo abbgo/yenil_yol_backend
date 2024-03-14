@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"context"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 // gelen request - in shop_owner tarapyndan gelip gelmedigini barlayar
 // we shop_owner bolmasa gecirmeyar
 func CheckCustomer() gin.HandlerFunc {
-
 	return func(c *gin.Context) {
 		tokenStr := c.GetHeader("Authorization")
 		if tokenStr == "" {
@@ -61,9 +59,7 @@ func CheckCustomer() gin.HandlerFunc {
 		}
 		defer db.Close()
 
-		var customer_id string
-		db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", claims.AdminID).Scan(&customer_id)
-		if customer_id == "" {
+		if err := helpers.ValidateRecordByID("customers", claims.AdminID, "NULL", db); err != nil {
 			c.AbortWithStatusJSON(404, gin.H{"message": "customer not found"})
 			return
 		}
@@ -71,5 +67,4 @@ func CheckCustomer() gin.HandlerFunc {
 		c.Set("customer_id", claims.AdminID)
 		c.Next()
 	}
-
 }
