@@ -52,7 +52,8 @@ func ValidateAdmin(phoneNumber, adminID string, isRegisterFunction bool) error {
 		// database - de request body - den gelen id bilen gabat gelyan admin barmy ya-da yokmy sol barlanyar
 		// eger yok bolsa onda error return edilyar
 		var id string
-		if err := db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", adminID).Scan(&id); err != nil {
+		db.QueryRow(context.Background(), "SELECT id FROM admins WHERE id = $1 AND deleted_at IS NULL", adminID).Scan(&id)
+		if id == "" {
 			return errors.New("admin not found")
 		}
 
