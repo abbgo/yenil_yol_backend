@@ -82,19 +82,7 @@ func LoginShopOwner(c *gin.Context) {
 
 	// database - den telefon belgisi request - den gelen telefon belga den bolan maglumat cekilyar
 	var id, password string
-	row, err := db.Query(context.Background(), "SELECT id,password FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", shopOwner.PhoneNumber)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	defer row.Close()
-
-	for row.Next() {
-		if err := row.Scan(&id, &password); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-	}
+	db.QueryRow(context.Background(), "SELECT id,password FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", shopOwner.PhoneNumber).Scan(&id, &password)
 
 	// eger request - den gelen telefon belgili shop_owner database - de yok bolsa onda error response edilyar
 	if id == "" {
@@ -140,17 +128,7 @@ func GetShopOwnerByID(id string) (models.ShopOwner, error) {
 
 	// parametrler edilip berilen id - boyunca database - den shop_owner - in maglumatlary cekilyar
 	var shopOwner models.ShopOwner
-	rowShopOwner, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL AND id = $1", id)
-	if err != nil {
-		return models.ShopOwner{}, err
-	}
-	defer rowShopOwner.Close()
-
-	for rowShopOwner.Next() {
-		if err := rowShopOwner.Scan(&shopOwner.FullName, &shopOwner.PhoneNumber); err != nil {
-			return models.ShopOwner{}, err
-		}
-	}
+	db.QueryRow(context.Background(), "SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL AND id = $1", id).Scan(&shopOwner.FullName, &shopOwner.PhoneNumber)
 
 	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
 	if shopOwner.PhoneNumber == "" {
@@ -308,10 +286,7 @@ func DeleteShopOwnerByID(c *gin.Context) {
 
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -348,10 +323,7 @@ func RestoreShopOwnerByID(c *gin.Context) {
 
 	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM shop_owners WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
 
 	// eger database sol id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
