@@ -8,7 +8,7 @@ import (
 )
 
 func CategoryRoutes(back *gin.RouterGroup) {
-	backCategoryApi := back.Group("/categories").Use(middlewares.CheckAdmin())
+	backCategoryApi := back.Group("/categories").Use(middlewares.CheckToken("admin"))
 	{
 		// CreateCategory -> Category gosmak ulanylar
 		backCategoryApi.POST("", controllers.CreateCategory)

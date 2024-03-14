@@ -8,7 +8,7 @@ import (
 )
 
 func DimensionRoutes(back *gin.RouterGroup) {
-	backDimensionApi := back.Group("/dimensions").Use(middlewares.CheckAdmin())
+	backDimensionApi := back.Group("/dimensions").Use(middlewares.CheckToken("admin"))
 	{
 		// CreateDimensionGroup -> DimensionGroup gosmak ucin ulanylar
 		backDimensionApi.POST("", controllers.CreateDimension)

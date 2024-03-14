@@ -9,7 +9,6 @@ import (
 )
 
 func AdminRoutes(back *gin.RouterGroup) {
-
 	admin := back.Group("/admins")
 	{
 		// RegisterAdmin admin - i registrasiya etmek ucin ulanylyar.
@@ -27,10 +26,10 @@ func AdminRoutes(back *gin.RouterGroup) {
 
 		// Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 		// ucin ulanylyar
-		admin.POST("refresh", middlewares.CheckAdmin(), helpers.RefreshTokenForAdmin)
+		admin.POST("refresh", middlewares.CheckToken("admin"), helpers.RefreshTokenForAdmin)
 
 		// GetAdmin funksiya haeder - den gelen id boyunca bir sany admin - i almak ucin ulanylyar.
-		admin.GET("one", middlewares.CheckAdmin(), controllers.GetAdmin)
+		admin.GET("one", middlewares.CheckToken("admin"), controllers.GetAdmin)
 
 		// GetAdmins funksiya hemme admin - leri almak ucin ulanylyar.
 		admin.GET("", middlewares.IsSuperAdmin(), controllers.GetAdmins)
@@ -43,7 +42,5 @@ func AdminRoutes(back *gin.RouterGroup) {
 
 		// DeletePermanentlyAdminByID funksiya id boyunca admin - i doly ( korzinadan ) pozmak ucin ulanylyar
 		admin.DELETE(":id/delete", middlewares.IsSuperAdmin(), controllers.DeletePermanentlyAdminByID)
-
 	}
-
 }

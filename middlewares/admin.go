@@ -14,7 +14,7 @@ import (
 // CheckAdmin middleware ahli admin - lere dostup beryar
 // gelen request - in admin tarapyndan gelip gelmedigini barlayar
 // we admin bolmasa gecirmeyar
-func CheckAdmin() gin.HandlerFunc {
+func CheckToken(position string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr := c.GetHeader("Authorization")
 		if tokenStr == "" {
@@ -59,12 +59,25 @@ func CheckAdmin() gin.HandlerFunc {
 		}
 		defer db.Close()
 
-		if err := helpers.ValidateRecordByID("admins", claims.AdminID, "NULL", db); err != nil {
-			c.AbortWithStatusJSON(404, gin.H{"message": "admin not found"})
+		var tableName = ""
+		switch position {
+		case "admin":
+			tableName = "admins"
+		case "shop_owner":
+			tableName = "shop_owners"
+		case "customer":
+			tableName = "customers"
+		default:
+			c.AbortWithStatusJSON(400, gin.H{"message": "position not found"})
 			return
 		}
 
-		c.Set("admin_id", claims.AdminID)
+		if err := helpers.ValidateRecordByID(tableName, claims.AdminID, "NULL", db); err != nil {
+			c.AbortWithStatusJSON(404, gin.H{"message": position + " not found"})
+			return
+		}
+
+		c.Set(position+"_id", claims.AdminID)
 		c.Next()
 	}
 }

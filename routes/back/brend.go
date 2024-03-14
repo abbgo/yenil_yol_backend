@@ -8,7 +8,7 @@ import (
 )
 
 func BrendRoutes(back *gin.RouterGroup) {
-	backBrendApi := back.Group("/brends").Use(middlewares.CheckAdmin())
+	backBrendApi := back.Group("/brends").Use(middlewares.CheckToken("admin"))
 	{
 		// CreateBrend -> Brend gosmak ulanylar
 		backBrendApi.POST("", controllers.CreateBrend)

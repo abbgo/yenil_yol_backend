@@ -8,7 +8,7 @@ import (
 )
 
 func SettingRoutes(back *gin.RouterGroup) {
-	backSettingApi := back.Group("/setting").Use(middlewares.CheckAdmin())
+	backSettingApi := back.Group("/setting").Use(middlewares.CheckToken("admin"))
 	{
 		// CreateSetting -> Setting gosmak ulanylar
 		backSettingApi.POST("", controllers.CreateSetting)
