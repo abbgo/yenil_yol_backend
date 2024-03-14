@@ -45,7 +45,7 @@ func CreateCategory(c *gin.Context) {
 	}
 
 	// eger maglumatlar dogry bolsa onda categories tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
-	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru) VALUES ($1,$2,$3,$4,$5)", category.NameTM, category.NameRU, image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"))
+	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru,dimension_group_id) VALUES ($1,$2,$3,$4,$5,$6)", category.NameTM, category.NameRU, image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -124,7 +124,7 @@ func UpdateCategoryByID(c *gin.Context) {
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE categories SET name_tm=$1 , name_ru=$2 , image=$3 , slug_tm=$4 , slug_ru=$5 WHERE id=$6", category.NameTM, category.NameRU, fileName, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.ID)
+	_, err = db.Exec(context.Background(), "UPDATE categories SET name_tm=$1 , name_ru=$2 , image=$3 , slug_tm=$4 , slug_ru=$5, dimension_group_id=$6 WHERE id=$7", category.NameTM, category.NameRU, fileName, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID, category.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
