@@ -31,6 +31,11 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
+	if err := models.ValidateCategory(category.DimensionGroupID); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
 	// eger request body - dan gelen surat bos bolsa database surata derek nil gosmaly
 	var image interface{}
 	if category.Image == "" {
