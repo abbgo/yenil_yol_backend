@@ -81,10 +81,7 @@ func LoginCustomer(c *gin.Context) {
 
 	// database - den telefon belgisi request - den gelen telefon belga den bolan maglumat cekilyar
 	var id, password string
-	if err := db.QueryRow(context.Background(), "SELECT id,password FROM customers WHERE phone_number = $1 AND deleted_at IS NULL", customer.PhoneNumber).Scan(&id, &password); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id,password FROM customers WHERE phone_number = $1 AND deleted_at IS NULL", customer.PhoneNumber).Scan(&id, &password)
 
 	// eger request - den gelen telefon belgili admin database - de yok bolsa onda error response edilyar
 	if id == "" {
@@ -130,17 +127,7 @@ func GetCustomerByID(id string) (models.Customer, error) {
 
 	// parametrler edilip berilen id - boyunca database - den customer - in maglumatlary cekilyar
 	var customer models.Customer
-	rowCustomer, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM customers WHERE deleted_at IS NULL AND id = $1", id)
-	if err != nil {
-		return models.Customer{}, err
-	}
-	defer rowCustomer.Close()
-
-	for rowCustomer.Next() {
-		if err := rowCustomer.Scan(&customer.FullName, &customer.PhoneNumber); err != nil {
-			return models.Customer{}, err
-		}
-	}
+	db.QueryRow(context.Background(), "SELECT full_name,phone_number FROM customers WHERE deleted_at IS NULL AND id = $1", id).Scan(&customer.FullName, &customer.PhoneNumber)
 
 	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
 	if customer.PhoneNumber == "" {
@@ -205,10 +192,7 @@ func UpdateCustomerPassword(c *gin.Context) {
 
 	// gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var customer_id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", customer.ID).Scan(&customer_id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", customer.ID).Scan(&customer_id)
 
 	// eger gelen id den bolan maglumat database - de yok bolsa error return edilyar
 	if customer_id == "" {
@@ -348,10 +332,7 @@ func DeleteCustomerByID(c *gin.Context) {
 
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -388,10 +369,7 @@ func RestoreCustomerByID(c *gin.Context) {
 
 	// alynan id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
 
 	// eger database sol id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -428,10 +406,7 @@ func DeletePermanentlyCustomerByID(c *gin.Context) {
 
 	// database - de gelen id degisli maglumat barmy sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
