@@ -62,8 +62,9 @@ func CheckCustomer() gin.HandlerFunc {
 		defer db.Close()
 
 		var customer_id string
-		if err := db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", claims.AdminID).Scan(&customer_id); err != nil {
-			c.AbortWithStatusJSON(400, gin.H{"message": err.Error()})
+		db.QueryRow(context.Background(), "SELECT id FROM customers WHERE id = $1 AND deleted_at IS NULL", claims.AdminID).Scan(&customer_id)
+		if customer_id == "" {
+			c.AbortWithStatusJSON(404, gin.H{"message": "customer not found"})
 			return
 		}
 
