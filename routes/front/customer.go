@@ -29,7 +29,7 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		customerRoutes.POST("refresh", helpers.RefreshTokenForAdmin)
 
 		// GetCustomer -> haeder - den gelen id boyunca bir sany customer - i almak ucin ulanylyar.
-		customerRoutes.GET("one", middlewares.CheckCustomer(), controllers.GetCustomer)
+		customerRoutes.GET("one", middlewares.CheckToken("customer"), controllers.GetCustomer)
 
 		// GetCustomers -> hemme Customer - leri almak ucin ulanylyar.
 		customerRoutes.GET("", controllers.GetCustomers)

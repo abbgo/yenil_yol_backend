@@ -27,7 +27,7 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 		shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
 
 		// GetShopOwner funksiya haeder - den gelen id boyunca bir sany shop_owneri almak ucin ulanylyar.
-		shopOwner.GET("one", middlewares.CheckShopOwner(), controllers.GetShopOwner)
+		shopOwner.GET("one", middlewares.CheckToken("shop_owner"), controllers.GetShopOwner)
 
 		// GetShopOwners funksiya hemme shop_owner - leri almak ucin ulanylyar.
 		shopOwner.GET("", controllers.GetShopOwners)

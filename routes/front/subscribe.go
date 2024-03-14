@@ -15,11 +15,11 @@ func SubscribeRoutes(front *gin.RouterGroup) {
 		// gosmak ucin request query - de status = true
 		// pozmak ucin request query - de status = false ugratmaly
 		// by api - nin islemegi ucin customer token gerek
-		subscribeRoutes.POST("", middlewares.CheckCustomer(), controllers.AddOrRemoveSubscribe)
+		subscribeRoutes.POST("", middlewares.CheckToken("customer"), controllers.AddOrRemoveSubscribe)
 
 		// GetCustomerSubscribes funksiya frontdan token bar bolan yagdayynda
 		// musderinin subscribe sahypasyna gosan shop - laryny getiryar
-		subscribeRoutes.GET("", middlewares.CheckCustomer(), controllers.GetCustomerSubscribes)
+		subscribeRoutes.GET("", middlewares.CheckToken("customer"), controllers.GetCustomerSubscribes)
 
 	}
 

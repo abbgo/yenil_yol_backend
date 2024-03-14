@@ -15,11 +15,11 @@ func LikeRoutes(front *gin.RouterGroup) {
 		// gosmak ucin request query - de status = true
 		// pozmak ucin request query - de status = false ugratmaly
 		// bu api - yn islemegi ucin customer token gerek
-		likeRoutes.POST("", middlewares.CheckCustomer(), controllers.AddOrRemoveLike)
+		likeRoutes.POST("", middlewares.CheckToken("customer"), controllers.AddOrRemoveLike)
 
 		// GetCustomerLikes funksiya frontdan token bar bolan yagdayynda
 		// musderinin halanlarym sahypasyna gosan harytlaryny getiryar
-		likeRoutes.GET("", middlewares.CheckCustomer(), controllers.GetCustomerLikes)
+		likeRoutes.GET("", middlewares.CheckToken("customer"), controllers.GetCustomerLikes)
 
 	}
 
