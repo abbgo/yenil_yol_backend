@@ -15,7 +15,6 @@ import (
 )
 
 func CreateProduct(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -54,11 +53,9 @@ func CreateProduct(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully added",
 	})
-
 }
 
 func UpdateProductByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -126,11 +123,9 @@ func UpdateProductByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully updated",
 	})
-
 }
 
 func GetProductByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -180,11 +175,9 @@ func GetProductByID(c *gin.Context) {
 		"status":  true,
 		"product": product,
 	})
-
 }
 
 func GetProducts(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -292,11 +285,9 @@ func GetProducts(c *gin.Context) {
 		"products": products,
 		"total":    countOfProducts,
 	})
-
 }
 
 func DeleteProductByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -307,14 +298,8 @@ func DeleteProductByID(c *gin.Context) {
 
 	// request parametr - den product id alynyar
 	ID := c.Param("id")
-
-	// gelen id den bolan maglumat database - de barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM products WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("products", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -329,11 +314,9 @@ func DeleteProductByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }
 
 func RestoreProductByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -344,14 +327,8 @@ func RestoreProductByID(c *gin.Context) {
 
 	// request parametr - den product id alynyar
 	ID := c.Param("id")
-
-	// alynan id den bolan product database - de barmy ya yok sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM products WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database sol id degisli product yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("products", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -366,11 +343,9 @@ func RestoreProductByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully restored",
 	})
-
 }
 
 func DeletePermanentlyProductByID(c *gin.Context) {
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -412,5 +387,4 @@ func DeletePermanentlyProductByID(c *gin.Context) {
 		"status":  true,
 		"message": "data successfully deleted",
 	})
-
 }

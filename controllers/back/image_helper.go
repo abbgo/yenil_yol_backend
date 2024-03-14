@@ -11,7 +11,6 @@ import (
 )
 
 func AddOrUpdateImage(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -87,7 +86,6 @@ func AddOrUpdateImage(c *gin.Context) {
 		"status": true,
 		"image":  image,
 	})
-
 }
 
 type DeleteImg struct {
@@ -95,7 +93,6 @@ type DeleteImg struct {
 }
 
 func DeleteImage(c *gin.Context) {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -138,5 +135,4 @@ func DeleteImage(c *gin.Context) {
 		"status":  true,
 		"message": "image successfully deleted",
 	})
-
 }
