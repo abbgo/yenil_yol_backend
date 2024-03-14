@@ -276,10 +276,7 @@ func DeleteBrendByID(c *gin.Context) {
 
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM brends WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM brends WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -316,10 +313,7 @@ func RestoreBrendByID(c *gin.Context) {
 
 	// alynan id den bolan brend database - de barmy ya yok sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM brends WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM brends WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
 
 	// eger database sol id degisli brend yok bolsa error return edilyar
 	if id == "" {
@@ -357,10 +351,7 @@ func DeletePermanentlyBrendByID(c *gin.Context) {
 	// database - de gelen id degisli maglumat barmy sol barlanyar
 	var id string
 	var image sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,image FROM brends WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id,image FROM brends WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image)
 
 	// eger database - de gelen id degisli brend yok bolsa error return edilyar
 	if id == "" {
