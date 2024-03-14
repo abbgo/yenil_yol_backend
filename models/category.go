@@ -20,10 +20,11 @@ type Category struct {
 }
 
 type CategoryUpdate struct {
-	ID     string `json:"id,omitempty" binding:"required"`
-	NameTM string `json:"name_tm,omitempty" binding:"required"`
-	NameRU string `json:"name_ru,omitempty" binding:"required"`
-	Image  string `json:"image,omitempty"`
+	ID               string `json:"id,omitempty" binding:"required"`
+	NameTM           string `json:"name_tm,omitempty" binding:"required"`
+	NameRU           string `json:"name_ru,omitempty" binding:"required"`
+	Image            string `json:"image,omitempty"`
+	DimensionGroupID string `json:"dimension_group_id,omitempty" binding:"required"`
 }
 
 func ValidateCategory(dimensionGroupID string) error {

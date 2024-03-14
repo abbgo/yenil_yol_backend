@@ -85,14 +85,16 @@ func UpdateCategoryByID(c *gin.Context) {
 	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var categoryID string
 	var oldCategoryImage sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,image FROM categories WHERE id = $1 AND deleted_at IS NULL", category.ID).Scan(&categoryID, &oldCategoryImage); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id,image FROM categories WHERE id = $1 AND deleted_at IS NULL", category.ID).Scan(&categoryID, &oldCategoryImage)
 
 	// eger database - de sol maglumat yok bolsa onda error return edilyar
 	if categoryID == "" {
 		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	if err := models.ValidateCategory(category.DimensionGroupID); err != nil {
+		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
