@@ -7,7 +7,6 @@ import (
 )
 
 func BackShopOwnerRoutes(back *gin.RouterGroup) {
-
 	backShopOwnerApi := back.Group("/shops")
 	{
 		// CreateShop -> gosmak ulanylar
@@ -33,7 +32,5 @@ func BackShopOwnerRoutes(back *gin.RouterGroup) {
 
 		// DeletePermanentlyShopByID -> id boyunca shop - y doly (korzinadan) pozmak ucin ulanylyar
 		backShopOwnerApi.DELETE(":id/delete", controllers.DeletePermanentlyShopByID)
-
 	}
-
 }

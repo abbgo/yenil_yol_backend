@@ -2,15 +2,14 @@ package back
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/back"
+	"github/abbgo/yenil_yol/backend/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
 func BrendRoutes(back *gin.RouterGroup) {
-
-	backBrendApi := back.Group("/brends")
+	backBrendApi := back.Group("/brends").Use(middlewares.CheckAdmin())
 	{
-
 		// CreateBrend -> Brend gosmak ulanylar
 		backBrendApi.POST("", controllers.CreateBrend)
 
@@ -32,7 +31,5 @@ func BrendRoutes(back *gin.RouterGroup) {
 
 		// DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
 		backBrendApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
-
 	}
-
 }

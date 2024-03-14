@@ -2,15 +2,14 @@ package back
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/back"
+	"github/abbgo/yenil_yol/backend/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CategoryRoutes(back *gin.RouterGroup) {
-
-	backCategoryApi := back.Group("/categories")
+	backCategoryApi := back.Group("/categories").Use(middlewares.CheckAdmin())
 	{
-
 		// CreateCategory -> Category gosmak ulanylar
 		backCategoryApi.POST("", controllers.CreateCategory)
 
@@ -32,7 +31,5 @@ func CategoryRoutes(back *gin.RouterGroup) {
 
 		// DeletePermanentlyCategoryByID -> id boyunca category - i doly (korzinadan) pozmak ucin ulanylyar
 		backCategoryApi.DELETE(":id/delete", controllers.DeletePermanentlyCategoryByID)
-
 	}
-
 }

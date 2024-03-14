@@ -2,15 +2,14 @@ package back
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/back"
+	"github/abbgo/yenil_yol/backend/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
 func DimensionGroupRoutes(back *gin.RouterGroup) {
-
-	backDimensionGroupApi := back.Group("/dimension-groups")
+	backDimensionGroupApi := back.Group("/dimension-groups").Use(middlewares.CheckAdmin())
 	{
-
 		// CreateDimensionGroup -> DimensionGroup gosmak ucin ulanylar
 		backDimensionGroupApi.POST("", controllers.CreateDimensionGroup)
 
@@ -32,7 +31,5 @@ func DimensionGroupRoutes(back *gin.RouterGroup) {
 
 		// // DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
 		// backDimensionGroupApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
-
 	}
-
 }

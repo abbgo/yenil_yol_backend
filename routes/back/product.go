@@ -7,10 +7,8 @@ import (
 )
 
 func ProductRoutes(back *gin.RouterGroup) {
-
 	backProductApi := back.Group("/products")
 	{
-
 		// // CreateProduct -> Product gosmak ulanylar
 		backProductApi.POST("", controllers.CreateProduct)
 
@@ -32,7 +30,5 @@ func ProductRoutes(back *gin.RouterGroup) {
 
 		// DeletePermanentlyProductByID -> id boyunca product - y doly (korzinadan) pozmak ucin ulanylyar
 		backProductApi.DELETE(":id/delete", controllers.DeletePermanentlyProductByID)
-
 	}
-
 }
