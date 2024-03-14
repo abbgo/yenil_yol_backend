@@ -114,20 +114,8 @@ func UpdateShopByID(c *gin.Context) {
 	}
 
 	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
-	rowShop, err := db.Query(context.Background(), "SELECT id,image FROM shops WHERE id = $1 AND deleted_at IS NULL", shop.ID)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	defer rowShop.Close()
-
 	var oldShopImage, shopID string
-	for rowShop.Next() {
-		if err := rowShop.Scan(&shopID, &oldShopImage); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-	}
+	db.QueryRow(context.Background(), "SELECT id,image FROM shops WHERE id = $1 AND deleted_at IS NULL", shop.ID).Scan(&shopID, &oldShopImage)
 
 	// eger database - de sol maglumat yok bolsa onda error return edilyar
 	if shopID == "" {
@@ -361,10 +349,7 @@ func DeleteShopByID(c *gin.Context) {
 
 	// gelen id den bolan maglumat database - de barmy sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM shops WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM shops WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
 
 	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
 	if id == "" {
@@ -401,10 +386,7 @@ func RestoreShopByID(c *gin.Context) {
 
 	// alynan id den bolan shop database - de barmy ya yok sol barlanyar
 	var id string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
 
 	// eger database sol id degisli shop yok bolsa error return edilyar
 	if id == "" {
@@ -441,10 +423,7 @@ func DeletePermanentlyShopByID(c *gin.Context) {
 
 	// database - de gelen id degisli maglumat barmy sol barlanyar
 	var image string
-	if err := db.QueryRow(context.Background(), "SELECT image FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&image); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT image FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&image)
 
 	// eger database - de gelen id degisli shop yok bolsa error return edilyar
 	if image == "" {
