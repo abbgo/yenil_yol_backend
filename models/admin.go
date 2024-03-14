@@ -31,7 +31,6 @@ type AdminUpdatePassword struct {
 }
 
 func ValidateAdmin(phoneNumber, adminID string, isRegisterFunction bool) error {
-
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
@@ -70,5 +69,4 @@ func ValidateAdmin(phoneNumber, adminID string, isRegisterFunction bool) error {
 	}
 
 	return nil
-
 }

@@ -143,10 +143,7 @@ func GetBrendByID(c *gin.Context) {
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var brend models.Brend
 	var brendImage sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,name,image FROM brends WHERE id = $1 AND deleted_at IS NULL", brendID).Scan(&brend.ID, &brend.Name, &brendImage); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	db.QueryRow(context.Background(), "SELECT id,name,image FROM brends WHERE id = $1 AND deleted_at IS NULL", brendID).Scan(&brend.ID, &brend.Name, &brendImage)
 
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if brend.ID == "" {
@@ -273,14 +270,8 @@ func DeleteBrendByID(c *gin.Context) {
 
 	// request parametr - den brend id alynyar
 	ID := c.Param("id")
-
-	// gelen id den bolan maglumat database - de barmy sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM brends WHERE id = $1 AND deleted_at IS NULL", ID).Scan(&id)
-
-	// eger database - de gelen id degisli maglumat yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("brends", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
@@ -310,14 +301,8 @@ func RestoreBrendByID(c *gin.Context) {
 
 	// request parametr - den brend id alynyar
 	ID := c.Param("id")
-
-	// alynan id den bolan brend database - de barmy ya yok sol barlanyar
-	var id string
-	db.QueryRow(context.Background(), "SELECT id FROM brends WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id)
-
-	// eger database sol id degisli brend yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("brends", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
