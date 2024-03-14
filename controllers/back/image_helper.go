@@ -114,8 +114,10 @@ func DeleteImage(c *gin.Context) {
 	}
 
 	var helperImageID string
-	if err := db.QueryRow(context.Background(), "SELECT id FROM helper_images WHERE image = $1 AND deleted_at IS NULL", image.Image).Scan(&helperImageID); err != nil {
-		helpers.HandleError(c, 404, err.Error())
+	db.QueryRow(context.Background(), "SELECT id FROM helper_images WHERE image = $1 AND deleted_at IS NULL", image.Image).Scan(&helperImageID)
+
+	if helperImageID == "" {
+		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
