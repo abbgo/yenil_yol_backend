@@ -23,8 +23,8 @@ func DimensionRoutes(back *gin.RouterGroup) {
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		backDimensionApi.GET("", controllers.GetDimensionsByGroupID)
 
-		// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
-		// backDimensionApi.DELETE(":id", controllers.DeleteBrendByID)
+		// DeleteDimensionByID -> id boyunca dimension - y korzina salmak ucin ulanylyar
+		backDimensionApi.DELETE(":id", controllers.DeleteDimensionByID)
 
 		// // RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
 		// backDimensionApi.GET(":id/restore", controllers.RestoreBrendByID)
