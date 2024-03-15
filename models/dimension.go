@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 )
@@ -14,7 +15,7 @@ type Dimension struct {
 	DeletedAt        string `json:"-"`
 }
 
-func ValidateDimension(dimensionGroupID string) error {
+func ValidateDimension(dimension Dimension, forUpdate bool) error {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -22,8 +23,18 @@ func ValidateDimension(dimensionGroupID string) error {
 	}
 	defer db.Close()
 
-	if err := helpers.ValidateRecordByID("dimension_groups", dimensionGroupID, "NULL", db); err != nil {
+	if err := helpers.ValidateRecordByID("dimension_groups", dimension.DimensionGroupID, "NULL", db); err != nil {
 		return err
+	}
+
+	if forUpdate {
+		if dimension.ID == "" {
+			return errors.New("id is required")
+		}
+
+		if err := helpers.ValidateRecordByID("dimensions", dimension.ID, "NULL", db); err != nil {
+			return err
+		}
 	}
 
 	return nil

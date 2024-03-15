@@ -26,7 +26,7 @@ func CreateDimension(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateDimension(dimension.DimensionGroupID); err != nil {
+	if err := models.ValidateDimension(dimension, false); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -60,4 +60,20 @@ func UpdateDimension(c *gin.Context) {
 		return
 	}
 
+	if err := models.ValidateDimension(dimension, true); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
+	_, err = db.Exec(context.Background(), "UPDATE dimensions SET dimension=$1, dimension_group_id=$2 WHERE id=$3", dimension.Dimension, dimension.DimensionGroupID, dimension.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully updated",
+	})
 }
