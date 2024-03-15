@@ -47,6 +47,15 @@ type ProductUpdate struct {
 	BrendID      string  `json:"brend_id,omitempty" binding:"required"`
 }
 
+type ProductDimension struct {
+	ID          string `json:"id,omitempty"`
+	DimensionID string `json:"dimension_id,omitempty"`
+	ProductID   string `json:"product_id,omitempty"`
+	CreatedAt   string `json:"-"`
+	UpdatedAt   string `json:"-"`
+	DeletedAt   string `json:"-"`
+}
+
 func ValidateProduct(price, oldPrice float32) error {
 	if price < 0 || oldPrice < 0 {
 		return errors.New("price or old_price cannot be less than 0")
