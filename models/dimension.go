@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
@@ -39,6 +40,18 @@ func ValidateDimension(dimension Dimension, forUpdate bool) error {
 
 		if err := helpers.ValidateRecordByID("dimensions", dimension.ID, "NULL", db); err != nil {
 			return err
+		}
+
+		var id string
+		db.QueryRow(context.Background(), "SELECT id FROM dimensions WHERE dimension=$1 AND deleted_at IS NULL", dimension.Dimension).Scan(&id)
+		if dimension.ID != id && id != "" {
+			return errors.New("this dimension already exists")
+		}
+	} else {
+		var id string
+		db.QueryRow(context.Background(), "SELECT id FROM dimensions WHERE dimension=$1 AND deleted_at IS NULL", dimension.Dimension).Scan(&id)
+		if id != "" {
+			return errors.New("this dimension already exists")
 		}
 	}
 
