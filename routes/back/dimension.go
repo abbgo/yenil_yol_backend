@@ -19,9 +19,9 @@ func DimensionRoutes(back *gin.RouterGroup) {
 		// GetDimensionByID -> id - si boyunca Dimension - yn maglumatlaryny almak ucin ulanylyar
 		backDimensionApi.GET(":id", controllers.GetDimensionByID)
 
-		// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
-		// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-		// backDimensionApi.GET("", controllers.GetBrends)
+		// GetDimensionsByGroupID -> dimension_group_id boyunca Dimension - laryn maglumatlaryny request query - den gelen
+		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
+		backDimensionApi.GET("", controllers.GetDimensionsByGroupID)
 
 		// // DeleteBrendByID -> id boyunca brend - i korzina salmak ucin ulanylyar
 		// backDimensionApi.DELETE(":id", controllers.DeleteBrendByID)

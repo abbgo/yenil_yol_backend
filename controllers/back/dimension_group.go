@@ -144,16 +144,16 @@ func GetDimensionGroups(c *gin.Context) {
 		rowQuery = `SELECT id,name FROM dimension_groups WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	}
 	// database - den brend - lar alynyar
-	rowsBrend, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
+	rows, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-	defer rowsBrend.Close()
+	defer rows.Close()
 
-	for rowsBrend.Next() {
+	for rows.Next() {
 		var dimensionGroup models.DimensionGroup
-		if err := rowsBrend.Scan(&dimensionGroup.ID, &dimensionGroup.Name); err != nil {
+		if err := rows.Scan(&dimensionGroup.ID, &dimensionGroup.Name); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}

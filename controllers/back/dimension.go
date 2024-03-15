@@ -105,3 +105,59 @@ func GetDimensionByID(c *gin.Context) {
 		"dimension": dimension,
 	})
 }
+
+func GetDimensionsByGroupID(c *gin.Context) {
+	var dimensions []models.Dimension
+	var dimensionQuery models.DimensionQuery
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request query - den maglumatlar helpers.StandartQuery struct boyunca bind edilyar
+	if err := c.Bind(&dimensionQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&dimensionQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	if err := helpers.ValidateRecordByID("dimension_groups", dimensionQuery.DimensionGroupID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
+		return
+	}
+
+	// request query - den status - a gora dimension - lary almak ucin query yazylyar
+	rowQuery := `SELECT id,dimension,dimension_group_id FROM dimensions WHERE deleted_at IS NULL AND dimension_group_id=$1`
+	if dimensionQuery.IsDeleted {
+		rowQuery = `SELECT id,dimension,dimension_group_id FROM dimensions WHERE deleted_at IS NOT NULL AND dimension_group_id=$1`
+	}
+	// database - den brend - lar alynyar
+	rows, err := db.Query(context.Background(), rowQuery, dimensionQuery.DimensionGroupID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var dimension models.Dimension
+		if err := rows.Scan(&dimension.ID, &dimension.Dimension, &dimension.DimensionGroupID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		dimensions = append(dimensions, dimension)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"dimensions": dimensions,
+	})
+}

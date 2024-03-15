@@ -15,6 +15,11 @@ type Dimension struct {
 	DeletedAt        string `json:"-"`
 }
 
+type DimensionQuery struct {
+	IsDeleted        bool   `form:"is_deleted"`
+	DimensionGroupID string `form:"dimension_group_id" validate:"required"`
+}
+
 func ValidateDimension(dimension Dimension, forUpdate bool) error {
 	// initialize database connection
 	db, err := config.ConnDB()
