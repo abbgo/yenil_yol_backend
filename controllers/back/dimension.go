@@ -77,3 +77,31 @@ func UpdateDimension(c *gin.Context) {
 		"message": "data successfully updated",
 	})
 }
+
+func GetDimensionByID(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametrden id alynyar
+	dimensionID := c.Param("id")
+
+	// database - den request parametr - den gelen id boyunca maglumat cekilyar
+	var dimension models.Dimension
+	db.QueryRow(context.Background(), "SELECT id,dimension,dimension_group_id FROM dimensions WHERE id = $1 AND deleted_at IS NULL", dimensionID).Scan(&dimension.ID, &dimension.Dimension, &dimension.DimensionGroupID)
+
+	// eger databse sol maglumat yok bolsa error return edilyar
+	if dimension.ID == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":    true,
+		"dimension": dimension,
+	})
+}

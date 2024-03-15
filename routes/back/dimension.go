@@ -13,11 +13,11 @@ func DimensionRoutes(back *gin.RouterGroup) {
 		// CreateDimensionGroup -> DimensionGroup gosmak ucin ulanylar
 		backDimensionApi.POST("", controllers.CreateDimension)
 
-		// UpdateDimension -> id boyunca UpdateDimension - yn maglumatlaryny update etmek ucin ulanylyar
+		// UpdateDimension -> id boyunca Dimension - yn maglumatlaryny update etmek ucin ulanylyar
 		backDimensionApi.PUT("", controllers.UpdateDimension)
 
-		// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
-		// backDimensionApi.GET(":id", controllers.GetBrendByID)
+		// GetDimensionByID -> id - si boyunca Dimension - yn maglumatlaryny almak ucin ulanylyar
+		backDimensionApi.GET(":id", controllers.GetDimensionByID)
 
 		// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
 		// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
