@@ -10,7 +10,6 @@ type Product struct {
 	ID           string    `json:"id,omitempty"`
 	NameTM       string    `json:"name_tm,omitempty" binding:"required"`
 	NameRU       string    `json:"name_ru,omitempty" binding:"required"`
-	Image        string    `json:"image,omitempty" binding:"required"`
 	Price        float32   `json:"price,omitempty" binding:"required"`
 	OldPrice     float32   `json:"old_price,omitempty"`
 	Status       null.Bool `json:"status,omitempty"`
@@ -34,7 +33,6 @@ type ProductUpdate struct {
 	ID           string  `json:"id,omitempty" binding:"required"`
 	NameTM       string  `json:"name_tm,omitempty" binding:"required"`
 	NameRU       string  `json:"name_ru,omitempty" binding:"required"`
-	Image        string  `json:"image,omitempty"`
 	Price        float32 `json:"price,omitempty" binding:"required"`
 	OldPrice     float32 `json:"old_price,omitempty"`
 	Status       bool    `json:"status,omitempty"`

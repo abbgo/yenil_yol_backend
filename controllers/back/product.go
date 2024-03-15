@@ -2,12 +2,10 @@ package controllers
 
 import (
 	"context"
-	"database/sql"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -36,14 +34,7 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	// eger maglumatlar dogry bolsa onda products tablisa maglumatlar gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO products (name_tm,name_ru,image,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,slug_tm,slug_ru,shop_id,category_id,brend_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)", product.NameTM, product.NameRU, product.Image, product.Price, product.OldPrice, product.Status, product.ColorNameTM, product.ColorNameRU, product.GenderNameTM, product.GenderNameRU, product.Code, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.ShopID, product.CategoryID, product.BrendID)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
-	// brend - yn maglumatlary gosulandan sonra helper_images tablisa brend ucin gosulan surat pozulyar
-	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", product.Image)
+	_, err = db.Exec(context.Background(), "INSERT INTO products (name_tm,name_ru,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,slug_tm,slug_ru,shop_id,category_id,brend_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)", product.NameTM, product.NameRU, product.Price, product.OldPrice, product.Status, product.ColorNameTM, product.ColorNameRU, product.GenderNameTM, product.GenderNameRU, product.Code, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.ShopID, product.CategoryID, product.BrendID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -78,8 +69,7 @@ func UpdateProductByID(c *gin.Context) {
 
 	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
 	var productdID string
-	var oldProductImage sql.NullString
-	db.QueryRow(context.Background(), "SELECT id,image FROM products WHERE id = $1 AND deleted_at IS NULL", product.ID).Scan(&productdID, &oldProductImage)
+	db.QueryRow(context.Background(), "SELECT id FROM products WHERE id = $1 AND deleted_at IS NULL", product.ID).Scan(&productdID)
 
 	// eger database - de sol maglumat yok bolsa onda error return edilyar
 	if productdID == "" {
@@ -87,33 +77,8 @@ func UpdateProductByID(c *gin.Context) {
 		return
 	}
 
-	// bu yerde product - yn suraty ucin fileName atly uytgeyan ululyk doredilyar
-	// eger request body - dan surat gelmese onda product - yn suraty uytgedilmeyar diymek bolyar
-	// sonun ucin product - in onki suratyny goyyas , eger request body - dan surat gelen bolsa
-	// onda taze suraty kone surat bilen calysyas
-	var fileName string
-	if product.Image == "" {
-		fileName = oldProductImage.String
-	} else {
-		// sonra helper_images tablisa product ucin gosulan surat pozulyar
-		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", product.Image)
-		if err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-
-		if oldProductImage.String != "" {
-			// surat papkadan pozulyar
-			if err := os.Remove(helpers.ServerPath + oldProductImage.String); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
-		}
-		fileName = product.Image
-	}
-
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE products SET name_tm=$1 , name_ru=$2 , image=$3 , price=$4 , old_price=$5 , status=$6 , color_name_tm=$7 , color_name_ru=$8 , gender_name_tm=$9 , gender_name_ru=$10 , code=$11 , slug_tm=$12 , slug_ru=$13 , shop_id=$14 , category_id=$15 , brend_id=$16 WHERE id=$17", product.NameTM, product.NameRU, fileName, product.Price, product.OldPrice, product.Status, product.ColorNameTM, product.ColorNameRU, product.GenderNameTM, product.GenderNameRU, product.Code, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.ShopID, product.CategoryID, product.BrendID, product.ID)
+	_, err = db.Exec(context.Background(), "UPDATE products SET name_tm=$1 , name_ru=$2 , price=$3 , old_price=$4 , status=$5 , color_name_tm=$6 , color_name_ru=$7 , gender_name_tm=$8 , gender_name_ru=$9 , code=$10 , slug_tm=$11 , slug_ru=$12 , shop_id=$13 , category_id=$14 , brend_id=$15 WHERE id=$16", product.NameTM, product.NameRU, product.Price, product.OldPrice, product.Status, product.ColorNameTM, product.ColorNameRU, product.GenderNameTM, product.GenderNameRU, product.Code, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.ShopID, product.CategoryID, product.BrendID, product.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -139,12 +104,10 @@ func GetProductByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var product models.Product
-	var productImage sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,image,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,shop_id,category_id,brend_id FROM products WHERE id = $1 AND deleted_at IS NULL", productID).Scan(
+	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,shop_id,category_id,brend_id FROM products WHERE id = $1 AND deleted_at IS NULL", productID).Scan(
 		&product.ID,
 		&product.NameTM,
 		&product.NameRU,
-		&productImage,
 		&product.Price,
 		&product.OldPrice,
 		&product.Status,
@@ -165,10 +128,6 @@ func GetProductByID(c *gin.Context) {
 	if product.ID == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return
-	}
-
-	if productImage.String != "" {
-		product.Image = productImage.String
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -237,9 +196,9 @@ func GetProducts(c *gin.Context) {
 	}
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := `SELECT id,name_tm,name_ru,image,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,shop_id,category_id,brend_id FROM products WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	rowQuery := `SELECT id,name_tm,name_ru,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,shop_id,category_id,brend_id FROM products WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	if status {
-		rowQuery = `SELECT id,name_tm,name_ru,image,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,shop_id,category_id,brend_id FROM products WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+		rowQuery = `SELECT id,name_tm,name_ru,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru,code,shop_id,category_id,brend_id FROM products WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	}
 
 	// database - den brend - lar alynyar
@@ -253,12 +212,10 @@ func GetProducts(c *gin.Context) {
 	var products []models.Product
 	for rowsBrend.Next() {
 		var product models.Product
-		var productImage sql.NullString
 		if err := rowsBrend.Scan(
 			&product.ID,
 			&product.NameTM,
 			&product.NameRU,
-			&productImage,
 			&product.Price,
 			&product.OldPrice,
 			&product.Status,
@@ -273,9 +230,6 @@ func GetProducts(c *gin.Context) {
 		); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
-		}
-		if productImage.String != "" {
-			product.Image = productImage.String
 		}
 		products = append(products, product)
 	}
@@ -356,24 +310,9 @@ func DeletePermanentlyProductByID(c *gin.Context) {
 
 	// request parametr - den product id alynyar
 	ID := c.Param("id")
-
-	// database - de gelen id degisli maglumat barmy sol barlanyar
-	var id string
-	var image sql.NullString
-	db.QueryRow(context.Background(), "SELECT id,image FROM products WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image)
-
-	// eger database - de gelen id degisli product yok bolsa error return edilyar
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("products", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
-	}
-
-	// eger shop bar bolsa sonda product - yn suraty papkadan pozulyar
-	if image.String != "" {
-		if err := os.Remove(helpers.ServerPath + image.String); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
 	}
 
 	// brend - in suraty pozulandan sonra database - den brend pozulyar
