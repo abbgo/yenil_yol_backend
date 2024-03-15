@@ -190,3 +190,32 @@ func DeleteDimensionByID(c *gin.Context) {
 		"message": "data successfully deleted",
 	})
 }
+
+func RestoreDimensionByID(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den id alynyar
+	ID := c.Param("id")
+	if err := helpers.ValidateRecordByID("dimensions", ID, "NOT NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
+		return
+	}
+
+	// hemme zat dogry bolsa dimension deleted_at - ine current_time goyulyar
+	_, err = db.Exec(context.Background(), "UPDATE dimensions SET deleted_at=NULL WHERE id=$1", ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully restored",
+	})
+}

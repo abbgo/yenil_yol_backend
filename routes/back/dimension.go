@@ -26,8 +26,8 @@ func DimensionRoutes(back *gin.RouterGroup) {
 		// DeleteDimensionByID -> id boyunca dimension - y korzina salmak ucin ulanylyar
 		backDimensionApi.DELETE(":id", controllers.DeleteDimensionByID)
 
-		// // RestoreBrendByID -> id boyunca brend - i korzinadan cykarmak ucin ulanylyar
-		// backDimensionApi.GET(":id/restore", controllers.RestoreBrendByID)
+		// RestoreDimensionByID -> id boyunca dimension - y korzinadan cykarmak ucin ulanylyar
+		backDimensionApi.GET(":id/restore", controllers.RestoreDimensionByID)
 
 		// // DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
 		// backDimensionApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
