@@ -21,7 +21,6 @@ type Product struct {
 	SlugTM       string    `json:"slug_tm,omitempty"`
 	SlugRU       string    `json:"slug_ru,omitempty"`
 	ShopID       string    `json:"shop_id,omitempty" binding:"required"`
-	CategoryID   string    `json:"category_id,omitempty" binding:"required"`
 	BrendID      string    `json:"brend_id,omitempty" binding:"required"`
 	Dimensions   []string  `json:"dimensions,omitempty"`
 	CreatedAt    string    `json:"-"`
