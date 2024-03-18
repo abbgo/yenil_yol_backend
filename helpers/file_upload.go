@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/disintegration/imaging"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -36,6 +37,25 @@ func FileUpload(fileName, path, fileType string, context *gin.Context) (string, 
 		}
 	}
 	if err := context.SaveUploadedFile(file, ServerPath+"uploads/"+path+"/"+newFileName); err != nil {
+		return "", err
+	}
+
+	_, err = os.Stat(ServerPath + "assets/uploads/" + path)
+	if err != nil {
+		if err := os.MkdirAll(ServerPath+"assets/uploads/"+path, os.ModePerm); err != nil {
+			return "", err
+		}
+	}
+
+	src, err := imaging.Open(ServerPath + "uploads/" + path + "/" + newFileName)
+	if err != nil {
+		return "", err
+	}
+
+	src = imaging.Resize(src, 200, 0, imaging.Lanczos)
+
+	err = imaging.Save(src, ServerPath+"assets/uploads/"+path+"/"+newFileName)
+	if err != nil {
 		return "", err
 	}
 
