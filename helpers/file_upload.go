@@ -40,25 +40,34 @@ func FileUpload(fileName, path, fileType string, context *gin.Context) (string, 
 		return "", err
 	}
 
-	_, err = os.Stat(ServerPath + "assets/uploads/" + path)
-	if err != nil {
-		if err := os.MkdirAll(ServerPath+"assets/uploads/"+path, os.ModePerm); err != nil {
-			return "", err
-		}
-	}
-
-	src, err := imaging.Open(ServerPath + "uploads/" + path + "/" + newFileName)
-	if err != nil {
-		return "", err
-	}
-
-	src = imaging.Resize(src, 200, 0, imaging.Lanczos)
-
-	err = imaging.Save(src, ServerPath+"assets/uploads/"+path+"/"+newFileName)
-	if err != nil {
+	// Resize Image
+	if err := ResizeImage(path, newFileName, 200); err != nil {
 		return "", err
 	}
 
 	return "uploads/" + path + "/" + newFileName, nil
 
+}
+
+func ResizeImage(path string, newFileName string, imageWidth int) error {
+	_, err := os.Stat(ServerPath + "assets/uploads/" + path)
+	if err != nil {
+		if err := os.MkdirAll(ServerPath+"assets/uploads/"+path, os.ModePerm); err != nil {
+			return err
+		}
+	}
+
+	src, err := imaging.Open(ServerPath + "uploads/" + path + "/" + newFileName)
+	if err != nil {
+		return err
+	}
+
+	src = imaging.Resize(src, imageWidth, 0, imaging.Lanczos)
+
+	err = imaging.Save(src, ServerPath+"assets/uploads/"+path+"/"+newFileName)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
