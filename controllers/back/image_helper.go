@@ -19,6 +19,8 @@ func AddOrUpdateImage(c *gin.Context) {
 	defer db.Close()
 
 	var path, file_name string
+	var resizedSize int
+
 	imageType := c.Query("image_type")
 
 	oldImage := c.PostForm("old_path")
@@ -50,27 +52,29 @@ func AddOrUpdateImage(c *gin.Context) {
 	case "product":
 		path = "product"
 		file_name = "image"
+		resizedSize = 200
 	case "setting":
 		path = "setting"
 		file_name = "image"
+		resizedSize = 0
 	case "category":
 		path = "category"
 		file_name = "image"
+		resizedSize = 200
 	case "brend":
 		path = "brend"
 		file_name = "image"
+		resizedSize = 200
 	case "shop":
 		path = "shop"
 		file_name = "image"
-	case "page":
-		path = "page"
-		file_name = "image"
+		resizedSize = 200
 	default:
 		helpers.HandleError(c, 400, "invalid image")
 		return
 	}
 
-	image, err := helpers.FileUpload(file_name, path, "image", c)
+	image, err := helpers.FileUpload(file_name, path, "image", c, resizedSize)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

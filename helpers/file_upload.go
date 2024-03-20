@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func FileUpload(fileName, path, fileType string, context *gin.Context) (string, error) {
+func FileUpload(fileName, path, fileType string, context *gin.Context, resizedSize int) (string, error) {
 
 	file, err := context.FormFile(fileName)
 	if err != nil {
@@ -41,8 +41,10 @@ func FileUpload(fileName, path, fileType string, context *gin.Context) (string, 
 	}
 
 	// Resize Image
-	if err := ResizeImage(path, newFileName, 200); err != nil {
-		return "", err
+	if resizedSize != 0 {
+		if err := ResizeImage(path, newFileName, resizedSize); err != nil {
+			return "", err
+		}
 	}
 
 	return "uploads/" + path + "/" + newFileName, nil
