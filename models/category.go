@@ -29,7 +29,7 @@ type CategoryUpdate struct {
 	DimensionGroupID string `json:"dimension_group_id,omitempty" binding:"required"`
 }
 
-type CategoryProduct struct {
+type ShopCategory struct {
 	ID         string `json:"id,omitempty"`
 	CategoryID string `json:"category_id,omitempty"`
 	ProductID  string `json:"product_id,omitempty"`
