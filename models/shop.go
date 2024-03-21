@@ -28,13 +28,9 @@ type Shop struct {
 	DeletedAt   string   `json:"-"`
 }
 
-type ShopPhone struct {
-	ID          string `json:"id,omitempty"`
-	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
-	ShopID      string `json:"shop_id,omitempty" binding:"required"`
-	CreatedAt   string `json:"-"`
-	UpdatedAt   string `json:"-"`
-	DeletedAt   string `json:"-"`
+type ShopQuery struct {
+	helpers.StandartQuery
+	ShopOwnerID string `form:"shop_owner_id"`
 }
 
 func ValidateShop(shop Shop, isCreateFunction bool) error {

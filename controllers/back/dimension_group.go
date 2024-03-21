@@ -126,7 +126,7 @@ func GetDimensionGroups(c *gin.Context) {
 	}
 
 	// query - den gelyan limit we page boyunca databasede ulanyljak offset hasaplanyar
-	offset := uint(requestQuery.Limit) * (requestQuery.Page - 1)
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
 	// request query - den status - a gora dimension_group - laryn sanyny almak ucin query yazylyar
 	queryCount := `SELECT COUNT(id) FROM dimension_groups WHERE deleted_at IS NULL`

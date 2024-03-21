@@ -17,21 +17,21 @@ import (
 	"github.com/lib/pq"
 )
 
-type ResponseShop struct {
-	ID          string             `json:"id,omitempty"`
-	NameTM      string             `json:"name_tm,omitempty"`
-	NameRU      string             `json:"name_ru,omitempty"`
-	AddressTM   string             `json:"address_tm,omitempty"`
-	AddressRU   string             `json:"address_ru,omitempty"`
-	Latitude    float64            `json:"latitude,omitempty"`
-	Longitude   float64            `json:"longitude,omitempty"`
-	Image       string             `json:"image,omitempty"`
-	HasDelivery bool               `json:"has_delivery,omitempty"`
-	ShopOwnerID string             `json:"shop_owner_id,omitempty"`
-	SlugTM      string             `json:"slug_tm,omitempty"`
-	SlugRU      string             `json:"slug_ru,omitempty"`
-	ShopPhones  []models.ShopPhone `json:"shop_phones"`
-}
+// type ResponseShop struct {
+// 	ID          string             `json:"id,omitempty"`
+// 	NameTM      string             `json:"name_tm,omitempty"`
+// 	NameRU      string             `json:"name_ru,omitempty"`
+// 	AddressTM   string             `json:"address_tm,omitempty"`
+// 	AddressRU   string             `json:"address_ru,omitempty"`
+// 	Latitude    float64            `json:"latitude,omitempty"`
+// 	Longitude   float64            `json:"longitude,omitempty"`
+// 	Image       string             `json:"image,omitempty"`
+// 	HasDelivery bool               `json:"has_delivery,omitempty"`
+// 	ShopOwnerID string             `json:"shop_owner_id,omitempty"`
+// 	SlugTM      string             `json:"slug_tm,omitempty"`
+// 	SlugRU      string             `json:"slug_ru,omitempty"`
+// 	ShopPhones  []models.ShopPhone `json:"shop_phones"`
+// }
 
 func CreateShop(c *gin.Context) {
 	// initialize database connection
@@ -192,18 +192,18 @@ func GetShopByID(c *gin.Context) {
 	shopID := c.Param("id")
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
-	rowShop, err := db.Query(context.Background(), "SELECT s.id,s.name_tm,s.name_ru,s.address_tm,s.address_ru,s.latitude,s.longitude,s.image,s.has_delivery,s.shop_owner_id,sp.id,sp.phone_number FROM shops s INNER JOIN shop_phones sp ON sp.shop_id = s.id WHERE s.id = $1 AND s.deleted_at IS NULL AND sp.deleted_at IS NULL", shopID)
+	rowShop, err := db.Query(context.Background(), "SELECT s.id,s.name_tm,s.name_ru,s.address_tm,s.address_ru,s.latitude,s.longitude,s.image,s.has_delivery,s.shop_owner_id,sp.phone_number FROM shops s INNER JOIN shop_phones sp ON sp.shop_id = s.id WHERE s.id = $1 AND s.deleted_at IS NULL AND sp.deleted_at IS NULL", shopID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowShop.Close()
 
-	var shop ResponseShop
+	var shop models.Shop
 	var shopImage sql.NullString
 	for rowShop.Next() {
-		var shopPhone models.ShopPhone
-		if err := rowShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shopImage, &shop.HasDelivery, &shop.ShopOwnerID, &shopPhone.ID, &shopPhone.PhoneNumber); err != nil {
+		var shopPhone string
+		if err := rowShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shopImage, &shop.HasDelivery, &shop.ShopOwnerID, &shopPhone); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
@@ -226,6 +226,10 @@ func GetShopByID(c *gin.Context) {
 }
 
 func GetShops(c *gin.Context) {
+	var shopQuery models.ShopQuery
+	var countOfShops uint
+	var shops []models.Shop
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -234,35 +238,19 @@ func GetShops(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametr - den limit alynyar
-	limitStr := c.Query("limit")
-	if limitStr == "" {
-		helpers.HandleError(c, 400, "limit is required")
-		return
-	}
-	limit, err := strconv.ParseUint(limitStr, 10, 64)
-	if err != nil {
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&shopQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// request parametr - den page alynyar
-	pageStr := c.Query("page")
-	if pageStr == "" {
-		helpers.HandleError(c, 400, "page is required")
-		return
-	}
-	page, err := strconv.ParseUint(pageStr, 10, 64)
-	if err != nil {
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&shopQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// limit we page boyunca offset hasaplanyar
-	offset := limit * (page - 1)
-
-	// request parametr - den page alynyar
-	shopOwnerID := c.DefaultQuery("shop_owner_id", "")
+	offset := shopQuery.Limit * (shopQuery.Page - 1)
 
 	// request query - den shop status alynyar
 	// status -> shop pozulan ya-da pozulanmadygyny anlatyar
@@ -281,12 +269,11 @@ func GetShops(c *gin.Context) {
 		queryCount = fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at %v", "IS NOT NULL")
 	}
 
-	if shopOwnerID != "" {
-		queryCount = fmt.Sprintf("%v AND shop_owner_id = %v", queryCount, shopOwnerID)
+	if shopQuery.ShopOwnerID != "" {
+		queryCount = fmt.Sprintf("%v AND shop_owner_id = '%v'", queryCount, shopQuery.ShopOwnerID)
 	}
 
 	// database - den shop - laryn sany alynyar
-	var countOfShops uint
 	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfShops); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -298,23 +285,21 @@ func GetShops(c *gin.Context) {
 		rowQuery = fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", "IS NOT NULL")
 	}
 
-	if shopOwnerID != "" {
-		// rowQuery = fmt.Sprintf("%v AND shop_owner_id = $%v", queryCount, shopOwnerID)
+	if shopQuery.ShopOwnerID != "" {
 		rows := strings.Split(rowQuery, " ORDER BY created_at DESC ")
-		rowQuery = fmt.Sprintf("%v AND shop_owner_id = %v %v %v", rows[0], shopOwnerID, "ORDER BY created_at DESC ", rows[1])
+		rowQuery = fmt.Sprintf("%v AND shop_owner_id = '%v' %v %v", rows[0], shopQuery.ShopOwnerID, "ORDER BY created_at DESC ", rows[1])
 	}
 
 	// database - den shop - lar alynyar
-	rowsShop, err := db.Query(context.Background(), rowQuery, limit, offset)
+	rowsShop, err := db.Query(context.Background(), rowQuery, shopQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowsShop.Close()
 
-	var shops []ResponseShop
 	for rowsShop.Next() {
-		var shop ResponseShop
+		var shop models.Shop
 		var shopImage sql.NullString
 		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shopImage); err != nil {
 			helpers.HandleError(c, 400, err.Error())
