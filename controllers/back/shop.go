@@ -49,7 +49,7 @@ func CreateShop(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, true, "", shop.ShopOwnerID); err != nil {
+	if err := models.ValidateShop(shop, true); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -71,6 +71,13 @@ func CreateShop(c *gin.Context) {
 
 	// shop_phones tablisa maglumat gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO shop_phones (phone_number,shop_id) VALUES (unnest($1::varchar[]),$2)", pq.Array(shop.ShopPhones), shop_id)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// shop_categories tablisa maglumat gosulyar
+	_, err = db.Exec(context.Background(), "INSERT INTO shop_categories (category_id,shop_id) VALUES (unnest($1::uuid[]),$2)", pq.Array(shop.Categories), shop_id)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -105,7 +112,7 @@ func UpdateShopByID(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateShop(shop.ShopPhones, shop.OrderNumber, false, shop.ID, shop.ShopOwnerID); err != nil {
+	if err := models.ValidateShop(shop, false); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

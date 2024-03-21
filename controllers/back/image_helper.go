@@ -68,7 +68,7 @@ func AddOrUpdateImage(c *gin.Context) {
 	case "shop":
 		path = "shop"
 		file_name = "image"
-		resizedSize = 200
+		resizedSize = 230
 	default:
 		helpers.HandleError(c, 400, "invalid image")
 		return

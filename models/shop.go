@@ -37,7 +37,7 @@ type ShopPhone struct {
 	DeletedAt   string `json:"-"`
 }
 
-func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool, shopId, shopOwnerID string) error {
+func ValidateShop(shop Shop, isCreateFunction bool) error {
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
@@ -45,33 +45,35 @@ func ValidateShop(phoneNumbers []string, orderNumber uint, isCreateFunction bool
 	defer db.Close()
 
 	// telefon belgiler barlanylyar
-	for _, v := range phoneNumbers {
+	for _, v := range shop.ShopPhones {
 		if !helpers.ValidatePhoneNumber(v) {
 			return errors.New("invalid phone number")
 		}
 	}
 
-	if shopOwnerID == "" {
-		return errors.New("shop_owner_id is required")
-	}
-
-	if err := helpers.ValidateRecordByID("shop_owners", shopOwnerID, "NULL", db); err != nil {
+	if err := helpers.ValidateRecordByID("shop_owners", shop.ShopOwnerID, "NULL", db); err != nil {
 		return err
 	}
 
-	if orderNumber != 0 {
+	for _, v := range shop.Categories {
+		if err := helpers.ValidateRecordByID("categories", v, "NULL", db); err != nil {
+			return err
+		}
+	}
+
+	if shop.OrderNumber != 0 {
 		if isCreateFunction {
 			var order_number uint
-			if err = db.QueryRow(context.Background(), "SELECT order_number FROM shops where order_number = $1 AND deleted_at IS NULL AND shop_owner_id = $2", orderNumber, shopOwnerID).Scan(&order_number); err == nil {
+			if err = db.QueryRow(context.Background(), "SELECT order_number FROM shops where order_number = $1 AND deleted_at IS NULL AND shop_owner_id = $2", shop.OrderNumber, shop.ShopOwnerID).Scan(&order_number); err == nil {
 				return errors.New("this order number already exists")
 			}
 		} else {
-			if shopId == "" {
+			if shop.ID == "" {
 				return errors.New("shop_id is required")
 			}
 			var shop_id string
-			db.QueryRow(context.Background(), "SELECT id FROM shops where order_number = $1 AND deleted_at IS NULL", orderNumber).Scan(&shop_id)
-			if shop_id != shopId && shop_id != "" {
+			db.QueryRow(context.Background(), "SELECT id FROM shops where order_number = $1 AND deleted_at IS NULL", shop.OrderNumber).Scan(&shop_id)
+			if shop_id != shop.ID && shop_id != "" {
 				return errors.New("this order number already exists")
 			}
 		}
