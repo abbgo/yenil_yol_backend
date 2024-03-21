@@ -29,15 +29,6 @@ type CategoryUpdate struct {
 	DimensionGroupID string `json:"dimension_group_id,omitempty" binding:"required"`
 }
 
-type ShopCategory struct {
-	ID         string `json:"id,omitempty"`
-	CategoryID string `json:"category_id,omitempty"`
-	ProductID  string `json:"product_id,omitempty"`
-	CreatedAt  string `json:"-"`
-	UpdatedAt  string `json:"-"`
-	DeletedAt  string `json:"-"`
-}
-
 func ValidateCategory(dimensionGroupID string) error {
 	// initialize database connection
 	db, err := config.ConnDB()
