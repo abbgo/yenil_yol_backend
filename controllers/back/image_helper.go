@@ -38,17 +38,6 @@ func AddOrUpdateImage(c *gin.Context) {
 	}
 
 	switch imageType {
-	// case "product":
-	// 	fileName := c.Query("type")
-	// 	if fileName != "main_image" && fileName != "image" {
-	// 		c.JSON(http.StatusNotFound, gin.H{
-	// 			"status":  false,
-	// 			"message": "invalid file name",
-	// 		})
-	// 		return
-	// 	}
-	// 	path = "product/" + fileName
-	// 	file_name = fileName
 	case "product":
 		path = "product"
 		file_name = "image"
@@ -93,7 +82,7 @@ func AddOrUpdateImage(c *gin.Context) {
 }
 
 type DeleteImg struct {
-	Image string `json:"image"`
+	Image string `json:"image" binding:"required"`
 }
 
 func DeleteImage(c *gin.Context) {
@@ -109,14 +98,9 @@ func DeleteImage(c *gin.Context) {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-	if image.Image == "" {
-		helpers.HandleError(c, 400, "path of image is required")
-		return
-	}
 
 	var helperImageID string
 	db.QueryRow(context.Background(), "SELECT id FROM helper_images WHERE image = $1 AND deleted_at IS NULL", image.Image).Scan(&helperImageID)
-
 	if helperImageID == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return
@@ -139,4 +123,19 @@ func DeleteImage(c *gin.Context) {
 		"status":  true,
 		"message": "image successfully deleted",
 	})
+}
+
+func DeleteImageFromDB(image string) error {
+	db, err := config.ConnDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

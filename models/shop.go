@@ -20,8 +20,8 @@ type Shop struct {
 	ShopOwnerID string   `json:"shop_owner_id,omitempty" binding:"required"`
 	SlugTM      string   `json:"slug_tm,omitempty"`
 	SlugRU      string   `json:"slug_ru,omitempty"`
-	ShopPhones  []string `json:"phones" binding:"required"`
-	Categories  []string `json:"categories" binding:"required"`
+	ShopPhones  []string `json:"phones,omitempty" binding:"required"`
+	Categories  []string `json:"categories,omitempty" binding:"required"`
 	OrderNumber uint     `json:"order_number,omitempty"`
 	CreatedAt   string   `json:"-"`
 	UpdatedAt   string   `json:"-"`

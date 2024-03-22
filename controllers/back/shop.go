@@ -9,7 +9,6 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -54,17 +53,9 @@ func CreateShop(c *gin.Context) {
 		return
 	}
 
-	// eger request body - dan gelen surat bos bolsa database surata derek nil gosmaly
-	var image interface{}
-	if shop.Image == "" {
-		image = nil
-	} else {
-		image = shop.Image
-	}
-
 	// eger maglumatlar dogry bolsa onda shops tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
 	var shop_id string
-	if err = db.QueryRow(context.Background(), "INSERT INTO shops (name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_delivery,shop_owner_id,slug_tm,slug_ru,order_number) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, image, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber).Scan(&shop_id); err != nil {
+	if err = db.QueryRow(context.Background(), "INSERT INTO shops (name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_delivery,shop_owner_id,slug_tm,slug_ru,order_number) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, shop.Image, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber).Scan(&shop_id); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -84,10 +75,11 @@ func CreateShop(c *gin.Context) {
 	}
 
 	// shop - yn maglumatlary gosulandan sonra helper_images tablisa shop ucin gosulan surat pozulyar
-	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
+	if shop.Image != "" {
+		if err := DeleteImageFromDB(shop.Image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -252,20 +244,9 @@ func GetShops(c *gin.Context) {
 	// limit we page boyunca offset hasaplanyar
 	offset := shopQuery.Limit * (shopQuery.Page - 1)
 
-	// request query - den shop status alynyar
-	// status -> shop pozulan ya-da pozulanmadygyny anlatyar
-	// true bolsa pozulan
-	// false bolsa pozulmadyk
-	statusQuery := c.DefaultQuery("status", "false")
-	status, err := strconv.ParseBool(statusQuery)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
 	// request query - den status - a gora shop - laryn sanyny almak ucin query yazylyar
 	queryCount := fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at %v", "IS NULL")
-	if status {
+	if shopQuery.IsDeleted {
 		queryCount = fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at %v", "IS NOT NULL")
 	}
 
@@ -281,7 +262,7 @@ func GetShops(c *gin.Context) {
 
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
 	rowQuery := fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", "IS NULL")
-	if status {
+	if shopQuery.IsDeleted {
 		rowQuery = fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", "IS NOT NULL")
 	}
 

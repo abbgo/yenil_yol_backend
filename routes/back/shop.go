@@ -2,12 +2,13 @@ package back
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/back"
+	"github/abbgo/yenil_yol/backend/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
 
 func BackShopOwnerRoutes(back *gin.RouterGroup) {
-	backShopOwnerApi := back.Group("/shops")
+	backShopOwnerApi := back.Group("/shops").Use(middlewares.CheckToken("admin"))
 	{
 		// CreateShop -> gosmak ulanylar
 		backShopOwnerApi.POST("", controllers.CreateShop)
