@@ -24,7 +24,7 @@ func CategoryRoutes(back *gin.RouterGroup) {
 		backCategoryApi.GET("", controllers.GetCategories)
 
 		// DeleteCategoryByID -> id boyunca category - ni korzina salmak ucin ulanylyar
-		backCategoryApi.DELETE(":id", controllers.DeleteCategoryByID)
+		backCategoryApi.DELETE(":id", controllers.DeleteCategoryByID) // sunda galdym -===============================================--------------------------===================
 
 		// RestoreCategoryByID -> id boyunca category - ni korzinadan cykarmak ucin ulanylyar
 		backCategoryApi.GET(":id/restore", controllers.RestoreCategoryByID)
