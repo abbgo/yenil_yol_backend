@@ -2,7 +2,7 @@ package helpers
 
 import "os"
 
-var ServerPath = os.Getenv("SERVER_PATH")
+var ServerPath = os.Getenv("STATIC_FILE_PATH")
 
 type StandartQuery struct {
 	IsDeleted bool `form:"is_deleted"`
