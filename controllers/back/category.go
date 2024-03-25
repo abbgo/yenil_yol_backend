@@ -30,31 +30,24 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateCategory(category.DimensionGroupID); err != nil {
+	if err := models.ValidateCategory(category, true); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
-	}
-
-	// eger request body - dan gelen surat bos bolsa database surata derek nil gosmaly
-	var image interface{}
-	if category.Image == "" {
-		image = nil
-	} else {
-		image = category.Image
 	}
 
 	// eger maglumatlar dogry bolsa onda categories tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
-	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru,dimension_group_id) VALUES ($1,$2,$3,$4,$5,$6)", category.NameTM, category.NameRU, image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID)
+	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru,dimension_group_id) VALUES ($1,$2,$3,$4,$5,$6)", category.NameTM, category.NameRU, category.Image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	// brend - yn maglumatlary gosulandan sonra helper_images tablisa category ucin gosulan surat pozulyar
-	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
+	// category - nyn maglumatlary gosulandan sonra suraty bar bolsa helper_images tablisa category ucin gosulan surat pozulyar
+	if category.Image != "" {
+		if err := DeleteImageFromDB(category.Image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -73,7 +66,7 @@ func UpdateCategoryByID(c *gin.Context) {
 	defer db.Close()
 
 	// request body - dan gelen maglumatlar alynyar
-	var category models.CategoryUpdate
+	var category models.Category
 	if err := c.BindJSON(&category); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -90,7 +83,7 @@ func UpdateCategoryByID(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateCategory(category.DimensionGroupID); err != nil {
+	if err := models.ValidateCategory(category, false); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
