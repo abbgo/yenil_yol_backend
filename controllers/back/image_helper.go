@@ -30,6 +30,11 @@ func AddOrUpdateImage(c *gin.Context) {
 			return
 		}
 
+		if err := os.Remove(helpers.ServerPath + "assets/" + oldImage); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
 		_, err := db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", oldImage)
 		if err != nil {
 			helpers.HandleError(c, 400, err.Error())
@@ -115,6 +120,11 @@ func DeleteImage(c *gin.Context) {
 	}
 
 	if err := os.Remove(helpers.ServerPath + image.Image); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	if err := os.Remove(helpers.ServerPath + "assets/" + image.Image); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

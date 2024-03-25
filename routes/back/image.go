@@ -8,7 +8,7 @@ import (
 )
 
 func BackImageRoutes(back *gin.RouterGroup) {
-	backImageApi := back.Group("/image").Use(middlewares.CheckToken("admin"))
+	backImageApi := back.Group("/image").Use(middlewares.CheckTokenAdminOrCustomer())
 	{
 		// surat gosmak ya-da uytgetmek ucin ulanylyar
 		backImageApi.POST("", controllers.AddOrUpdateImage)
