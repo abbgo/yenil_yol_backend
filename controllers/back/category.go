@@ -8,7 +8,6 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
@@ -126,6 +125,10 @@ func GetCategoryByID(c *gin.Context) {
 }
 
 func GetCategories(c *gin.Context) {
+	var requestQuery helpers.StandartQuery
+	var countOfCategories uint
+	var categories []models.Category
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -134,75 +137,49 @@ func GetCategories(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametr - den limit alynyar
-	limitStr := c.Query("limit")
-	if limitStr == "" {
-		helpers.HandleError(c, 400, "limit is required")
-		return
-	}
-	limit, err := strconv.ParseUint(limitStr, 10, 64)
-	if err != nil {
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// request parametr - den page alynyar
-	pageStr := c.Query("page")
-	if pageStr == "" {
-		helpers.HandleError(c, 400, "page is required")
-		return
-	}
-	page, err := strconv.ParseUint(pageStr, 10, 64)
-	if err != nil {
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// limit we page boyunca offset hasaplanyar
-	offset := limit * (page - 1)
-
-	// request query - den category status alynyar
-	// status -> category pozulan ya-da pozulanmadygyny anlatyar
-	// true bolsa pozulan
-	// false bolsa pozulmadyk
-	statusQuery := c.DefaultQuery("status", "false")
-	status, err := strconv.ParseBool(statusQuery)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
 	// request query - den status - a gora category - laryn sanyny almak ucin query yazylyar
 	queryCount := `SELECT COUNT(id) FROM categories WHERE deleted_at IS NULL`
-	if status {
+	if requestQuery.IsDeleted {
 		queryCount = `SELECT COUNT(id) FROM categories WHERE deleted_at IS NOT NULL`
 	}
 	// database - den category - laryn sany alynyar
-	var countOfCategories uint
 	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfCategories); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// request query - den status - a gora category - lary almak ucin query yazylyar
-	rowQuery := `SELECT id,name_tm,image FROM categories WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	if status {
-		rowQuery = `SELECT id,name_tm,image FROM categories WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	rowQuery := `SELECT id,name_tm,name_ru,image,dimension_group_id,parent_category_id FROM categories WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	if requestQuery.IsDeleted {
+		rowQuery = `SELECT id,name_tm,name_ru,image,dimension_group_id,parent_category_id FROM categories WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	}
 
 	// database - den brend - lar alynyar
-	rowsCategory, err := db.Query(context.Background(), rowQuery, limit, offset)
+	rowsCategory, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowsCategory.Close()
 
-	var categories []models.Category
 	for rowsCategory.Next() {
 		var category models.Category
 		var categoryImage sql.NullString
-		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &categoryImage); err != nil {
+		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &categoryImage, &category.DimensionGroupID, &category.ParentCategoryID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
