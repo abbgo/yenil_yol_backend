@@ -109,57 +109,37 @@ func UpdateShopByID(c *gin.Context) {
 		return
 	}
 
-	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var oldShopImage, shopID string
-	db.QueryRow(context.Background(), "SELECT id,image FROM shops WHERE id = $1 AND deleted_at IS NULL", shop.ID).Scan(&shopID, &oldShopImage)
-
-	// eger database - de sol maglumat yok bolsa onda error return edilyar
-	if shopID == "" {
-		helpers.HandleError(c, 404, "record not found")
+	if err := helpers.ValidateRecordByID("shops", shop.ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
 		return
 	}
 
-	// bu yerde shop - yn suraty ucin fileName atly uytgeyan ululyk doredilyar
-	// eger request body - dan surat gelmese onda shop - yn suraty uytgedilmeyar diymek bolyar
-	// sonun ucin shop - yn onki suratyny goyyas , eger request body - dan surat gelen bolsa
-	// onda taze suraty kone surat bilen calysyas
-	var fileName string
-	if shop.Image == "" {
-		fileName = oldShopImage
-	} else {
-		// sonra helper_images tablisa shop ucin gosulan surat pozulyar
-		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", shop.Image)
-		if err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-
-		if oldShopImage != "" {
-			// surat papkadan pozulyar
-			if err := os.Remove(helpers.ServerPath + oldShopImage); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
-		}
-		fileName = shop.Image
-	}
-
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE shops SET name_tm=$1 , name_ru=$2 , address_tm=$3 , address_ru=$4 , latitude=$5 , longitude=$6 , image=$7 , has_delivery=$8 , shop_owner_id=$9 , slug_tm=$10 , slug_ru=$11 , order_number=$12 WHERE id=$13", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, fileName, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ID)
+	_, err = db.Exec(context.Background(), "UPDATE shops SET name_tm=$1 , name_ru=$2 , address_tm=$3 , address_ru=$4 , latitude=$5 , longitude=$6 , image=$7 , has_delivery=$8 , shop_owner_id=$9 , slug_tm=$10 , slug_ru=$11 , order_number=$12 WHERE id=$13", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, shop.Image, shop.HasDelivery, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	// shop - yn onli nomerleri pozulyar
+	// shop - yn onki nomerleri pozulyar we taze telefon nomerler shop_phones tablisa gosulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM shop_phones WHERE shop_id = $1", shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// shop_phones tablisa maglumat gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO shop_phones (phone_number,shop_id) VALUES (unnest($1::varchar[]),$2)", pq.Array(shop.ShopPhones), shop.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// shop - a degisli onki kategoriyalar pozulyar we taze kategoriyalar gosulyar
+	_, err = db.Exec(context.Background(), "DELETE FROM shop_categories WHERE shop_id = $1", shop.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	_, err = db.Exec(context.Background(), "INSERT INTO shop_categories (category_id,shop_id) VALUES (unnest($1::uuid[]),$2)", pq.Array(shop.Categories), shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
