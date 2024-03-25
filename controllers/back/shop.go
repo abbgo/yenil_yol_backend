@@ -163,32 +163,56 @@ func GetShopByID(c *gin.Context) {
 	// request parametrden shop id alynyar
 	shopID := c.Param("id")
 
-	// database - den request parametr - den gelen id boyunca maglumat cekilyar
-	rowShop, err := db.Query(context.Background(), "SELECT s.id,s.name_tm,s.name_ru,s.address_tm,s.address_ru,s.latitude,s.longitude,s.image,s.has_delivery,s.shop_owner_id,sp.phone_number FROM shops s INNER JOIN shop_phones sp ON sp.shop_id = s.id WHERE s.id = $1 AND s.deleted_at IS NULL AND sp.deleted_at IS NULL", shopID)
-	if err != nil {
+	// database - den request parametr - den gelen id boyunca shop - yn maglumatlary cekilyar
+	var shop models.Shop
+	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_delivery,shop_owner_id FROM shops WHERE id = $1 AND deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.HasDelivery, &shop.ShopOwnerID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
-	}
-	defer rowShop.Close()
-
-	var shop models.Shop
-	var shopImage sql.NullString
-	for rowShop.Next() {
-		var shopPhone string
-		if err := rowShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shopImage, &shop.HasDelivery, &shop.ShopOwnerID, &shopPhone); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-		if shopImage.String != "" {
-			shop.Image = shopImage.String
-		}
-		shop.ShopPhones = append(shop.ShopPhones, shopPhone)
 	}
 
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if shop.ID == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return
+	}
+
+	if err := helpers.ValidateShopOwnerByToken(c, db, shop.ShopOwnerID); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// shop alynanadan son shop_id boyunca shop_phone - lar cekilyar
+	rowsShopImage, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id=$1 AND deleted_at IS NULL", shop.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsShopImage.Close()
+
+	for rowsShopImage.Next() {
+		var phoneNumber string
+		if err := rowsShopImage.Scan(&phoneNumber); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		shop.ShopPhones = append(shop.ShopPhones, phoneNumber)
+	}
+
+	// shop_id boyunca shop_category - lar cekilyar
+	rowsShopCategory, err := db.Query(context.Background(), "SELECT category_id FROM shop_categories WHERE shop_id=$1 AND deleted_at IS NULL", shop.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsShopCategory.Close()
+
+	for rowsShopCategory.Next() {
+		var categoryID string
+		if err := rowsShopCategory.Scan(&categoryID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		shop.Categories = append(shop.Categories, categoryID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
