@@ -16,9 +16,6 @@ type Category struct {
 	SlugRU           string      `json:"slug_ru,omitempty"`
 	DimensionGroupID string      `json:"dimension_group_id,omitempty" binding:"required"`
 	ParentCategoryID null.String `json:"parent_category_id,omitempty"`
-	CreatedAt        string      `json:"-"`
-	UpdatedAt        string      `json:"-"`
-	DeletedAt        string      `json:"-"`
 }
 
 type CategoryUpdate struct {

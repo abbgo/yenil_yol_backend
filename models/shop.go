@@ -23,9 +23,6 @@ type Shop struct {
 	ShopPhones  []string `json:"phones,omitempty" binding:"required"`
 	Categories  []string `json:"categories,omitempty" binding:"required"`
 	OrderNumber uint     `json:"order_number,omitempty"`
-	CreatedAt   string   `json:"-"`
-	UpdatedAt   string   `json:"-"`
-	DeletedAt   string   `json:"-"`
 }
 
 type ShopQuery struct {

@@ -8,7 +8,7 @@ import (
 )
 
 func BackShopOwnerRoutes(back *gin.RouterGroup) {
-	backShopOwnerApi := back.Group("/shops").Use(middlewares.CheckToken("admin"))
+	backShopOwnerApi := back.Group("/shops").Use(middlewares.CheckTokenAdminOrCustomer())
 	{
 		// CreateShop -> gosmak ulanylar
 		backShopOwnerApi.POST("", controllers.CreateShop)

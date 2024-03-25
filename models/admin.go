@@ -13,9 +13,6 @@ type Admin struct {
 	PhoneNumber  string `json:"phone_number,omitempty" binding:"required"`
 	Password     string `json:"password,omitempty" binding:"required"`
 	IsSuperAdmin bool   `json:"is_super_admin,omitempty"`
-	CreatedAt    string `json:"-"`
-	UpdatedAt    string `json:"-"`
-	DeletedAt    string `json:"-"`
 }
 
 type AdminUpdate struct {

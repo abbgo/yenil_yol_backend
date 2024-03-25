@@ -22,9 +22,6 @@ type Product struct {
 	SlugRU       string    `json:"slug_ru,omitempty"`
 	BrendID      string    `json:"brend_id,omitempty" binding:"required"`
 	Dimensions   []string  `json:"dimensions,omitempty"`
-	CreatedAt    string    `json:"-"`
-	UpdatedAt    string    `json:"-"`
-	DeletedAt    string    `json:"-"`
 }
 
 type ProductUpdate struct {

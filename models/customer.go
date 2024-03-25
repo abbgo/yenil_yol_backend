@@ -12,9 +12,6 @@ type Customer struct {
 	FullName    string `json:"full_name,omitempty" binding:"required"`
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 	Password    string `json:"password,omitempty" binding:"required"`
-	CreatedAt   string `json:"-"`
-	UpdatedAt   string `json:"-"`
-	DeletedAt   string `json:"-"`
 }
 
 type CustomerUpdate struct {
