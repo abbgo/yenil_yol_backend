@@ -36,7 +36,7 @@ func CreateCategory(c *gin.Context) {
 	}
 
 	// eger maglumatlar dogry bolsa onda categories tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
-	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru,dimension_group_id) VALUES ($1,$2,$3,$4,$5,$6)", category.NameTM, category.NameRU, category.Image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID)
+	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru,dimension_group_id,parent_category_id) VALUES ($1,$2,$3,$4,$5,$6,$7)", category.NameTM, category.NameRU, category.Image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID, category.ParentCategoryID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -72,49 +72,13 @@ func UpdateCategoryByID(c *gin.Context) {
 		return
 	}
 
-	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var categoryID string
-	var oldCategoryImage sql.NullString
-	db.QueryRow(context.Background(), "SELECT id,image FROM categories WHERE id = $1 AND deleted_at IS NULL", category.ID).Scan(&categoryID, &oldCategoryImage)
-
-	// eger database - de sol maglumat yok bolsa onda error return edilyar
-	if categoryID == "" {
-		helpers.HandleError(c, 404, "record not found")
-		return
-	}
-
 	if err := models.ValidateCategory(category, false); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	// bu yerde category - in suraty ucin fileName atly uytgeyan ululyk doredilyar
-	// eger request body - dan surat gelmese onda category - in suraty uytgedilmeyar diymek bolyar
-	// sonun ucin category - in onki suratyny goyyas , eger request body - dan surat gelen bolsa
-	// onda taze suraty kone surat bilen calysyas
-	var fileName string
-	if category.Image == "" {
-		fileName = oldCategoryImage.String
-	} else {
-		// sonra helper_images tablisa category ucin gosulan surat pozulyar
-		_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", category.Image)
-		if err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-
-		if oldCategoryImage.String != "" {
-			// surat papkadan pozulyar
-			if err := os.Remove(helpers.ServerPath + oldCategoryImage.String); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
-		}
-		fileName = category.Image
-	}
-
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE categories SET name_tm=$1 , name_ru=$2 , image=$3 , slug_tm=$4 , slug_ru=$5, dimension_group_id=$6 WHERE id=$7", category.NameTM, category.NameRU, fileName, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID, category.ID)
+	_, err = db.Exec(context.Background(), "UPDATE categories SET name_tm=$1 , name_ru=$2 , image=$3 , slug_tm=$4 , slug_ru=$5, dimension_group_id=$6, parent_category_id=$7 WHERE id=$8", category.NameTM, category.NameRU, category.Image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID, category.ParentCategoryID, category.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

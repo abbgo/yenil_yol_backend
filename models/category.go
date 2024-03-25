@@ -29,6 +29,16 @@ func ValidateCategory(category Category, isCreateFunction bool) error {
 		return err
 	}
 
+	if !isCreateFunction {
+		if category.ID == "" {
+			return errors.New("category_id is required")
+		}
+
+		if err := helpers.ValidateRecordByID("categories", category.ID, "NULL", db); err != nil {
+			return errors.New("record not found")
+		}
+	}
+
 	// validate parentCategoryID
 	if category.ParentCategoryID != "" {
 		if isCreateFunction {
