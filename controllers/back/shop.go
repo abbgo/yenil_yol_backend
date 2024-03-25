@@ -97,19 +97,6 @@ func UpdateShopByID(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// middleware - den gelen id - ni alyar
-	ID, hasID := c.Get("id")
-	if !hasID {
-		helpers.HandleError(c, 400, "id is required")
-		return
-	}
-	var ok bool
-	id, ok := ID.(string)
-	if !ok {
-		helpers.HandleError(c, 400, "id must be string")
-		return
-	}
-
 	// request body - dan gelen maglumatlar alynyar
 	var shop models.Shop
 	if err := c.BindJSON(&shop); err != nil {
@@ -117,14 +104,9 @@ func UpdateShopByID(c *gin.Context) {
 		return
 	}
 
-	// bu yerde ilki bilen tokenden gelen id admina degisliligi barlanyar
-	// ol tokenden gelen id admina degisli dal bolsa , onda onun shop_owner - e
-	// degisliligi barlanyar , eger onada degisli dal bolsa error return edilyar
-	if err := helpers.ValidateRecordByID("admins", id, "NULL", db); err != nil {
-		if id != shop.ShopOwnerID {
-			helpers.HandleError(c, 400, "this shop isn't for you")
-			return
-		}
+	if err := helpers.ValidateShopOwnerByToken(c, db, shop.ShopOwnerID); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
 	}
 
 	if err := models.ValidateShop(shop, false); err != nil {

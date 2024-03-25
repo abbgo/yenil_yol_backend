@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -42,5 +43,29 @@ func ValidateStructData(s interface{}) error {
 	if err := validate.Struct(s); err != nil {
 		return err
 	}
+	return nil
+}
+
+func ValidateShopOwnerByToken(c *gin.Context, db *pgxpool.Pool, shopOwnerID string) error {
+	// middleware - den gelen id - ni alyar
+	ID, hasID := c.Get("id")
+	if !hasID {
+		return errors.New("id is required")
+	}
+	var ok bool
+	id, ok := ID.(string)
+	if !ok {
+		return errors.New("id must be string")
+	}
+
+	// bu yerde ilki bilen tokenden gelen id admina degisliligi barlanyar
+	// ol tokenden gelen id admina degisli dal bolsa , onda onun shop_owner - e
+	// degisliligi barlanyar , eger onada degisli dal bolsa error return edilyar
+	if err := ValidateRecordByID("admins", id, "NULL", db); err != nil {
+		if id != shopOwnerID {
+			return errors.New("this shop isn't for you")
+		}
+	}
+
 	return nil
 }
