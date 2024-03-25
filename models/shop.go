@@ -64,6 +64,11 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 			if shop.ID == "" {
 				return errors.New("shop_id is required")
 			}
+
+			if err := helpers.ValidateRecordByID("shops", shop.ID, "NULL", db); err != nil {
+				return errors.New("record not found")
+			}
+
 			var shop_id string
 			db.QueryRow(context.Background(), "SELECT id FROM shops where order_number = $1 AND deleted_at IS NULL", shop.OrderNumber).Scan(&shop_id)
 			if shop_id != shop.ID && shop_id != "" {
