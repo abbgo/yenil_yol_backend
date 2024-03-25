@@ -104,20 +104,19 @@ func GetCategoryByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var category models.Category
-	var categoryImage sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,image FROM categories WHERE id = $1 AND deleted_at IS NULL", categoryID).Scan(&category.ID, &category.NameTM, &categoryImage); err != nil {
+	var image sql.NullString
+	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,image,dimension_group_id,parent_category_id FROM categories WHERE id = $1 AND deleted_at IS NULL", categoryID).Scan(&category.ID, &category.NameTM, &category.NameRU, &image, &category.DimensionGroupID, &category.ParentCategoryID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
+	}
+	if image.String != "" {
+		category.Image = image.String
 	}
 
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if category.ID == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return
-	}
-
-	if categoryImage.String != "" {
-		category.Image = categoryImage.String
 	}
 
 	c.JSON(http.StatusOK, gin.H{

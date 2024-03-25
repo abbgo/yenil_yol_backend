@@ -4,17 +4,19 @@ import (
 	"errors"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
+
+	"gopkg.in/guregu/null.v4"
 )
 
 type Category struct {
-	ID               string `json:"id,omitempty"`
-	NameTM           string `json:"name_tm,omitempty" binding:"required"`
-	NameRU           string `json:"name_ru,omitempty" binding:"required"`
-	Image            string `json:"image,omitempty"`
-	SlugTM           string `json:"slug_tm,omitempty"`
-	SlugRU           string `json:"slug_ru,omitempty"`
-	DimensionGroupID string `json:"dimension_group_id,omitempty" binding:"required"`
-	ParentCategoryID string `json:"parent_category_id,omitempty"`
+	ID               string      `json:"id,omitempty"`
+	NameTM           string      `json:"name_tm,omitempty" binding:"required"`
+	NameRU           string      `json:"name_ru,omitempty" binding:"required"`
+	Image            string      `json:"image,omitempty"`
+	SlugTM           string      `json:"slug_tm,omitempty"`
+	SlugRU           string      `json:"slug_ru,omitempty"`
+	DimensionGroupID string      `json:"dimension_group_id,omitempty" binding:"required"`
+	ParentCategoryID null.String `json:"parent_category_id,omitempty"`
 }
 
 func ValidateCategory(category Category, isCreateFunction bool) error {
@@ -40,14 +42,14 @@ func ValidateCategory(category Category, isCreateFunction bool) error {
 	}
 
 	// validate parentCategoryID
-	if category.ParentCategoryID != "" {
+	if category.ParentCategoryID.String != "" {
 		if isCreateFunction {
 			if category.Image != "" {
 				return errors.New("child cannot be an image of the category")
 			}
 		}
 
-		if err := helpers.ValidateRecordByID("categories", category.ParentCategoryID, "NULL", db); err != nil {
+		if err := helpers.ValidateRecordByID("categories", category.ParentCategoryID.String, "NULL", db); err != nil {
 			return err
 		}
 
