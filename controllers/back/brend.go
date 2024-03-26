@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"database/sql"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
@@ -251,22 +250,23 @@ func DeletePermanentlyBrendByID(c *gin.Context) {
 	ID := c.Param("id")
 
 	// database - de gelen id degisli maglumat barmy sol barlanyar
-	var id string
-	var image sql.NullString
-	db.QueryRow(context.Background(), "SELECT id,image FROM brends WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image)
+	var brend models.Brend
+	db.QueryRow(context.Background(), "SELECT id,image FROM brends WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&brend.ID, &brend.Image)
 
 	// eger database - de gelen id degisli brend yok bolsa error return edilyar
-	if id == "" {
+	if brend.ID == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
 	// eger brend bar bolsa sonda brend - in suraty papkadan pozulyar
-	if image.String != "" {
-		if err := os.Remove(helpers.ServerPath + image.String); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
+	if err := os.Remove(helpers.ServerPath + brend.Image); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	if err := os.Remove(helpers.ServerPath + "assets/" + brend.Image); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
 	}
 
 	// brend - in suraty pozulandan sonra database - den brend pozulyar
