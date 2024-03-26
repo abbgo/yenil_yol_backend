@@ -109,7 +109,7 @@ func GetShopByIDWithProducts(c *gin.Context) {
 	}
 	shop.ShopPhones = append(shop.ShopPhones, shopPhone)
 
-	rowsProducts, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,status,color_name_tm,color_name_ru,gender_name_tm,gender_name_ru FROM products WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
+	rowsProducts, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,status FROM products WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -117,7 +117,7 @@ func GetShopByIDWithProducts(c *gin.Context) {
 
 	for rowsProducts.Next() {
 		var product models.Product
-		if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice, &product.Status, &product.ColorNameTM, &product.ColorNameRU, &product.GenderNameTM, &product.GenderNameRU); err != nil {
+		if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice, &product.Status); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}

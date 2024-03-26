@@ -13,8 +13,6 @@ type Product struct {
 	Price        float32   `json:"price,omitempty" binding:"required"`
 	OldPrice     float32   `json:"old_price,omitempty"`
 	Status       null.Bool `json:"status,omitempty"`
-	ColorNameTM  string    `json:"color_name_tm,omitempty" binding:"required"`
-	ColorNameRU  string    `json:"color_name_ru,omitempty" binding:"required"`
 	GenderNameTM string    `json:"gender_name_tm,omitempty" binding:"required"`
 	GenderNameRU string    `json:"gender_name_ru,omitempty" binding:"required"`
 	Code         string    `json:"code,omitempty"`
