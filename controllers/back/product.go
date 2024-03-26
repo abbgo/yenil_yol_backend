@@ -28,7 +28,7 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateProduct(product.Price, product.OldPrice); err != nil {
+	if err := models.ValidateProduct(product); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -56,13 +56,13 @@ func UpdateProductByID(c *gin.Context) {
 	defer db.Close()
 
 	// request body - dan gelen maglumatlar alynyar
-	var product models.ProductUpdate
+	var product models.Product
 	if err := c.BindJSON(&product); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	if err := models.ValidateProduct(product.Price, product.OldPrice); err != nil {
+	if err := models.ValidateProduct(product); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
