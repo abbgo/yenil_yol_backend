@@ -400,8 +400,8 @@ func DeletePermanentlyShopByID(c *gin.Context) {
 		}
 	}
 
-	// shop - yn suraty pozulandan sonra database - den shop pozulyar
-	_, err = db.Exec(context.Background(), "DELETE FROM shops WHERE id = $1", ID)
+	// shop - yn suraty pozulandan sonra shop ve sonun bilen baglanysykly maglumatlar pozulyar
+	_, err = db.Exec(context.Background(), "CALL permanently_delete_shop($1)", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
