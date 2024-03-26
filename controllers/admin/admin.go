@@ -27,7 +27,7 @@ func RegisterAdmin(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateAdmin(admin.PhoneNumber, "", true); err != nil {
+	if err := models.ValidateAdmin(admin, true); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -141,13 +141,13 @@ func UpdateAdmin(c *gin.Context) {
 	defer db.Close()
 
 	// request body - den admin - in maglumatlary alynyar
-	var admin models.AdminUpdate
+	var admin models.Admin
 	if err := c.BindJSON(&admin); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	if err := models.ValidateAdmin(admin.PhoneNumber, admin.ID, false); err != nil {
+	if err := models.ValidateAdmin(admin, false); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

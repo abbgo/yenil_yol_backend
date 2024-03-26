@@ -13,7 +13,6 @@ func AdminRoutes(back *gin.RouterGroup) {
 	{
 		// RegisterAdmin admin - i registrasiya etmek ucin ulanylyar.
 		admin.POST("register", middlewares.IsSuperAdmin(), controllers.RegisterAdmin)
-		// 	// admin.POST("register", middlewares.IsSuperAdmin(), adminController.RegisterAdmin)
 
 		// LoginAdmin admin - i login etmek ucin ulanylyar.
 		admin.POST("login", controllers.LoginAdmin)

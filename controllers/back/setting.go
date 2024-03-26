@@ -26,7 +26,7 @@ func CreateSetting(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateSetting(setting.PhoneNumber, setting.Email); err != nil {
+	if err := models.ValidateSetting(setting); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -67,7 +67,7 @@ func UpdateSetting(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateSetting(setting.PhoneNumber, setting.Email); err != nil {
+	if err := models.ValidateSetting(setting); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

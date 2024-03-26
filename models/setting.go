@@ -13,12 +13,12 @@ type Setting struct {
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 }
 
-func ValidateSetting(phoneNumber, email string) error {
-	if !helpers.ValidatePhoneNumber(phoneNumber) {
+func ValidateSetting(setting Setting) error {
+	if !helpers.ValidatePhoneNumber(setting.PhoneNumber) {
 		return errors.New("invalid phone number")
 	}
 
-	if !helpers.ValidateEmailAddress(email) {
+	if !helpers.ValidateEmailAddress(setting.Email) {
 		return errors.New("invalid mail address")
 	}
 
