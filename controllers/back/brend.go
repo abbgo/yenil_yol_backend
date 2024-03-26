@@ -8,7 +8,6 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
@@ -114,6 +113,10 @@ func GetBrendByID(c *gin.Context) {
 }
 
 func GetBrends(c *gin.Context) {
+	var requestQuery helpers.StandartQuery
+	var countOfBrends uint
+	var brends []models.Brend
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -122,51 +125,26 @@ func GetBrends(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametr - den limit alynyar
-	limitStr := c.Query("limit")
-	if limitStr == "" {
-		helpers.HandleError(c, 400, "limit is required")
-		return
-	}
-	limit, err := strconv.ParseUint(limitStr, 10, 64)
-	if err != nil {
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// request parametr - den page alynyar
-	pageStr := c.Query("page")
-	if pageStr == "" {
-		helpers.HandleError(c, 400, "page is required")
-		return
-	}
-	page, err := strconv.ParseUint(pageStr, 10, 64)
-	if err != nil {
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// limit we page boyunca offset hasaplanyar
-	offset := limit * (page - 1)
-
-	// request query - den brend status alynyar
-	// status -> brend pozulan ya-da pozulanmadygyny anlatyar
-	// true bolsa pozulan
-	// false bolsa pozulmadyk
-	statusQuery := c.DefaultQuery("status", "false")
-	status, err := strconv.ParseBool(statusQuery)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
 	// request query - den status - a gora brend - leryn sanyny almak ucin query yazylyar
 	queryCount := `SELECT COUNT(id) FROM brends WHERE deleted_at IS NULL`
-	if status {
+	if requestQuery.IsDeleted {
 		queryCount = `SELECT COUNT(id) FROM brends WHERE deleted_at IS NOT NULL`
 	}
 	// database - den brend - laryn sany alynyar
-	var countOfBrends uint
 	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfBrends); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -174,28 +152,23 @@ func GetBrends(c *gin.Context) {
 
 	// request query - den status - a gora brend - lary almak ucin query yazylyar
 	rowQuery := `SELECT id,name,image FROM brends WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	if status {
+	if requestQuery.IsDeleted {
 		rowQuery = `SELECT id,name,image FROM brends WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	}
 
 	// database - den brend - lar alynyar
-	rowsBrend, err := db.Query(context.Background(), rowQuery, limit, offset)
+	rowsBrend, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowsBrend.Close()
 
-	var brends []models.Brend
 	for rowsBrend.Next() {
 		var brend models.Brend
-		var brendImage sql.NullString
-		if err := rowsBrend.Scan(&brend.ID, &brend.Name, &brendImage); err != nil {
+		if err := rowsBrend.Scan(&brend.ID, &brend.Name, &brend.Image); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
-		}
-		if brendImage.String != "" {
-			brend.Image = brendImage.String
 		}
 		brends = append(brends, brend)
 	}
