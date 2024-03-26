@@ -212,8 +212,8 @@ func DeleteCategoryByID(c *gin.Context) {
 		return
 	}
 
-	// hemme zat dogry bolsa shop we sol category - nin deleted_at - ine current_time goyulyar
-	_, err = db.Exec(context.Background(), "UPDATE categories SET deleted_at = NOW() WHERE id = $1", ID)
+	// hemme zat dogry bolsa categories we sol tablisa bilen baglanysykly tablisalaryn deleted_at - ine current_time goyulyar
+	_, err = db.Exec(context.Background(), "CALL delete_category($1)", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
