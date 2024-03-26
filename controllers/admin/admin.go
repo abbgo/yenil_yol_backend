@@ -7,7 +7,6 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -191,6 +190,10 @@ func GetAdmin(c *gin.Context) {
 }
 
 func GetAdmins(c *gin.Context) {
+	var requestQuery helpers.StandartQuery
+	var countOfAdmins uint
+	var admins []models.Admin
+
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -198,43 +201,36 @@ func GetAdmins(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametr - den limit alynyar
-	limitStr := c.Query("limit")
-	if limitStr == "" {
-		helpers.HandleError(c, 400, "limit is required")
-		return
-	}
-	limit, err := strconv.ParseUint(limitStr, 10, 32)
-	if err != nil {
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// // request parametr - den page alynyar
-	pageStr := c.Query("page")
-	if pageStr == "" {
-		helpers.HandleError(c, 400, "page is required")
-		return
-	}
-	page, err := strconv.ParseUint(pageStr, 10, 32)
-	if err != nil {
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// limit we page boyunca offset hasaplanyar
-	offset := limit * (page - 1)
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
 	// database - den admin - lerin sany alynyar
-	countOfAdmins := 0
-	if err := db.QueryRow(context.Background(), "SELECT COUNT(id) FROM admins WHERE deleted_at IS NULL").Scan(&countOfAdmins); err != nil {
+	queryCount := `SELECT COUNT(id) FROM admins WHERE deleted_at IS NULL`
+	if requestQuery.IsDeleted {
+		queryCount = `SELECT COUNT(id) FROM admins WHERE deleted_at IS NOT NULL`
+	}
+	if err := db.QueryRow(context.Background(), queryCount).Scan(&countOfAdmins); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// databae - den request - den gelen limit we page boyunca limitlap admin - ler alynyar
-	var admins []models.Admin
-	rowsAdmin, err := db.Query(context.Background(), "SELECT full_name,phone_number,is_super_admin FROM admins WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
+	rowQuery := `SELECT full_name,phone_number,is_super_admin FROM admins WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	if requestQuery.IsDeleted {
+		rowQuery = `SELECT full_name,phone_number,is_super_admin FROM admins WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	}
+	rowsAdmin, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
