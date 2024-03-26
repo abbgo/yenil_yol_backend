@@ -155,7 +155,7 @@ func GetLikes(customerID string) ([]models.Product, error) {
 	defer db.Close()
 
 	rowsProduct, err := db.Query(context.Background(),
-		"SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.status,p.code,p.brend_id FROM products p INNER JOIN likes l ON l.product_id = p.id WHERE l.customer_id = $1 AND l.deleted_at IS NULL AND p.deleted_at IS NULL",
+		"SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.code,p.brend_id FROM products p INNER JOIN likes l ON l.product_id = p.id WHERE l.customer_id = $1 AND l.deleted_at IS NULL AND p.deleted_at IS NULL",
 		customerID)
 	if err != nil {
 		return []models.Product{}, err
@@ -170,7 +170,6 @@ func GetLikes(customerID string) ([]models.Product, error) {
 			&product.NameRU,
 			&product.Price,
 			&product.OldPrice,
-			&product.Status,
 			&product.Code,
 			&product.BrendID,
 		); err != nil {
