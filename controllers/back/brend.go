@@ -30,26 +30,19 @@ func CreateBrend(c *gin.Context) {
 		return
 	}
 
-	// eger request body - dan gelen surat bos bolsa database surata derek nil gosmaly
-	var image interface{}
-	if brend.Image == "" {
-		image = nil
-	} else {
-		image = brend.Image
-	}
-
 	// eger maglumatlar dogry bolsa onda brends tablisa maglumatlar gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO brends (name,image,slug) VALUES ($1,$2,$3)", brend.Name, image, slug.MakeLang(brend.Name, "en"))
+	_, err = db.Exec(context.Background(), "INSERT INTO brends (name,image,slug) VALUES ($1,$2,$3)", brend.Name, brend.Image, slug.MakeLang(brend.Name, "en"))
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// brend - yn maglumatlary gosulandan sonra helper_images tablisa brend ucin gosulan surat pozulyar
-	_, err = db.Exec(context.Background(), "DELETE FROM helper_images WHERE image = $1", image)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
+	if brend.Image != "" {
+		if err := DeleteImageFromDB(brend.Image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -68,7 +61,7 @@ func UpdateBrendByID(c *gin.Context) {
 	defer db.Close()
 
 	// request body - dan gelen maglumatlar alynyar
-	var brend models.BrendUpdate
+	var brend models.Brend
 	if err := c.BindJSON(&brend); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
