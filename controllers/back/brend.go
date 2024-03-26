@@ -99,17 +99,12 @@ func GetBrendByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var brend models.Brend
-	var brendImage sql.NullString
-	db.QueryRow(context.Background(), "SELECT id,name,image FROM brends WHERE id = $1 AND deleted_at IS NULL", brendID).Scan(&brend.ID, &brend.Name, &brendImage)
+	db.QueryRow(context.Background(), "SELECT id,name,image FROM brends WHERE id = $1 AND deleted_at IS NULL", brendID).Scan(&brend.ID, &brend.Name, &brend.Image)
 
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if brend.ID == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return
-	}
-
-	if brendImage.String != "" {
-		brend.Image = brendImage.String
 	}
 
 	c.JSON(http.StatusOK, gin.H{
