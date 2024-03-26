@@ -15,21 +15,5 @@ func SettingRoutes(back *gin.RouterGroup) {
 
 		// UpdateSetting -> setting - in maglumatlaryny update etmek ucin ulanylyar
 		backSettingApi.PUT("", controllers.UpdateSetting)
-
-		// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
-		// backSettingApi.GET(":id", controllers.GetCategoryByID)
-
-		// // GetCategories -> Ahli Category - leryn maglumatlaryny request query - den gelen
-		// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-		// backSettingApi.GET("", controllers.GetCategories)
-
-		// // DeleteCategoryByID -> id boyunca category - ni korzina salmak ucin ulanylyar
-		// backSettingApi.DELETE(":id", controllers.DeleteCategoryByID)
-
-		// // RestoreCategoryByID -> id boyunca category - ni korzinadan cykarmak ucin ulanylyar
-		// backSettingApi.GET(":id/restore", controllers.RestoreCategoryByID)
-
-		// // DeletePermanentlyCategoryByID -> id boyunca category - i doly (korzinadan) pozmak ucin ulanylyar
-		// backSettingApi.DELETE(":id/delete", controllers.DeletePermanentlyCategoryByID)
 	}
 }

@@ -13,13 +13,6 @@ type Setting struct {
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
 }
 
-type SettingUpdate struct {
-	Logo        string `json:"logo,omitempty"`
-	Favicon     string `json:"favicon,omitempty"`
-	Email       string `json:"email,omitempty" binding:"required"`
-	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
-}
-
 func ValidateSetting(phoneNumber, email string) error {
 	if !helpers.ValidatePhoneNumber(phoneNumber) {
 		return errors.New("invalid phone number")
