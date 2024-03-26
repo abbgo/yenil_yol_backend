@@ -277,15 +277,20 @@ func DeletePermanentlyCategoryByID(c *gin.Context) {
 		return
 	}
 
-	// eger shop bar bolsa sonda category - nin suraty papkadan pozulyar
+	// eger category - nyn suraty bar bolsa onda ol local papkadan pozulyar
 	if image.String != "" {
 		if err := os.Remove(helpers.ServerPath + image.String); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
+
+		if err := os.Remove(helpers.ServerPath + "assets/" + image.String); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
-	// brend - in suraty pozulandan sonra database - den category pozulyar
+	// category - nyn suraty pozulandan son category we onun bilen baglanysykly maglumatlar pozulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM categories WHERE id = $1", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())

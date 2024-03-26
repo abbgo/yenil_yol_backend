@@ -378,7 +378,8 @@ func DeletePermanentlyShopByID(c *gin.Context) {
 	ID := c.Param("id")
 
 	// database - de gelen id degisli maglumat barmy sol barlanyar
-	var id, image string
+	var id string
+	var image sql.NullString
 	db.QueryRow(context.Background(), "SELECT id,image FROM shops WHERE id = $1 AND deleted_at IS NOT NULL", ID).Scan(&id, &image)
 
 	// eger database - de gelen id degisli shop yok bolsa error return edilyar
@@ -388,20 +389,20 @@ func DeletePermanentlyShopByID(c *gin.Context) {
 	}
 
 	// eger shop - yn suraty bar bolsa onda ol papkadan pozulyar
-	if image != "" {
-		if err := os.Remove(helpers.ServerPath + image); err != nil {
+	if image.String != "" {
+		if err := os.Remove(helpers.ServerPath + image.String); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
-		if err := os.Remove(helpers.ServerPath + "assets/" + image); err != nil {
+		if err := os.Remove(helpers.ServerPath + "assets/" + image.String); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 	}
 
 	// shop - yn suraty pozulandan sonra shop ve sonun bilen baglanysykly maglumatlar pozulyar
-	_, err = db.Exec(context.Background(), "CALL permanently_delete_shop($1)", ID)
+	_, err = db.Exec(context.Background(), "DELETE FROM shops WHERE id=$1", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
