@@ -13,11 +13,17 @@ type Admin struct {
 	PhoneNumber  string `json:"phone_number,omitempty" binding:"required"`
 	Password     string `json:"password,omitempty"`
 	IsSuperAdmin bool   `json:"is_super_admin,omitempty"`
+	Slug         string `json:"slug,omitempty"`
 }
 
-type AdminUpdatePassword struct {
+type UpdatePassword struct {
 	ID       string `json:"id,omitempty" binding:"required"`
 	Password string `json:"password,omitempty" binding:"required"`
+}
+
+type Login struct {
+	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
+	Password    string `json:"password,omitempty" binding:"required"`
 }
 
 func ValidateAdmin(admin Admin, isRegisterFunction bool) error {

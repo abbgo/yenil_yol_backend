@@ -61,7 +61,7 @@ func LoginAdmin(c *gin.Context) {
 	defer db.Close()
 
 	// request - den maglumatlar alynyar
-	var admin models.ShopOwnerLogin
+	var admin models.Login
 	if err := c.BindJSON(&admin); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -349,7 +349,7 @@ func UpdateAdminPassword(c *gin.Context) {
 	defer db.Close()
 
 	// request body - den maglumatlar alynyar
-	var admin models.AdminUpdatePassword
+	var admin models.UpdatePassword
 	if err := c.BindJSON(&admin); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

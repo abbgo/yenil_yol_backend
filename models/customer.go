@@ -7,19 +7,7 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 )
 
-type Customer struct {
-	ID          string `json:"id,omitempty"`
-	FullName    string `json:"full_name,omitempty" binding:"required"`
-	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
-	Password    string `json:"password,omitempty"`
-}
-
-type CustomerUpdatePassword struct {
-	ID       string `json:"id,omitempty" binding:"required"`
-	Password string `json:"password,omitempty" binding:"required"`
-}
-
-func ValidateCustomer(customer Customer, isRegisterFunction bool) error {
+func ValidateCustomer(customer Admin, isRegisterFunction bool) error {
 	db, err := config.ConnDB()
 	if err != nil {
 		return err

@@ -7,21 +7,9 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 )
 
-type ShopOwner struct {
-	ID          string `json:"id,omitempty"`
-	FullName    string `json:"full_name,omitempty" binding:"required"`
-	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
-	Password    string `json:"password,omitempty"`
-	Slug        string `json:"slug,omitempty"`
-}
-
 // bu model ShopOwner Login bolmagy ucin doredildi
-type ShopOwnerLogin struct {
-	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
-	Password    string `json:"password,omitempty" binding:"required"`
-}
 
-func ValidateShopOwner(shopOwner ShopOwner, isRegisterFunction bool) error {
+func ValidateShopOwner(shopOwner Admin, isRegisterFunction bool) error {
 	db, err := config.ConnDB()
 	if err != nil {
 		return err

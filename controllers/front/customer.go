@@ -23,7 +23,7 @@ func RegisterCustomer(c *gin.Context) {
 	defer db.Close()
 
 	// request - den gelen maglumatlar alynyar
-	var customer models.Customer
+	var customer models.Admin
 	if err := c.BindJSON(&customer); err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
@@ -64,7 +64,7 @@ func LoginCustomer(c *gin.Context) {
 	defer db.Close()
 
 	// request - den maglumatlar alynyar
-	var customer models.ShopOwnerLogin
+	var customer models.Login
 	if err := c.BindJSON(&customer); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -113,20 +113,20 @@ func LoginCustomer(c *gin.Context) {
 	})
 }
 
-func GetCustomerByID(id string) (models.Customer, error) {
+func GetCustomerByID(id string) (models.Admin, error) {
 	db, err := config.ConnDB()
 	if err != nil {
-		return models.Customer{}, err
+		return models.Admin{}, err
 	}
 	defer db.Close()
 
 	// parametrler edilip berilen id - boyunca database - den customer - in maglumatlary cekilyar
-	var customer models.Customer
+	var customer models.Admin
 	db.QueryRow(context.Background(), "SELECT full_name,phone_number FROM customers WHERE deleted_at IS NULL AND id = $1", id).Scan(&customer.FullName, &customer.PhoneNumber)
 
 	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
 	if customer.PhoneNumber == "" {
-		return models.Customer{}, errors.New("customer not found")
+		return models.Admin{}, errors.New("customer not found")
 	}
 
 	// hemme zat dogry bolsa admin - in maglumatlary return edilyar
@@ -142,7 +142,7 @@ func UpdateCustomer(c *gin.Context) {
 	defer db.Close()
 
 	// request body - den admin - in maglumatlary alynyar
-	var customer models.Customer
+	var customer models.Admin
 	if err := c.BindJSON(&customer); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -175,7 +175,7 @@ func UpdateCustomerPassword(c *gin.Context) {
 	defer db.Close()
 
 	// request body - den maglumatlar alynyar
-	var customer models.CustomerUpdatePassword
+	var customer models.UpdatePassword
 	if err := c.BindJSON(&customer); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -221,7 +221,7 @@ func GetCustomer(c *gin.Context) {
 func GetCustomers(c *gin.Context) {
 	var requestQuery helpers.StandartQuery
 	var count uint
-	var customers []models.Customer
+	var customers []models.Admin
 
 	db, err := config.ConnDB()
 	if err != nil {
@@ -268,7 +268,7 @@ func GetCustomers(c *gin.Context) {
 	defer rowsCustomer.Close()
 
 	for rowsCustomer.Next() {
-		var customer models.Customer
+		var customer models.Admin
 		if err := rowsCustomer.Scan(&customer.FullName, &customer.PhoneNumber); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return

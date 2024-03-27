@@ -23,7 +23,7 @@ func RegisterShopOwner(c *gin.Context) {
 	defer db.Close()
 
 	// request - den gelen maglumatlar alynyar
-	var shopOwner models.ShopOwner
+	var shopOwner models.Admin
 	if err := c.BindJSON(&shopOwner); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -65,7 +65,7 @@ func LoginShopOwner(c *gin.Context) {
 	defer db.Close()
 
 	// request - den maglumatlar alynyar
-	var shopOwner models.ShopOwnerLogin
+	var shopOwner models.Login
 	if err := c.BindJSON(&shopOwner); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -114,20 +114,20 @@ func LoginShopOwner(c *gin.Context) {
 	})
 }
 
-func GetShopOwnerByID(id string) (models.ShopOwner, error) {
+func GetShopOwnerByID(id string) (models.Admin, error) {
 	db, err := config.ConnDB()
 	if err != nil {
-		return models.ShopOwner{}, err
+		return models.Admin{}, err
 	}
 	defer db.Close()
 
 	// parametrler edilip berilen id - boyunca database - den shop_owner - in maglumatlary cekilyar
-	var shopOwner models.ShopOwner
+	var shopOwner models.Admin
 	db.QueryRow(context.Background(), "SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL AND id = $1", id).Scan(&shopOwner.FullName, &shopOwner.PhoneNumber)
 
 	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
 	if shopOwner.PhoneNumber == "" {
-		return models.ShopOwner{}, errors.New("shop_owner not found")
+		return models.Admin{}, errors.New("shop_owner not found")
 	}
 
 	// hemme zat dogry bolsa shop_owner - in maglumatlary return edilyar
@@ -143,7 +143,7 @@ func UpdateShopOwner(c *gin.Context) {
 	defer db.Close()
 
 	// request body - den shop_owner - in maglumatlary alynyar
-	var shopOwner models.ShopOwner
+	var shopOwner models.Admin
 	if err := c.BindJSON(&shopOwner); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -170,7 +170,7 @@ func UpdateShopOwner(c *gin.Context) {
 func GetShopOwners(c *gin.Context) {
 	var requestQuery helpers.StandartQuery
 	var count uint
-	var shopOwners []models.ShopOwner
+	var shopOwners []models.Admin
 
 	db, err := config.ConnDB()
 	if err != nil {
@@ -217,7 +217,7 @@ func GetShopOwners(c *gin.Context) {
 	defer rowsShopOwner.Close()
 
 	for rowsShopOwner.Next() {
-		var shopOwner models.ShopOwner
+		var shopOwner models.Admin
 		if err := rowsShopOwner.Scan(&shopOwner.FullName, &shopOwner.PhoneNumber); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
@@ -379,7 +379,7 @@ func UpdateShopOwnerPassword(c *gin.Context) {
 	defer db.Close()
 
 	// request body - den maglumatlar alynyar
-	var admin models.AdminUpdatePassword
+	var admin models.UpdatePassword
 	if err := c.BindJSON(&admin); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
