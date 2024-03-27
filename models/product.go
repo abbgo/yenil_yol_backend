@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	"github/abbgo/yenil_yol/backend/config"
+	"github/abbgo/yenil_yol/backend/helpers"
 
 	"gopkg.in/guregu/null.v4"
 )
@@ -22,12 +24,43 @@ type Product struct {
 }
 
 func ValidateProduct(product Product) error {
+	db, err := config.ConnDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// harydyn bahasy we onki bahasy barlanyar
 	if product.Price < 0 || product.OldPrice < 0 {
 		return errors.New("price or old_price cannot be less than 0")
 	}
-
 	if product.Price > product.OldPrice && product.OldPrice != 0 {
 		return errors.New("price cannot be less than old_price")
+	}
+
+	// eger haryda brend berilen bolsa onda sol brend hakykatdanam database - de barmy sol barlanyar
+	if product.BrendID.String != "" {
+		if err := helpers.ValidateRecordByID("brends", product.BrendID.String, "NULL", db); err != nil {
+			return err
+		}
+	}
+
+	// harydyn kategoriyalary barlanyar
+	// hakykatdanam sol kategoriyalar barmy ?
+	for _, v := range product.Categories {
+		if err := helpers.ValidateRecordByID("categories", v, "NULL", db); err != nil {
+			return err
+		}
+	}
+
+	// harydyn razmerleri barlanyan
+	// hakykatdanam sol razmerler database - de barmy ?
+	for _, color := range product.ProductColors {
+		for _, dimension := range color.Dimensions {
+			if err := helpers.ValidateRecordByID("dimensions", dimension, "NULL", db); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
