@@ -15,6 +15,7 @@ type Product struct {
 	SlugRU     string   `json:"slug_ru,omitempty"`
 	BrendID    string   `json:"brend_id,omitempty" binding:"required"`
 	Dimensions []string `json:"dimensions,omitempty"`
+	Categories []string `json:"categories,omitempty" binding:"required"`
 }
 
 func ValidateProduct(product Product) error {
