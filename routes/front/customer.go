@@ -19,7 +19,7 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		customerRoutes.POST("login", controllers.LoginCustomer)
 
 		// UpdateCustomer -> Customer - in maglumatlaryny uytgetmek ucin ulanylyar.
-		customerRoutes.PUT("update", controllers.UpdateCustomer)
+		customerRoutes.PUT("update", middlewares.CheckTokenAdminOrCustomer(), controllers.UpdateCustomer)
 
 		// UpdateCustomerPassword -> Customer - in maglumatlaryny uytgetmek ucin ulanylyar.
 		customerRoutes.PUT("update-password", controllers.UpdateCustomerPassword)
