@@ -236,20 +236,7 @@ func GetShopOwners(c *gin.Context) {
 }
 
 func GetShopOwner(c *gin.Context) {
-	shopOwnerID, hasID := c.Get("shop_owner_id")
-	if !hasID {
-		helpers.HandleError(c, 400, "shopOwnerID is required")
-		return
-	}
-
-	var ok bool
-	shopOwner_id, ok := shopOwnerID.(string)
-	if !ok {
-		helpers.HandleError(c, 400, "shopOwnerID must be string")
-		return
-	}
-
-	adm, err := GetShopOwnerByID(shopOwner_id)
+	adm, err := GetShopOwnerByID(c.Param("id"))
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

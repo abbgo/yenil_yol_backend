@@ -22,7 +22,6 @@ type JWTClaimForAdmin struct {
 }
 
 func GenerateAccessTokenForAdmin(phoneNumber, adminID string, isSuperAdmin bool) (string, string, error) {
-
 	accessTokenTimeOut, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_TIMEOUT"))
 	if err != nil {
 		return "", "", err
@@ -63,11 +62,9 @@ func GenerateAccessTokenForAdmin(phoneNumber, adminID string, isSuperAdmin bool)
 	}
 
 	return accessTokenString, refreshTokenString, nil
-
 }
 
 func RefreshTokenForAdmin(c *gin.Context) {
-
 	tokenStr := c.GetHeader("RefreshToken")
 	tokenString := strings.Split(tokenStr, " ")[1]
 
@@ -120,5 +117,4 @@ func RefreshTokenForAdmin(c *gin.Context) {
 		"access_token":  accessTokenString,
 		"refresh_token": refreshTokenString,
 	})
-
 }
