@@ -11,7 +11,7 @@ type ShopOwner struct {
 	ID          string `json:"id,omitempty"`
 	FullName    string `json:"full_name,omitempty" binding:"required"`
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
-	Password    string `json:"password,omitempty" binding:"required"`
+	Password    string `json:"password,omitempty"`
 	Slug        string `json:"slug,omitempty"`
 }
 
@@ -29,6 +29,10 @@ func ValidateShopOwner(shopOwner ShopOwner, isRegisterFunction bool) error {
 	defer db.Close()
 
 	if isRegisterFunction {
+		if shopOwner.Password == "" {
+			return errors.New("password is required")
+		}
+
 		var phone_number string
 		db.QueryRow(context.Background(), "SELECT phone_number FROM shop_owners WHERE phone_number = $1 AND deleted_at IS NULL", shopOwner.PhoneNumber).Scan(&phone_number)
 		if phone_number != "" {

@@ -20,7 +20,7 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 		shopOwner.POST("login", controllers.LoginShopOwner)
 
 		// UpdateShopOwner shop_owner - in maglumatlaryny uytgetmek ucin ulanylyar.
-		shopOwner.PUT("update", controllers.UpdateShopOwner)
+		shopOwner.PUT("update", middlewares.CheckTokenAdminOrShopOwner(), controllers.UpdateShopOwner)
 
 		// ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 		// ucin ulanylyar
