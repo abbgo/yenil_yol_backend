@@ -11,7 +11,7 @@ type Admin struct {
 	ID           string `json:"id,omitempty"`
 	FullName     string `json:"full_name,omitempty" binding:"required"`
 	PhoneNumber  string `json:"phone_number,omitempty" binding:"required"`
-	Password     string `json:"password,omitempty" binding:"required"`
+	Password     string `json:"password,omitempty"`
 	IsSuperAdmin bool   `json:"is_super_admin,omitempty"`
 }
 
@@ -28,6 +28,10 @@ func ValidateAdmin(admin Admin, isRegisterFunction bool) error {
 	defer db.Close()
 
 	if isRegisterFunction {
+		if admin.Password == "" {
+			return errors.New("password is required")
+		}
+
 		var phone_number string
 		db.QueryRow(context.Background(), "SELECT phone_number FROM admins WHERE phone_number = $1 AND deleted_at IS NULL", admin.PhoneNumber).Scan(&phone_number)
 		if phone_number != "" {
