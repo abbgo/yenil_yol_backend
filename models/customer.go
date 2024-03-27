@@ -11,7 +11,7 @@ type Customer struct {
 	ID          string `json:"id,omitempty"`
 	FullName    string `json:"full_name,omitempty" binding:"required"`
 	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
-	Password    string `json:"password,omitempty" binding:"required"`
+	Password    string `json:"password,omitempty"`
 }
 
 type CustomerUpdatePassword struct {
@@ -27,6 +27,10 @@ func ValidateCustomer(customer Customer, isRegisterFunction bool) error {
 	defer db.Close()
 
 	if isRegisterFunction {
+		if customer.Password == "" {
+			return errors.New("password is required")
+		}
+
 		var phone_number string
 		db.QueryRow(context.Background(), "SELECT phone_number FROM customers WHERE phone_number = $1 AND deleted_at IS NULL", customer.PhoneNumber).Scan(&phone_number)
 		if phone_number != "" {
