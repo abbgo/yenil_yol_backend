@@ -31,7 +31,7 @@ func RegisterShopOwner(c *gin.Context) {
 	}
 
 	// gelen maglumatlar barlanylyar
-	if err := models.ValidateShopOwner(shopOwner.PhoneNumber, "", true); err != nil {
+	if err := models.ValidateShopOwner(shopOwner, true); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -144,13 +144,13 @@ func UpdateShopOwner(c *gin.Context) {
 	defer db.Close()
 
 	// request body - den shop_owner - in maglumatlary alynyar
-	var shopOwner models.ShopOwnerUpdate
+	var shopOwner models.ShopOwner
 	if err := c.BindJSON(&shopOwner); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	if err := models.ValidateShopOwner(shopOwner.PhoneNumber, shopOwner.ID, false); err != nil {
+	if err := models.ValidateShopOwner(shopOwner, false); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

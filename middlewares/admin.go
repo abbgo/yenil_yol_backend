@@ -81,7 +81,7 @@ func CheckToken(position string) gin.HandlerFunc {
 	}
 }
 
-func CheckTokenAdminOrCustomer() gin.HandlerFunc {
+func CheckTokenAdminOrShopOwner() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr := c.GetHeader("Authorization")
 		if tokenStr == "" {

@@ -8,7 +8,7 @@ import (
 )
 
 func ProductRoutes(back *gin.RouterGroup) {
-	backProductApi := back.Group("/products").Use(middlewares.CheckTokenAdminOrCustomer())
+	backProductApi := back.Group("/products").Use(middlewares.CheckTokenAdminOrShopOwner())
 	{
 		// // CreateProduct -> Product gosmak ulanylar
 		backProductApi.POST("", controllers.CreateProduct)
