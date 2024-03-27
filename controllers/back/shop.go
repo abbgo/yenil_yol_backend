@@ -16,22 +16,6 @@ import (
 	"github.com/lib/pq"
 )
 
-// type ResponseShop struct {
-// 	ID          string             `json:"id,omitempty"`
-// 	NameTM      string             `json:"name_tm,omitempty"`
-// 	NameRU      string             `json:"name_ru,omitempty"`
-// 	AddressTM   string             `json:"address_tm,omitempty"`
-// 	AddressRU   string             `json:"address_ru,omitempty"`
-// 	Latitude    float64            `json:"latitude,omitempty"`
-// 	Longitude   float64            `json:"longitude,omitempty"`
-// 	Image       string             `json:"image,omitempty"`
-// 	HasDelivery bool               `json:"has_delivery,omitempty"`
-// 	ShopOwnerID string             `json:"shop_owner_id,omitempty"`
-// 	SlugTM      string             `json:"slug_tm,omitempty"`
-// 	SlugRU      string             `json:"slug_ru,omitempty"`
-// 	ShopPhones  []models.ShopPhone `json:"shop_phones"`
-// }
-
 func CreateShop(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -75,8 +59,8 @@ func CreateShop(c *gin.Context) {
 	}
 
 	// shop - yn maglumatlary gosulandan sonra helper_images tablisa shop ucin gosulan surat pozulyar
-	if shop.Image != "" {
-		if err := DeleteImageFromDB(shop.Image); err != nil {
+	if shop.Image.String != "" {
+		if err := DeleteImageFromDB(shop.Image.String); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
@@ -165,13 +149,9 @@ func GetShopByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca shop - yn maglumatlary cekilyar
 	var shop models.Shop
-	var image sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_delivery,shop_owner_id FROM shops WHERE id = $1 AND deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &image, &shop.HasDelivery, &shop.ShopOwnerID); err != nil {
+	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_delivery,shop_owner_id FROM shops WHERE id = $1 AND deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.HasDelivery, &shop.ShopOwnerID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
-	}
-	if image.String != "" {
-		shop.Image = image.String
 	}
 
 	// eger databse sol maglumat yok bolsa error return edilyar
@@ -289,13 +269,9 @@ func GetShops(c *gin.Context) {
 
 	for rowsShop.Next() {
 		var shop models.Shop
-		var shopImage sql.NullString
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shopImage); err != nil {
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.Image); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
-		}
-		if shopImage.String != "" {
-			shop.Image = shopImage.String
 		}
 		shops = append(shops, shop)
 	}
