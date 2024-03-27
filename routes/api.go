@@ -13,10 +13,8 @@ import (
 )
 
 func Routes() *gin.Engine {
-
 	routes := gin.Default()
 
-	// cors
 	// routes.Use(cors.Default())
 
 	routes.Use(gzip.Gzip(gzip.DefaultCompression))
@@ -32,7 +30,6 @@ func Routes() *gin.Engine {
 
 	front := routes.Group("/api")
 	{
-
 		// bu route - ler musderiler ucin doredilen rout - laryn toplumy
 		frontApi.CustomerRoutes(front)
 
@@ -86,5 +83,4 @@ func Routes() *gin.Engine {
 	}
 
 	return routes
-
 }
