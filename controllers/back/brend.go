@@ -154,7 +154,6 @@ func GetBrends(c *gin.Context) {
 	if requestQuery.IsDeleted {
 		rowQuery = `SELECT id,name,image FROM brends WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
 	}
-
 	// database - den brend - lar alynyar
 	rowsBrend, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
 	if err != nil {

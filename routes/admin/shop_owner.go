@@ -30,7 +30,7 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 		shopOwner.GET(":id", middlewares.CheckTokenAdminOrShopOwner(), controllers.GetShopOwner)
 
 		// GetShopOwners funksiya hemme shop_owner - leri almak ucin ulanylyar.
-		shopOwner.GET("", controllers.GetShopOwners)
+		shopOwner.GET("", middlewares.CheckToken("admin"), controllers.GetShopOwners)
 
 		// DeleteShopOwnerByID funksiya id boyunca shop_owner - i korzina salmak ucin ulanylyar.
 		shopOwner.DELETE(":id", controllers.DeleteShopOwnerByID)

@@ -7,7 +7,6 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"os"
-	"strconv"
 
 	"net/http"
 
@@ -169,6 +168,10 @@ func UpdateShopOwner(c *gin.Context) {
 }
 
 func GetShopOwners(c *gin.Context) {
+	var requestQuery helpers.StandartQuery
+	var count uint
+	var shopOwners []models.ShopOwner
+
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -176,43 +179,37 @@ func GetShopOwners(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametr - den limit alynyar
-	limitStr := c.Query("limit")
-	if limitStr == "" {
-		helpers.HandleError(c, 400, "limit is required")
-		return
-	}
-	limit, err := strconv.ParseUint(limitStr, 10, 32)
-	if err != nil {
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// // request parametr - den page alynyar
-	pageStr := c.Query("page")
-	if pageStr == "" {
-		helpers.HandleError(c, 400, "page is required")
-		return
-	}
-	page, err := strconv.ParseUint(pageStr, 10, 32)
-	if err != nil {
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// limit we page boyunca offset hasaplanyar
-	offset := limit * (page - 1)
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
-	// database - den shop_owner - lerin sany alynyar
-	countOfShopOwners := 0
-	if err := db.QueryRow(context.Background(), "SELECT COUNT(id) FROM shop_owners WHERE deleted_at IS NULL").Scan(&countOfShopOwners); err != nil {
+	// request query - den status - a gora shop owner - leryn sanyny almak ucin query yazylyar
+	queryCount := `SELECT COUNT(id) FROM shop_owners WHERE deleted_at IS NULL`
+	if requestQuery.IsDeleted {
+		queryCount = `SELECT COUNT(id) FROM shop_owners WHERE deleted_at IS NOT NULL`
+	}
+	if err := db.QueryRow(context.Background(), queryCount).Scan(&count); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
+	// request query - den status - a gora shop owner - lary almak ucin query yazylyar
+	rowQuery := `SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	if requestQuery.IsDeleted {
+		rowQuery = `SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	}
 	// databae - den request - den gelen limit we page boyunca limitlap shop_owner - ler alynyar
-	var shopOwners []models.ShopOwner
-	rowsShopOwner, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
+	rowsShopOwner, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -231,7 +228,7 @@ func GetShopOwners(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":      true,
 		"shop_owners": shopOwners,
-		"total":       countOfShopOwners,
+		"total":       count,
 	})
 }
 
