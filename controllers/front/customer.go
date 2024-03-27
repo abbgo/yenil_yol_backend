@@ -30,7 +30,7 @@ func RegisterCustomer(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateCustomer(customer.PhoneNumber, "", true); err != nil {
+	if err := models.ValidateCustomer(customer, true); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -143,13 +143,13 @@ func UpdateCustomer(c *gin.Context) {
 	defer db.Close()
 
 	// request body - den admin - in maglumatlary alynyar
-	var customer models.CustomerUpdate
+	var customer models.Customer
 	if err := c.BindJSON(&customer); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	if err := models.ValidateCustomer(customer.PhoneNumber, customer.ID, false); err != nil {
+	if err := models.ValidateCustomer(customer, false); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

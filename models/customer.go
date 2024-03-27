@@ -14,18 +14,12 @@ type Customer struct {
 	Password    string `json:"password,omitempty" binding:"required"`
 }
 
-type CustomerUpdate struct {
-	ID          string `json:"id,omitempty" binding:"required"`
-	FullName    string `json:"full_name,omitempty" binding:"required"`
-	PhoneNumber string `json:"phone_number,omitempty" binding:"required"`
-}
-
 type CustomerUpdatePassword struct {
 	ID       string `json:"id,omitempty" binding:"required"`
 	Password string `json:"password,omitempty" binding:"required"`
 }
 
-func ValidateCustomer(phoneNumber, customerID string, isRegisterFunction bool) error {
+func ValidateCustomer(customer Customer, isRegisterFunction bool) error {
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
@@ -34,28 +28,28 @@ func ValidateCustomer(phoneNumber, customerID string, isRegisterFunction bool) e
 
 	if isRegisterFunction {
 		var phone_number string
-		db.QueryRow(context.Background(), "SELECT phone_number FROM customers WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&phone_number)
+		db.QueryRow(context.Background(), "SELECT phone_number FROM customers WHERE phone_number = $1 AND deleted_at IS NULL", customer.PhoneNumber).Scan(&phone_number)
 		if phone_number != "" {
 			return errors.New("this customer already exists")
 		}
 	} else {
-		if customerID == "" {
+		if customer.ID == "" {
 			return errors.New("customer_id is required")
 		}
 
-		if err := helpers.ValidateRecordByID("customers", customerID, "NULL", db); err != nil {
+		if err := helpers.ValidateRecordByID("customers", customer.ID, "NULL", db); err != nil {
 			return err
 		}
 
 		var customer_id string
-		db.QueryRow(context.Background(), "SELECT id FROM customers WHERE phone_number = $1 AND deleted_at IS NULL", phoneNumber).Scan(&customer_id)
-		if customer_id != customerID && customer_id != "" {
+		db.QueryRow(context.Background(), "SELECT id FROM customers WHERE phone_number = $1 AND deleted_at IS NULL", customer.PhoneNumber).Scan(&customer_id)
+		if customer_id != customer.ID && customer_id != "" {
 			return errors.New("this customer already exists")
 		}
 
 	}
 
-	if !helpers.ValidatePhoneNumber(phoneNumber) {
+	if !helpers.ValidatePhoneNumber(customer.PhoneNumber) {
 		return errors.New("invalid phone number")
 	}
 
