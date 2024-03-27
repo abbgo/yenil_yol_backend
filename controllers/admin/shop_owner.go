@@ -343,6 +343,11 @@ func DeletePermanentlyShopOwnerByID(c *gin.Context) {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
+
+		if err := os.Remove(helpers.ServerPath + "assets/" + v); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	// shop - yn suraty pozulandan sonra database - den shop - lar pozulyar
