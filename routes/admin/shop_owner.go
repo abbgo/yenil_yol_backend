@@ -9,7 +9,6 @@ import (
 )
 
 func ShopOwnerRoutes(back *gin.RouterGroup) {
-
 	shopOwner := back.Group("/shop-owners")
 	{
 		// RegisterShopOwner shop_owner - i registrasiya etmek ucin ulanylyar.
@@ -21,6 +20,9 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 
 		// UpdateShopOwner shop_owner - in maglumatlaryny uytgetmek ucin ulanylyar.
 		shopOwner.PUT("update", middlewares.CheckTokenAdminOrShopOwner(), controllers.UpdateShopOwner)
+
+		// UpdateShopOwnerPassword shop owner - in parolyny uytgetmek ucin ulanylyar.
+		shopOwner.PUT("update-password", middlewares.CheckTokenAdminOrShopOwner(), controllers.UpdateShopOwnerPassword)
 
 		// ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 		// ucin ulanylyar
@@ -40,7 +42,5 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 
 		// DeletePermanentlyShopOwnerByID funksiya id boyunca shop_owner - i doly ( korzinadan ) pozmak ucin ulanylyar
 		shopOwner.DELETE(":id/delete", middlewares.CheckToken("admin"), controllers.DeletePermanentlyShopOwnerByID)
-
 	}
-
 }

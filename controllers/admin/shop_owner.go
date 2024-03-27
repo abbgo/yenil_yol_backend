@@ -369,3 +369,43 @@ func DeletePermanentlyShopOwnerByID(c *gin.Context) {
 		"message": "data successfully deleted",
 	})
 }
+
+func UpdateShopOwnerPassword(c *gin.Context) {
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - den maglumatlar alynyar
+	var admin models.AdminUpdatePassword
+	if err := c.BindJSON(&admin); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	if err := helpers.ValidateRecordByID("shop_owners", admin.ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 404, err.Error())
+		return
+	}
+
+	// maglumat bar bolsa admin - in taze paroly hashlenyar
+	hashPassword, err := helpers.HashPassword(admin.Password)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// taze parol kone parol bilen calsylyar
+	_, err = db.Exec(context.Background(), "UPDATE shop_owners SET password = $1 WHERE id = $2", hashPassword, admin.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "password of shop owner successfuly updated",
+	})
+}
