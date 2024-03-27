@@ -42,8 +42,8 @@ func CreateCategory(c *gin.Context) {
 	}
 
 	// category - nyn maglumatlary gosulandan sonra suraty bar bolsa helper_images tablisa category ucin gosulan surat pozulyar
-	if category.Image != "" {
-		if err := DeleteImageFromDB(category.Image); err != nil {
+	if category.Image.String != "" {
+		if err := DeleteImageFromDB(category.Image.String); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
@@ -103,13 +103,9 @@ func GetCategoryByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var category models.Category
-	var image sql.NullString
-	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,image,dimension_group_id,parent_category_id FROM categories WHERE id = $1 AND deleted_at IS NULL", categoryID).Scan(&category.ID, &category.NameTM, &category.NameRU, &image, &category.DimensionGroupID, &category.ParentCategoryID); err != nil {
+	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,image,dimension_group_id,parent_category_id FROM categories WHERE id = $1 AND deleted_at IS NULL", categoryID).Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image, &category.DimensionGroupID, &category.ParentCategoryID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
-	}
-	if image.String != "" {
-		category.Image = image.String
 	}
 
 	// eger databse sol maglumat yok bolsa error return edilyar
@@ -178,13 +174,9 @@ func GetCategories(c *gin.Context) {
 
 	for rowsCategory.Next() {
 		var category models.Category
-		var categoryImage sql.NullString
-		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &categoryImage, &category.DimensionGroupID, &category.ParentCategoryID); err != nil {
+		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image, &category.DimensionGroupID, &category.ParentCategoryID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
-		}
-		if categoryImage.String != "" {
-			category.Image = categoryImage.String
 		}
 		categories = append(categories, category)
 	}

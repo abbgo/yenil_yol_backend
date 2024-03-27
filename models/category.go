@@ -12,7 +12,7 @@ type Category struct {
 	ID               string      `json:"id,omitempty"`
 	NameTM           string      `json:"name_tm,omitempty" binding:"required"`
 	NameRU           string      `json:"name_ru,omitempty" binding:"required"`
-	Image            string      `json:"image,omitempty"`
+	Image            null.String `json:"image,omitempty"`
 	SlugTM           string      `json:"slug_tm,omitempty"`
 	SlugRU           string      `json:"slug_ru,omitempty"`
 	DimensionGroupID string      `json:"dimension_group_id,omitempty" binding:"required"`
@@ -44,7 +44,7 @@ func ValidateCategory(category Category, isCreateFunction bool) error {
 	// validate parentCategoryID
 	if category.ParentCategoryID.String != "" {
 		if isCreateFunction {
-			if category.Image != "" {
+			if category.Image.String != "" {
 				return errors.New("child cannot be an image of the category")
 			}
 		}
@@ -56,7 +56,7 @@ func ValidateCategory(category Category, isCreateFunction bool) error {
 		return nil
 	} else {
 		if isCreateFunction {
-			if category.Image == "" {
+			if category.Image.String == "" {
 				return errors.New("parent category image is required")
 			}
 		}
