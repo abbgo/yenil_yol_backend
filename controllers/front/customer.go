@@ -7,7 +7,6 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -208,20 +207,7 @@ func UpdateCustomerPassword(c *gin.Context) {
 }
 
 func GetCustomer(c *gin.Context) {
-	customerID, hasID := c.Get("customer_id")
-	if !hasID {
-		helpers.HandleError(c, 400, "customerID is required")
-		return
-	}
-
-	var ok bool
-	customer_id, ok := customerID.(string)
-	if !ok {
-		helpers.HandleError(c, 400, "customerID must be string")
-		return
-	}
-
-	adm, err := GetCustomerByID(customer_id)
+	adm, err := GetCustomerByID(c.Param("id"))
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -233,6 +219,10 @@ func GetCustomer(c *gin.Context) {
 }
 
 func GetCustomers(c *gin.Context) {
+	var requestQuery helpers.StandartQuery
+	var count uint
+	var customers []models.Customer
+
 	db, err := config.ConnDB()
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -240,43 +230,37 @@ func GetCustomers(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametr - den limit alynyar
-	limitStr := c.Query("limit")
-	if limitStr == "" {
-		helpers.HandleError(c, 400, "limit is required")
-		return
-	}
-	limit, err := strconv.ParseUint(limitStr, 10, 32)
-	if err != nil {
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// // request parametr - den page alynyar
-	pageStr := c.Query("page")
-	if pageStr == "" {
-		helpers.HandleError(c, 400, "page is required")
-		return
-	}
-	page, err := strconv.ParseUint(pageStr, 10, 32)
-	if err != nil {
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// limit we page boyunca offset hasaplanyar
-	offset := limit * (page - 1)
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
-	// database - den admin - lerin sany alynyar
-	countOfCustomers := 0
-	if err := db.QueryRow(context.Background(), "SELECT COUNT(id) FROM customers WHERE deleted_at IS NULL").Scan(&countOfCustomers); err != nil {
+	// database - den customer - lerin sany alynyar
+	queryCount := `SELECT COUNT(id) FROM customers WHERE deleted_at IS NULL`
+	if requestQuery.IsDeleted {
+		queryCount = `SELECT COUNT(id) FROM customers WHERE deleted_at IS NOT NULL`
+	}
+	if err := db.QueryRow(context.Background(), queryCount).Scan(&count); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
+	// request query - den status - a gora customer - lary almak ucin query yazylyar
+	rowQuery := `SELECT full_name,phone_number FROM customers WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	if requestQuery.IsDeleted {
+		rowQuery = `SELECT full_name,phone_number FROM customers WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	}
 	// databae - den request - den gelen limit we page boyunca limitlap customer - ler alynyar
-	var customers []models.Customer
-	rowsCustomer, err := db.Query(context.Background(), "SELECT full_name,phone_number FROM customers WHERE deleted_at IS NULL LIMIT $1 OFFSET $2", limit, offset)
+	rowsCustomer, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -295,7 +279,7 @@ func GetCustomers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":    true,
 		"customers": customers,
-		"total":     countOfCustomers,
+		"total":     count,
 	})
 }
 

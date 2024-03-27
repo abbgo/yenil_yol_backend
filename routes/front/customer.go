@@ -22,17 +22,17 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		customerRoutes.PUT("update", middlewares.CheckTokenAdminOrCustomer(), controllers.UpdateCustomer)
 
 		// UpdateCustomerPassword -> Customer - in maglumatlaryny uytgetmek ucin ulanylyar.
-		customerRoutes.PUT("update-password", controllers.UpdateCustomerPassword)
+		customerRoutes.PUT("update-password", middlewares.CheckTokenAdminOrCustomer(), controllers.UpdateCustomerPassword)
 
 		// Customer - in access tokenin tazelelap refresh bilen access tokeni bile bermek
 		// ucin ulanylyar
 		customerRoutes.POST("refresh", helpers.RefreshTokenForAdmin)
 
 		// GetCustomer -> haeder - den gelen id boyunca bir sany customer - i almak ucin ulanylyar.
-		customerRoutes.GET("one", middlewares.CheckToken("customer"), controllers.GetCustomer)
+		customerRoutes.GET(":id", middlewares.CheckTokenAdminOrCustomer(), controllers.GetCustomer)
 
 		// GetCustomers -> hemme Customer - leri almak ucin ulanylyar.
-		customerRoutes.GET("", controllers.GetCustomers)
+		customerRoutes.GET("", middlewares.CheckToken("admin"), controllers.GetCustomers)
 
 		// DeleteCustomerByID -> id boyunca Customer - i korzina salmak ucin ulanylyar.
 		customerRoutes.DELETE(":id", controllers.DeleteCustomerByID)
