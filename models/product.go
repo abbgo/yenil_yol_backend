@@ -1,10 +1,14 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
+	"strings"
 
+	"github.com/gosimple/slug"
+	"github.com/lib/pq"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -62,6 +66,10 @@ func ValidateProduct(product Product) error {
 			}
 		}
 	}
+
+	var categoryName, shopName string
+	db.QueryRow(context.Background(), "SELECT c.name_tm,s.name_tm FROM categories c INNER JOIN category_products cp ON cp.category_id=c.id INNER JOIN products p ON p.id=cp.product_id INNER JOIN shop_categories sc ON sc.category_id=c.id INNER JOIN shops s ON s.id=sc.shop_id WHERE c.id=ANY($1) AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND cp.deleted_at IS NULL AND p.deleted_at IS NULL AND sc.deleted_at IS NULL AND s.deleted_at IS NULL", pq.Array(product.Categories)).Scan(&categoryName, &shopName)
+	product.Code = strings.ToUpper(slug.MakeLang(shopName, "en")[:2]) + strings.ToUpper(slug.MakeLang(categoryName, "en")[:2]) + helpers.GenerateRandomCode()
 
 	return nil
 }
