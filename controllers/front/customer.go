@@ -300,7 +300,7 @@ func DeleteCustomerByID(c *gin.Context) {
 	}
 
 	// hemme zat dogry bolsa customer - in  deleted_at - ine current_time goyulyar
-	_, err = db.Exec(context.Background(), "UPDATE customers SET deleted_at=NOW() WHERE id = $1", ID)
+	_, err = db.Exec(context.Background(), "CALL delete_customer($1)", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -329,7 +329,7 @@ func RestoreCustomerByID(c *gin.Context) {
 	}
 
 	// hemme zat dogry bolsa maglumat restore edilyar
-	_, err = db.Exec(context.Background(), "UPDATE customers SET deleted_at=NULL WHERE id = $1", ID)
+	_, err = db.Exec(context.Background(), "CALL restore_customer($1)", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

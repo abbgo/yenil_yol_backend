@@ -35,13 +35,13 @@ func CustomerRoutes(front *gin.RouterGroup) {
 		customerRoutes.GET("", middlewares.CheckToken("admin"), controllers.GetCustomers)
 
 		// DeleteCustomerByID -> id boyunca Customer - i korzina salmak ucin ulanylyar.
-		customerRoutes.DELETE(":id", controllers.DeleteCustomerByID)
+		customerRoutes.DELETE(":id", middlewares.CheckToken("admin"), controllers.DeleteCustomerByID)
 
 		// RestoreCustomerByID -> id boyunca customer - i korzinadan cykarmak ucin ulanylyar.
-		customerRoutes.GET(":id/restore", controllers.RestoreCustomerByID)
+		customerRoutes.GET(":id/restore", middlewares.CheckToken("admin"), controllers.RestoreCustomerByID)
 
 		// DeletePermanentlyCustomerByID -> id boyunca customer - i doly ( korzinadan ) pozmak ucin ulanylyar
-		customerRoutes.DELETE(":id/delete", controllers.DeletePermanentlyCustomerByID)
+		customerRoutes.DELETE(":id/delete", middlewares.CheckToken("admin"), controllers.DeletePermanentlyCustomerByID)
 	}
 
 }
