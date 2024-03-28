@@ -27,6 +27,11 @@ type Product struct {
 	ProductColors []ProductColor `json:"product_colors,omitempty" binding:"required"`
 }
 
+type ProductQuery struct {
+	helpers.StandartQuery
+	ShopID string `form:"shop_id"`
+}
+
 func ValidateProduct(product Product, isCreateFunction bool) (productCode string, err error) {
 	db, err := config.ConnDB()
 	if err != nil {

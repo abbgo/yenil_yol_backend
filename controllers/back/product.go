@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
-	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
@@ -271,6 +272,11 @@ func GetProductByID(c *gin.Context) {
 }
 
 func GetProducts(c *gin.Context) {
+	var requestQuery models.ProductQuery
+	var count uint
+	var products []models.Product
+	isDeleted := "NULL"
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -279,71 +285,52 @@ func GetProducts(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametr - den limit alynyar
-	limitStr := c.Query("limit")
-	if limitStr == "" {
-		helpers.HandleError(c, 400, "limit is required")
-		return
-	}
-	limit, err := strconv.ParseUint(limitStr, 10, 64)
-	if err != nil {
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// request parametr - den page alynyar
-	pageStr := c.Query("page")
-	if pageStr == "" {
-		helpers.HandleError(c, 400, "page is required")
-		return
-	}
-	page, err := strconv.ParseUint(pageStr, 10, 64)
-	if err != nil {
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// limit we page boyunca offset hasaplanyar
-	offset := limit * (page - 1)
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
-	// request query - den product status alynyar
-	// status -> product pozulan ya-da pozulanmadygyny anlatyar
-	// true bolsa pozulan
-	// false bolsa pozulmadyk
-	statusQuery := c.DefaultQuery("status", "false")
-	status, err := strconv.ParseBool(statusQuery)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
+	// request - den gelen deleted statusa gora pozulan ya-da pozulmadyk maglumatlar alynmaly
+	if requestQuery.IsDeleted {
+		isDeleted = "NOT NULL"
 	}
 
-	// request query - den status - a gora brend - leryn sanyny almak ucin query yazylyar
-	queryCount := `SELECT COUNT(id) FROM products WHERE deleted_at IS NULL`
-	if status {
-		queryCount = `SELECT COUNT(id) FROM products WHERE deleted_at IS NOT NULL`
+	countQuery := fmt.Sprintf("SELECT COUNT(p.id) FROM products p WHERE p.deleted_at IS %v", isDeleted)
+	if requestQuery.ShopID != "" {
+		rows := strings.Split(countQuery, " WHERE ")
+		countQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND cp.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
 	}
+
 	// database - den product - laryn sany alynyar
-	var countOfProducts uint
-	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfProducts); err != nil {
+	if err = db.QueryRow(context.Background(), countQuery).Scan(&count); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := `SELECT id,name_tm,name_ru,price,old_price,code,brend_id FROM products WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	if status {
-		rowQuery = `SELECT id,name_tm,name_ru,price,old_price,code,brend_id FROM products WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	rowQuery := fmt.Sprintf("SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.code,p.brend_id FROM products p WHERE p.deleted_at IS %v ORDER BY p.created_at DESC LIMIT $1 OFFSET $2", isDeleted)
+	if requestQuery.ShopID != "" {
+		rows := strings.Split(rowQuery, " WHERE ")
+		rowQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND cp.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
 	}
 
 	// database - den brend - lar alynyar
-	rowsBrend, err := db.Query(context.Background(), rowQuery, limit, offset)
+	rowsBrend, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 	defer rowsBrend.Close()
 
-	var products []models.Product
 	for rowsBrend.Next() {
 		var product models.Product
 		if err := rowsBrend.Scan(
@@ -364,7 +351,7 @@ func GetProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":   true,
 		"products": products,
-		"total":    countOfProducts,
+		"total":    count,
 	})
 }
 
