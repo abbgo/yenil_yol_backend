@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
+	"github.com/lib/pq"
 )
 
 func CreateProduct(c *gin.Context) {
@@ -28,16 +29,46 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateProduct(product); err != nil {
+	productCode, err := models.ValidateProduct(product)
+	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	// eger maglumatlar dogry bolsa onda products tablisa maglumatlar gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO products (name_tm,name_ru,price,old_price,code,slug_tm,slug_ru,brend_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)", product.NameTM, product.NameRU, product.Price, product.OldPrice, product.Code, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID)
+	// eger maglumatlar dogry bolsa onda products tablisa maglumatlar gosulyar we yzyna id return edilyar
+	if err := db.QueryRow(context.Background(), "INSERT INTO products (name_tm,name_ru,price,old_price,code,slug_tm,slug_ru,brend_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id", product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID).Scan(&product.ID); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// haryt gosulandan son category_products tablisa haryda degisli category - ler gosulyar
+	_, err = db.Exec(context.Background(), "INSERT INTO category_products (product_id,category_id) VALUES ($1,unnest($2::uuid[]))", product.ID, pq.Array(product.Categories))
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
+	}
+
+	// bu yerde harydyn renkleri we sol renklere degisli suratlar we razmerler gosulyar
+	for _, v := range product.ProductColors {
+		var productColorID string
+		if err := db.QueryRow(context.Background(), "INSERT INTO product_colors (name,product_id) VALUES ($1,$2) RETURNING id", v.Name, product.ID).Scan(&productColorID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// renk gosulandan sonra sol renke degisli razmerler gosulyar
+		_, err := db.Exec(context.Background(), "INSERT INTO product_dimensions (product_color_id,dimension_id) VALUES ($1,unnest($2::uuid[]))", productColorID, pq.Array(v.Dimensions))
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// bu yerde renke degisli suratlar gosulyar
+		_, err = db.Exec(context.Background(), "INSERT INTO product_images (product_color_id,image) VALUES ($1,unnest($2::varchar[]))", productColorID, pq.Array(v.Images))
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -62,7 +93,8 @@ func UpdateProductByID(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateProduct(product); err != nil {
+	productCode, err := models.ValidateProduct(product)
+	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -78,7 +110,7 @@ func UpdateProductByID(c *gin.Context) {
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE products SET name_tm=$1 , name_ru=$2 , price=$3 , old_price=$4 , code=$5 , slug_tm=$6 , slug_ru=$7 , brend_id=$8 WHERE id=$9", product.NameTM, product.NameRU, product.Price, product.OldPrice, product.Code, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID, product.ID)
+	_, err = db.Exec(context.Background(), "UPDATE products SET name_tm=$1 , name_ru=$2 , price=$3 , old_price=$4 , code=$5 , slug_tm=$6 , slug_ru=$7 , brend_id=$8 WHERE id=$9", product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID, product.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

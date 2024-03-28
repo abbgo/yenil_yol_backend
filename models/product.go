@@ -27,25 +27,25 @@ type Product struct {
 	ProductColors []ProductColor `json:"product_colors,omitempty" binding:"required"`
 }
 
-func ValidateProduct(product Product) error {
+func ValidateProduct(product Product) (productCode string, err error) {
 	db, err := config.ConnDB()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer db.Close()
 
 	// harydyn bahasy we onki bahasy barlanyar
 	if product.Price < 0 || product.OldPrice < 0 {
-		return errors.New("price or old_price cannot be less than 0")
+		return "", errors.New("price or old_price cannot be less than 0")
 	}
 	if product.Price > product.OldPrice && product.OldPrice != 0 {
-		return errors.New("price cannot be less than old_price")
+		return "", errors.New("price cannot be less than old_price")
 	}
 
 	// eger haryda brend berilen bolsa onda sol brend hakykatdanam database - de barmy sol barlanyar
 	if product.BrendID.String != "" {
 		if err := helpers.ValidateRecordByID("brends", product.BrendID.String, "NULL", db); err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -53,7 +53,7 @@ func ValidateProduct(product Product) error {
 	// hakykatdanam sol kategoriyalar barmy ?
 	for _, v := range product.Categories {
 		if err := helpers.ValidateRecordByID("categories", v, "NULL", db); err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -62,14 +62,16 @@ func ValidateProduct(product Product) error {
 	for _, color := range product.ProductColors {
 		for _, dimension := range color.Dimensions {
 			if err := helpers.ValidateRecordByID("dimensions", dimension, "NULL", db); err != nil {
-				return err
+				return "", err
 			}
 		}
 	}
 
+	// haryt kot generate edilyar
 	var categoryName, shopName string
-	db.QueryRow(context.Background(), "SELECT c.name_tm,s.name_tm FROM categories c INNER JOIN category_products cp ON cp.category_id=c.id INNER JOIN products p ON p.id=cp.product_id INNER JOIN shop_categories sc ON sc.category_id=c.id INNER JOIN shops s ON s.id=sc.shop_id WHERE c.id=ANY($1) AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND cp.deleted_at IS NULL AND p.deleted_at IS NULL AND sc.deleted_at IS NULL AND s.deleted_at IS NULL", pq.Array(product.Categories)).Scan(&categoryName, &shopName)
-	product.Code = strings.ToUpper(slug.MakeLang(shopName, "en")[:2]) + strings.ToUpper(slug.MakeLang(categoryName, "en")[:2]) + helpers.GenerateRandomCode()
+	db.QueryRow(context.Background(), "SELECT c.name_tm,s.name_tm FROM categories c INNER JOIN shop_categories sc ON sc.category_id=c.id INNER JOIN shops s ON s.id=sc.shop_id WHERE c.id=ANY($1) AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL AND s.deleted_at IS NULL", pq.Array(product.Categories)).Scan(&categoryName, &shopName)
+	// db.QueryRow(context.Background(), "SELECT c.name_tm,s.name_tm FROM categories c INNER JOIN category_products cp ON cp.category_id=c.id INNER JOIN products p ON p.id=cp.product_id INNER JOIN shop_categories sc ON sc.category_id=c.id INNER JOIN shops s ON s.id=sc.shop_id WHERE c.id=ANY($1) AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND cp.deleted_at IS NULL AND p.deleted_at IS NULL AND sc.deleted_at IS NULL AND s.deleted_at IS NULL", pq.Array(product.Categories)).Scan(&categoryName, &shopName)
+	code := strings.ToUpper(slug.MakeLang(shopName, "en")[:2]) + strings.ToUpper(slug.MakeLang(categoryName, "en")[:2]) + helpers.GenerateRandomCode()
 
-	return nil
+	return code, nil
 }

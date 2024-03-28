@@ -2,7 +2,7 @@ package models
 
 type ProductColor struct {
 	ID         string   `json:"id,omitempty"`
-	Name       string   `json:"dimension_id" binding:"required"`
+	Name       string   `json:"name" binding:"required"`
 	ProductID  string   `json:"product_id,omitempty"`
 	Images     []string `json:"images,omitempty" binding:"required"`
 	Dimensions []string `json:"dimensions,omitempty" binding:"required"`
