@@ -29,7 +29,7 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	productCode, err := models.ValidateProduct(product)
+	productCode, err := models.ValidateProduct(product, true)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -93,19 +93,9 @@ func UpdateProductByID(c *gin.Context) {
 		return
 	}
 
-	productCode, err := models.ValidateProduct(product)
+	productCode, err := models.ValidateProduct(product, false)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
-	// request body - da gelen id den bolan maglumat database - de barmy ya yok sol barlanyar
-	var productdID string
-	db.QueryRow(context.Background(), "SELECT id FROM products WHERE id = $1 AND deleted_at IS NULL", product.ID).Scan(&productdID)
-
-	// eger database - de sol maglumat yok bolsa onda error return edilyar
-	if productdID == "" {
-		helpers.HandleError(c, 404, "record not found")
 		return
 	}
 
@@ -114,6 +104,56 @@ func UpdateProductByID(c *gin.Context) {
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
+	}
+
+	// harydyn maglumatlary uytgedilenson degisli edilen onki category - ler pozulyp tazeleri gosulyar
+	_, err = db.Exec(context.Background(), "DELETE FROM category_products WHERE product_id=$1", product.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	_, err = db.Exec(context.Background(), "INSERT INTO category_products (product_id,category_id) VALUES ($1,unnest($2::uuid[]))", product.ID, pq.Array(product.Categories))
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// bu yerde haryda degisli renkler , razmerler we suratlar pozulup olara derek tazesi yazylyar
+	_, err = db.Exec(context.Background(), "DELETE FROM product_dimensions pd USING product_colors pc WHERE pc.id=pd.product_color_id AND pc.product_id=$1", product.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	_, err = db.Exec(context.Background(), "DELETE FROM product_images pi USING product_colors pc WHERE pc.id=pi.product_color_id AND pc.product_id=$1", product.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	_, err = db.Exec(context.Background(), "DELETE FROM product_colors WHERE product_id=$1", product.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	for _, v := range product.ProductColors {
+		var productColorID string
+		if err := db.QueryRow(context.Background(), "INSERT INTO product_colors (name,product_id) VALUES ($1,$2) RETURNING id", v.Name, product.ID).Scan(&productColorID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// renk gosulandan sonra sol renke degisli razmerler gosulyar
+		_, err := db.Exec(context.Background(), "INSERT INTO product_dimensions (product_color_id,dimension_id) VALUES ($1,unnest($2::uuid[]))", productColorID, pq.Array(v.Dimensions))
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// bu yerde renke degisli suratlar gosulyar
+		_, err = db.Exec(context.Background(), "INSERT INTO product_images (product_color_id,image) VALUES ($1,unnest($2::varchar[]))", productColorID, pq.Array(v.Images))
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
