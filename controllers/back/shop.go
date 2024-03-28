@@ -209,6 +209,7 @@ func GetShops(c *gin.Context) {
 	var shopQuery models.ShopQuery
 	var countOfShops uint
 	var shops []models.Shop
+	isDeleted := "NULL"
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -232,12 +233,13 @@ func GetShops(c *gin.Context) {
 	// limit we page boyunca offset hasaplanyar
 	offset := shopQuery.Limit * (shopQuery.Page - 1)
 
-	// request query - den status - a gora shop - laryn sanyny almak ucin query yazylyar
-	queryCount := fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at %v", "IS NULL")
+	// request - den gelen deleted statusa gora pozulan ya-da pozulmadyk maglumatlar alynmaly
 	if shopQuery.IsDeleted {
-		queryCount = fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at %v", "IS NOT NULL")
+		isDeleted = "NOT NULL"
 	}
 
+	// request query - den status - a gora shop - laryn sanyny almak ucin query yazylyar
+	queryCount := fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at IS %v", isDeleted)
 	if shopQuery.ShopOwnerID != "" {
 		queryCount = fmt.Sprintf("%v AND shop_owner_id = '%v'", queryCount, shopQuery.ShopOwnerID)
 	}
@@ -249,11 +251,7 @@ func GetShops(c *gin.Context) {
 	}
 
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", "IS NULL")
-	if shopQuery.IsDeleted {
-		rowQuery = fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", "IS NOT NULL")
-	}
-
+	rowQuery := fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at IS %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", isDeleted)
 	if shopQuery.ShopOwnerID != "" {
 		rows := strings.Split(rowQuery, " ORDER BY created_at DESC ")
 		rowQuery = fmt.Sprintf("%v AND shop_owner_id = '%v' %v %v", rows[0], shopQuery.ShopOwnerID, "ORDER BY created_at DESC ", rows[1])
