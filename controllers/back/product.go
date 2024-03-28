@@ -189,6 +189,75 @@ func GetProductByID(c *gin.Context) {
 		return
 	}
 
+	// haryda degisli category - lar alynyar
+	rowsCategory, err := db.Query(context.Background(), "SELECT category_id FROM category_products WHERE product_id=$1 AND deleted_at IS NULL", productID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsCategory.Close()
+
+	for rowsCategory.Next() {
+		var categoryID string
+		if err := rowsCategory.Scan(&categoryID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		product.Categories = append(product.Categories, categoryID)
+	}
+
+	// haryda degisli renkler , razmerler we suratlar alynyar
+	rowsColor, err := db.Query(context.Background(), "SELECT id,name FROM product_colors WHERE product_id=$1 AND deleted_at IS NULL", productID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsColor.Close()
+
+	for rowsColor.Next() {
+		var productColor models.ProductColor
+		if err := rowsColor.Scan(&productColor.ID, &productColor.Name); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// renk alynandan son sol renke degisli razmerler alynyar
+		rowsDimension, err := db.Query(context.Background(), "SELECT dimension_id FROM product_dimensions WHERE product_color_id=$1 AND deleted_at IS NULL", productColor.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsDimension.Close()
+
+		for rowsDimension.Next() {
+			var dimension string
+			if err := rowsDimension.Scan(&dimension); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			productColor.Dimensions = append(productColor.Dimensions, dimension)
+		}
+
+		// renk alynandan son sol renke degisli suratlar alynyar
+		rowsImage, err := db.Query(context.Background(), "SELECT image FROM product_images WHERE product_color_id=$1 AND deleted_at IS NULL", productColor.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsImage.Close()
+
+		for rowsImage.Next() {
+			var image string
+			if err := rowsImage.Scan(&image); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			productColor.Images = append(productColor.Images, image)
+		}
+
+		product.ProductColors = append(product.ProductColors, productColor)
+	}
+
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if product.ID == "" {
 		helpers.HandleError(c, 404, "record not found")
