@@ -371,7 +371,7 @@ func DeleteProductByID(c *gin.Context) {
 		return
 	}
 
-	_, err = db.Exec(context.Background(), "UPDATE products SET deleted_at = NOW() WHERE id = $1", ID)
+	_, err = db.Exec(context.Background(), "CALL delete_product($1)", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
