@@ -400,7 +400,7 @@ func RestoreProductByID(c *gin.Context) {
 	}
 
 	// hemme zat dogry bolsa brend restore edilyar
-	_, err = db.Exec(context.Background(), "UPDATE products SET deleted_at = NULL WHERE id = $1", ID)
+	_, err = db.Exec(context.Background(), "CALL restore_product($1)", ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
