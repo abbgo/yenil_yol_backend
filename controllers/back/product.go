@@ -7,6 +7,7 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -426,6 +427,30 @@ func DeletePermanentlyProductByID(c *gin.Context) {
 	if err := helpers.ValidateRecordByID("products", ID, "NOT NULL", db); err != nil {
 		helpers.HandleError(c, 404, err.Error())
 		return
+	}
+
+	rows, err := db.Query(context.Background(), "SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 GROUP BY pi.image", ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var image string
+		if err := rows.Scan(&image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		if err := os.Remove(helpers.ServerPath + image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		if err := os.Remove(helpers.ServerPath + "assets/" + image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	// brend - in suraty pozulandan sonra database - den brend pozulyar
