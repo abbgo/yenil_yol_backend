@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"database/sql"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
@@ -10,21 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-type Shop struct {
-	ID          string           `json:"id,omitempty"`
-	NameTM      string           `json:"name_tm,omitempty"`
-	NameRU      string           `json:"name_ru,omitempty"`
-	Latitude    float64          `json:"latitude,omitempty"`
-	Longitude   float64          `json:"longitude,omitempty"`
-	Image       string           `json:"image,omitempty"`
-	ShopPhones  []string         `json:"phones"`
-	AddressTM   string           `json:"address_tm,omitempty"`
-	AddressRU   string           `json:"address_ru,omitempty"`
-	HasDelivery bool             `json:"has_delivery,omitempty"`
-	ShopOwnerID string           `json:"shop_owner_id,omitempty"`
-	Products    []models.Product `json:"products,omitempty"`
-}
 
 func GetShops(c *gin.Context) {
 	// initialize database connection
@@ -43,16 +27,12 @@ func GetShops(c *gin.Context) {
 	}
 	defer rowsShop.Close()
 
-	var shops []Shop
+	var shops []models.Shop
 	for rowsShop.Next() {
-		var shop Shop
-		var shopImage sql.NullString
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shopImage, &shop.AddressTM, &shop.AddressRU); err != nil {
+		var shop models.Shop
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.AddressTM, &shop.AddressRU); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
-		}
-		if shopImage.String != "" {
-			shop.Image = shopImage.String
 		}
 
 		rowsShopPhones, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
@@ -93,10 +73,8 @@ func GetShopByIDWithProducts(c *gin.Context) {
 	shopID := c.Param("id")
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
-	var shop Shop
-	var shopImage sql.NullString
-	var shopPhone string
-	db.QueryRow(context.Background(), "SELECT s.id,s.name_tm,s.name_ru,s.address_tm,s.address_ru,s.latitude,s.longitude,s.image,sp.phone_number FROM shops s INNER JOIN shop_phones sp ON sp.shop_id = s.id WHERE s.id = $1 AND s.deleted_at IS NULL AND sp.deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shopImage, &shopPhone)
+	var shop models.Shop
+	db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image FROM shops WHERE id = $1 AND deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image)
 
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if shop.ID == "" {
@@ -104,25 +82,52 @@ func GetShopByIDWithProducts(c *gin.Context) {
 		return
 	}
 
-	if shopImage.String != "" {
-		shop.Image = shopImage.String
-	}
-	shop.ShopPhones = append(shop.ShopPhones, shopPhone)
-
-	rowsProducts, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,price,old_price FROM products WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
+	// shop - a degisli telefon belgiler alynyar
+	rowsShopPhone, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id=$1 AND deleted_at IS NULL", shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	for rowsProducts.Next() {
-		var product models.Product
-		if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice); err != nil {
+	defer rowsShopPhone.Close()
+	for rowsShopPhone.Next() {
+		var phoneNumber string
+		if err := rowsShopPhone.Scan(&phoneNumber); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
-		shop.Products = append(shop.Products, product)
+		shop.ShopPhones = append(shop.ShopPhones, phoneNumber)
 	}
+
+	// shop - a degisli category - ler alynyar
+	rowsCategory, err := db.Query(context.Background(), "SELECT c.id,c.name_tm,c.name_ru FROM categories c INNER JOIN shop_categories sc ON sc.category_id=c.id WHERE sc.shop_id=$1 AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL", shop.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsCategory.Close()
+	for rowsCategory.Next() {
+		var category models.Category
+		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		shop.ShopCategories = append(shop.ShopCategories, category)
+	}
+
+	// rowsProducts, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,price,old_price FROM products WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
+	// if err != nil {
+	// 	helpers.HandleError(c, 400, err.Error())
+	// 	return
+	// }
+
+	// for rowsProducts.Next() {
+	// 	var product models.Product
+	// 	if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice); err != nil {
+	// 		helpers.HandleError(c, 400, err.Error())
+	// 		return
+	// 	}
+	// 	shop.Products = append(shop.Products, product)
+	// }
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
