@@ -1,11 +1,13 @@
 package models
 
+import "gopkg.in/guregu/null.v4"
+
 type ProductColor struct {
-	ID         string   `json:"id,omitempty"`
-	Name       string   `json:"name" binding:"required"`
-	ProductID  string   `json:"product_id,omitempty"`
-	Images     []string `json:"images,omitempty" binding:"required"`
-	Dimensions []string `json:"dimensions,omitempty" binding:"required"`
+	ID         string      `json:"id,omitempty"`
+	Name       null.String `json:"name" binding:"required"`
+	ProductID  string      `json:"product_id,omitempty"`
+	Images     []string    `json:"images,omitempty" binding:"required"`
+	Dimensions []string    `json:"dimensions,omitempty" binding:"required"`
 }
 
 type ProductDimension struct {
