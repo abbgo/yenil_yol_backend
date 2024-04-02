@@ -24,7 +24,8 @@ type Shop struct {
 	SlugRU         string      `json:"slug_ru,omitempty"`
 	ShopPhones     []string    `json:"phones,omitempty" binding:"required"`
 	Categories     []string    `json:"categories,omitempty" binding:"required"`
-	ShopCategories []Category  `json:"shop_categories,omitempty"`
+	ShopCategories []Category  `json:"shop_categories"`
+	Products       []Product   `json:"products"`
 	OrderNumber    uint        `json:"order_number,omitempty"`
 }
 

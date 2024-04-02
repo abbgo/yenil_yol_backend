@@ -17,7 +17,7 @@ type Product struct {
 	NameTM        string         `json:"name_tm,omitempty" binding:"required"`
 	NameRU        string         `json:"name_ru,omitempty" binding:"required"`
 	Price         float32        `json:"price,omitempty" binding:"required"`
-	OldPrice      float32        `json:"old_price,omitempty"`
+	OldPrice      null.Float     `json:"old_price,omitempty"`
 	Code          string         `json:"code,omitempty"`
 	SlugTM        string         `json:"slug_tm,omitempty"`
 	SlugRU        string         `json:"slug_ru,omitempty"`
@@ -25,6 +25,7 @@ type Product struct {
 	Dimensions    []string       `json:"dimensions,omitempty"`
 	Categories    []string       `json:"categories,omitempty" binding:"required"`
 	ProductColors []ProductColor `json:"product_colors,omitempty" binding:"required"`
+	Image         null.String    `json:"image"`
 }
 
 type ProductQuery struct {
@@ -40,10 +41,10 @@ func ValidateProduct(product Product, isCreateFunction bool) (productCode string
 	defer db.Close()
 
 	// harydyn bahasy we onki bahasy barlanyar
-	if product.Price < 0 || product.OldPrice < 0 {
+	if product.Price < 0 || product.OldPrice.Float64 < 0 {
 		return "", errors.New("price or old_price cannot be less than 0")
 	}
-	if product.Price > product.OldPrice && product.OldPrice != 0 {
+	if product.Price > float32(product.OldPrice.Float64) && product.OldPrice.Float64 != 0 {
 		return "", errors.New("price cannot be less than old_price")
 	}
 
