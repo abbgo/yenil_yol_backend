@@ -24,11 +24,14 @@ func GetProductByID(c *gin.Context) {
 
 	// request - dan gelen id boyunca haryt alynyar
 	var product models.Product
-	db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,price,old_price FROM products WHERE id=$1 AND deleted_at IS NULL", productID).Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice)
+	db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,brend_id FROM products WHERE id=$1 AND deleted_at IS NULL", productID).Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice, &product.BrendID)
 	if product.ID == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return
 	}
+
+	// harydyn brendi alynyar
+	db.QueryRow(context.Background(), "SELECT name,image FROM brends WHERE id=$1 AND deleted_at IS NULL", product.BrendID).Scan(&product.Brend.Name, &product.Brend.Image)
 
 	// sonra harydyn renkleri we ona degisli suratlar alynyar
 	var productColor models.ProductColor
