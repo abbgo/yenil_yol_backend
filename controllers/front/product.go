@@ -34,7 +34,6 @@ func GetProductByID(c *gin.Context) {
 	db.QueryRow(context.Background(), "SELECT name,image FROM brends WHERE id=$1 AND deleted_at IS NULL", product.BrendID).Scan(&product.Brend.Name, &product.Brend.Image)
 
 	// sonra harydyn renkleri we ona degisli suratlar alynyar
-	var productColor models.ProductColor
 	rowsColor, err := db.Query(context.Background(), "SELECT id FROM product_colors WHERE product_id=$1", product.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -42,6 +41,7 @@ func GetProductByID(c *gin.Context) {
 	}
 	defer rowsColor.Close()
 	for rowsColor.Next() {
+		var productColor models.ProductColor
 		if err := rowsColor.Scan(&productColor.ID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
