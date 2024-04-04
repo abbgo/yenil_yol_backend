@@ -47,6 +47,22 @@ func GetProductByID(c *gin.Context) {
 			return
 		}
 
+		// sonra renke degisli razmerler alynyar
+		rowsDimension, err := db.Query(context.Background(), "SELECT d.dimension FROM dimensions d INNER JOIN product_dimensions pd ON pd.dimension_id=d.id WHERE d.deleted_at IS NULL AND pd.deleted_at IS NULL AND pd.product_color_id=$1", productColor.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsDimension.Close()
+		for rowsDimension.Next() {
+			var dimension string
+			if err := rowsDimension.Scan(&dimension); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			productColor.Dimensions = append(productColor.Dimensions, dimension)
+		}
+
 		// sonra renke degisli suratlar alynyar
 		rowsImage, err := db.Query(context.Background(), "SELECT image FROM product_images WHERE product_color_id=$1 AND deleted_at IS NULL", productColor.ID)
 		if err != nil {
