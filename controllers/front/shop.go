@@ -112,7 +112,6 @@ func GetShopByID(c *gin.Context) {
 			return
 		}
 		shop.ShopCategories = append(shop.ShopCategories, category)
-		shop.Categories = append(shop.Categories, category.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
