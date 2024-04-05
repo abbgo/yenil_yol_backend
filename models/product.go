@@ -31,7 +31,8 @@ type Product struct {
 
 type ProductQuery struct {
 	helpers.StandartQuery
-	ShopID string `form:"shop_id"`
+	ShopID     string   `form:"shop_id"`
+	Categories []string `form:"categories" validate:"required"`
 }
 
 func ValidateProduct(product Product, isCreateFunction bool) (productCode string, err error) {

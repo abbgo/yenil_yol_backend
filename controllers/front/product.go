@@ -2,12 +2,15 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 func GetProductByID(c *gin.Context) {
@@ -85,5 +88,79 @@ func GetProductByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"product": product,
+	})
+}
+
+func GetProducts(c *gin.Context) {
+	var products []models.Product
+	requestQuery := models.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
+	var count uint
+
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	countQuery := "SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL"
+	if requestQuery.ShopID != "" {
+		rows := strings.Split(countQuery, " WHERE ")
+		countQuery = fmt.Sprintf("%v INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS NULL AND %v ", rows[0], requestQuery.ShopID, rows[1])
+	}
+	// database - den product - laryn sany alynyar
+	if err = db.QueryRow(context.Background(), countQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// request query - den status - a gora product - lary almak ucin query yazylyar
+	rowQuery := "SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL ORDER BY p.created_at DESC LIMIT $2 OFFSET $3"
+	if requestQuery.ShopID != "" {
+		rows := strings.Split(rowQuery, " WHERE ")
+		rowQuery = fmt.Sprintf("%v INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS NULL AND %v ", rows[0], requestQuery.ShopID, rows[1])
+	}
+
+	// product - lar alynyar
+	rowsProducts, err := db.Query(context.Background(), rowQuery, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	for rowsProducts.Next() {
+		var product models.Product
+		if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// haryda degisli yekeje surat alyas
+		if err := db.QueryRow(context.Background(), "SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1", product.ID).Scan(&product.Image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		products = append(products, product)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":   true,
+		"products": products,
+		"total":    count,
 	})
 }

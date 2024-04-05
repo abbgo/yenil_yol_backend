@@ -308,7 +308,7 @@ func GetProducts(c *gin.Context) {
 	countQuery := fmt.Sprintf("SELECT COUNT(p.id) FROM products p WHERE p.deleted_at IS %v", isDeleted)
 	if requestQuery.ShopID != "" {
 		rows := strings.Split(countQuery, " WHERE ")
-		countQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND cp.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
+		countQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
 	}
 
 	// database - den product - laryn sany alynyar
@@ -321,7 +321,7 @@ func GetProducts(c *gin.Context) {
 	rowQuery := fmt.Sprintf("SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.code,p.brend_id FROM products p WHERE p.deleted_at IS %v ORDER BY p.created_at DESC LIMIT $1 OFFSET $2", isDeleted)
 	if requestQuery.ShopID != "" {
 		rows := strings.Split(rowQuery, " WHERE ")
-		rowQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND cp.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
+		rowQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
 	}
 
 	// database - den brend - lar alynyar

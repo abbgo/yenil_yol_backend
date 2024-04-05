@@ -12,5 +12,9 @@ func ProductRoutes(front *gin.RouterGroup) {
 		// GetProductByID -> Dine bir Product - yn maglumatlaryny request param - dan gelen
 		// id boyunca alynyar
 		productRoutes.GET(":id", controllers.GetProductByID)
+
+		// GetProducts -> Product - laryn maglumatlaryny query - den gelen maglumatlar boyunca
+		// almak ucin ulanylyar
+		productRoutes.GET("", controllers.GetProducts)
 	}
 }

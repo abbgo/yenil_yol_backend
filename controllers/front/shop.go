@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lib/pq"
 )
 
 func GetShops(c *gin.Context) {
@@ -61,10 +60,7 @@ func GetShops(c *gin.Context) {
 	})
 }
 
-func GetShopByIDWithProducts(c *gin.Context) {
-	var shop models.Shop
-	requestQuery := helpers.StandartQuery{IsDeleted: false}
-
+func GetShopByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -73,24 +69,11 @@ func GetShopByIDWithProducts(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request query - den maglumatlar bind edilyar
-	if err := c.Bind(&requestQuery); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	// request query - den maglumatlar validate edilyar
-	if err := helpers.ValidateStructData(&requestQuery); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
-	// limit we page boyunca offset hasaplanyar
-	offset := requestQuery.Limit * (requestQuery.Page - 1)
-
 	// request parametrden shop id alynyar
 	shopID := c.Param("id")
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
+	var shop models.Shop
 	db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image FROM shops WHERE id = $1 AND deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image)
 
 	// eger databse sol maglumat yok bolsa error return edilyar
@@ -130,29 +113,6 @@ func GetShopByIDWithProducts(c *gin.Context) {
 		}
 		shop.ShopCategories = append(shop.ShopCategories, category)
 		shop.Categories = append(shop.Categories, category.ID)
-	}
-
-	// shop degisli product - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), "SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND cp.deleted_at IS NULL AND p.deleted_at IS NULL ORDER BY p.created_at DESC LIMIT $2 OFFSET $3", pq.Array(shop.Categories), requestQuery.Limit, offset)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	for rowsProducts.Next() {
-		var product models.Product
-		if err := rowsProducts.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-
-		// haryda degisli yekeje surat alyas
-		if err := db.QueryRow(context.Background(), "SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1", product.ID).Scan(&product.Image); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-
-		shop.CountOfProducts++
-		shop.Products = append(shop.Products, product)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
