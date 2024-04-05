@@ -7,7 +7,6 @@ import (
 )
 
 func ShopRoutes(front *gin.RouterGroup) {
-
 	shopRoutes := front.Group("/shops")
 	{
 		// // AddOrRemoveSubscribe -> customer -e like gosmak ya-da pozmak ucin ulanylyar
@@ -29,7 +28,5 @@ func ShopRoutes(front *gin.RouterGroup) {
 		// GetShopByID -> Dine bir Shop - yn maglumatlaryny request param - dan gelen
 		// id boyunca alynyar
 		shopRoutes.GET(":id", controllers.GetShopByIDWithProducts)
-
 	}
-
 }

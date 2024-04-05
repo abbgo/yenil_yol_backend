@@ -10,23 +10,24 @@ import (
 )
 
 type Shop struct {
-	ID             string      `json:"id,omitempty"`
-	NameTM         string      `json:"name_tm,omitempty" binding:"required"`
-	NameRU         string      `json:"name_ru,omitempty" binding:"required"`
-	AddressTM      string      `json:"address_tm,omitempty" binding:"required"`
-	AddressRU      string      `json:"address_ru,omitempty" binding:"required"`
-	Latitude       float64     `json:"latitude,omitempty" binding:"required"`
-	Longitude      float64     `json:"longitude,omitempty" binding:"required"`
-	Image          null.String `json:"image,omitempty"`
-	HasDelivery    bool        `json:"has_delivery,omitempty"`
-	ShopOwnerID    string      `json:"shop_owner_id,omitempty" binding:"required"`
-	SlugTM         string      `json:"slug_tm,omitempty"`
-	SlugRU         string      `json:"slug_ru,omitempty"`
-	ShopPhones     []string    `json:"phones,omitempty" binding:"required"`
-	Categories     []string    `json:"categories,omitempty" binding:"required"`
-	ShopCategories []Category  `json:"shop_categories"`
-	Products       []Product   `json:"products"`
-	OrderNumber    uint        `json:"order_number,omitempty"`
+	ID              string      `json:"id,omitempty"`
+	NameTM          string      `json:"name_tm,omitempty" binding:"required"`
+	NameRU          string      `json:"name_ru,omitempty" binding:"required"`
+	AddressTM       string      `json:"address_tm,omitempty" binding:"required"`
+	AddressRU       string      `json:"address_ru,omitempty" binding:"required"`
+	Latitude        float64     `json:"latitude,omitempty" binding:"required"`
+	Longitude       float64     `json:"longitude,omitempty" binding:"required"`
+	Image           null.String `json:"image,omitempty"`
+	HasDelivery     bool        `json:"has_delivery,omitempty"`
+	ShopOwnerID     string      `json:"shop_owner_id,omitempty" binding:"required"`
+	SlugTM          string      `json:"slug_tm,omitempty"`
+	SlugRU          string      `json:"slug_ru,omitempty"`
+	ShopPhones      []string    `json:"phones,omitempty" binding:"required"`
+	Categories      []string    `json:"categories,omitempty" binding:"required"`
+	ShopCategories  []Category  `json:"shop_categories"`
+	Products        []Product   `json:"products"`
+	OrderNumber     uint        `json:"order_number,omitempty"`
+	CountOfProducts uint        `json:"total,omitempty"`
 }
 
 type ShopQuery struct {

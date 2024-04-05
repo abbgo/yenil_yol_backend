@@ -62,6 +62,9 @@ func GetShops(c *gin.Context) {
 }
 
 func GetShopByIDWithProducts(c *gin.Context) {
+	var shop models.Shop
+	requestQuery := helpers.StandartQuery{IsDeleted: false}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -70,11 +73,24 @@ func GetShopByIDWithProducts(c *gin.Context) {
 	}
 	defer db.Close()
 
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
 	// request parametrden shop id alynyar
 	shopID := c.Param("id")
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
-	var shop models.Shop
 	db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image FROM shops WHERE id = $1 AND deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image)
 
 	// eger databse sol maglumat yok bolsa error return edilyar
@@ -117,7 +133,7 @@ func GetShopByIDWithProducts(c *gin.Context) {
 	}
 
 	// shop degisli product - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), "SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND cp.deleted_at IS NULL AND p.deleted_at IS NULL", pq.Array(shop.Categories))
+	rowsProducts, err := db.Query(context.Background(), "SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND cp.deleted_at IS NULL AND p.deleted_at IS NULL ORDER BY p.created_at DESC LIMIT $2 OFFSET $3", pq.Array(shop.Categories), requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -135,6 +151,7 @@ func GetShopByIDWithProducts(c *gin.Context) {
 			return
 		}
 
+		shop.CountOfProducts++
 		shop.Products = append(shop.Products, product)
 	}
 
