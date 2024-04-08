@@ -16,5 +16,9 @@ func ProductRoutes(front *gin.RouterGroup) {
 		// GetProducts -> Product - laryn maglumatlaryny query - den gelen maglumatlar boyunca
 		// almak ucin ulanylyar
 		productRoutes.GET("", controllers.GetProducts)
+
+		// GetSimilarProductsByCategoryID -> Product - laryn maglumatlaryny query - den gelen maglumatlar boyunca
+		// almak ucin ulanylyar
+		productRoutes.GET("similars", controllers.GetSimilarProductsByProductID)
 	}
 }
