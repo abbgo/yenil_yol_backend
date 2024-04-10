@@ -193,12 +193,23 @@ func GetSimilarProductsByProductID(c *gin.Context) {
 	defer db.Close()
 
 	// request query - den maglumatlara gora product - lary almak ucin query yazylyar
-	rowQuery := "SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN categories c ON c.id=cp.category_id WHERE c.parent_category_id IS NOT NULL AND cp.product_id=$1 AND p.id!=$1 AND c.deleted_at IS NULL AND p.deleted_at IS NULL AND cp.deleted_at IS NULL ORDER BY p.created_at DESC LIMIT $2"
+	rowQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p 
+				INNER JOIN category_products cp ON cp.product_id=p.id 
+				INNER JOIN categories c ON c.id=cp.category_id WHERE p.id!=$1
+				AND c.id = (SELECT ca.id FROM categories ca INNER JOIN category_products cap ON cap.category_id=ca.id WHERE 
+				ca.parent_category_id IS NOT NULL AND cap.product_id=$1 ORDER BY ca.created_at DESC LIMIT 1) 
+				AND c.deleted_at IS NULL 
+				AND p.deleted_at IS NULL 
+				AND cp.deleted_at IS NULL 
+				ORDER BY p.created_at DESC LIMIT $2
+				`
+
 	if requestQuery.ShopID != "" {
-		rows := strings.Split(rowQuery, " WHERE ")
+		rows := strings.SplitN(rowQuery, " WHERE ", 2)
 		rowQuery = fmt.Sprintf("%v INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS NULL AND %v ", rows[0], requestQuery.ShopID, rows[1])
 	}
 
+	fmt.Println(rowQuery)
 	// product - lar alynyar
 	rowsProducts, err := db.Query(context.Background(), rowQuery, requestQuery.ProductID, requestQuery.Limit)
 	if err != nil {
@@ -213,7 +224,12 @@ func GetSimilarProductsByProductID(c *gin.Context) {
 		}
 
 		// haryda degisli yekeje surat alyas
-		if err := db.QueryRow(context.Background(), "SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1", product.ID).Scan(&product.Image); err != nil {
+		if err := db.QueryRow(context.Background(),
+			`SELECT pi.image FROM product_images pi 
+			INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
+			WHERE pc.product_id=$1 AND pi.deleted_at IS NULL 
+			AND pc.deleted_at IS NULL LIMIT 1`,
+			product.ID).Scan(&product.Image); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
