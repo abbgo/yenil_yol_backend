@@ -17,6 +17,7 @@ type Category struct {
 	SlugRU           string      `json:"slug_ru,omitempty"`
 	DimensionGroupID string      `json:"dimension_group_id,omitempty" binding:"required"`
 	ParentCategoryID null.String `json:"parent_category_id,omitempty"`
+	ChildCategories  []Category  `json:"child_categories"`
 }
 
 func ValidateCategory(category Category, isCreateFunction bool) error {
