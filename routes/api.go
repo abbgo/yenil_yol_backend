@@ -44,6 +44,9 @@ func Routes() *gin.Engine {
 
 		// bu route - ler fronta product maglumatlary ugratmak ucin doredilen rout - laryn toplumy
 		frontApi.ProductRoutes(front)
+
+		// bu route - ler fronta category maglumatlary ugratmak ucin doredilen rout - laryn toplumy
+		frontApi.CategoryRoutes(front)
 	}
 
 	admin := routes.Group("/api")

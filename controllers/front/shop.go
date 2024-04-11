@@ -98,22 +98,6 @@ func GetShopByID(c *gin.Context) {
 		shop.ShopPhones = append(shop.ShopPhones, phoneNumber)
 	}
 
-	// shop - a degisli category - ler alynyar
-	rowsCategory, err := db.Query(context.Background(), "SELECT c.id,c.name_tm,c.name_ru FROM categories c INNER JOIN shop_categories sc ON sc.category_id=c.id WHERE sc.shop_id=$1 AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL", shop.ID)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	defer rowsCategory.Close()
-	for rowsCategory.Next() {
-		var category models.Category
-		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-		shop.ShopCategories = append(shop.ShopCategories, category)
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
 		"shop":   shop,
