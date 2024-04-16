@@ -25,6 +25,7 @@ type Shop struct {
 	ShopPhones  []string    `json:"phones,omitempty" binding:"required"`
 	Categories  []string    `json:"categories,omitempty" binding:"required"`
 	OrderNumber uint        `json:"order_number,omitempty"`
+	IsBrend     bool        `json:"is_brend"`
 }
 
 type ShopQuery struct {
