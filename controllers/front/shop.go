@@ -11,6 +11,39 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func GetShopsForMap(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// database - den shop - lar alynyar
+	query := `SELECT id,name_tm,name_ru,latitude,longitude FROM shops WHERE deleted_at IS NULL`
+	rowsShop, err := db.Query(context.Background(), query)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsShop.Close()
+	var shops []models.Shop
+	for rowsShop.Next() {
+		var shop models.Shop
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		shops = append(shops, shop)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true,
+		"shops":  shops,
+	})
+}
+
 func GetShops(c *gin.Context) {
 	var requestQuery models.ShopQuery
 
