@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
@@ -35,9 +36,10 @@ func GetShops(c *gin.Context) {
 	// database - den shop - lar alynyar
 	query := `SELECT id,name_tm,name_ru,latitude,longitude,image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL`
 	if requestQuery.IsBrend {
-		query = query + ` AND is_brend=true LIMIT $1`
+		// query = query + ` AND is_brend=true LIMIT $1`
+		query = query + fmt.Sprintf(" AND is_brend=true LIMIT %v", requestQuery.Limit)
 	}
-	rowsShop, err := db.Query(context.Background(), query, requestQuery.Limit)
+	rowsShop, err := db.Query(context.Background(), query)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
