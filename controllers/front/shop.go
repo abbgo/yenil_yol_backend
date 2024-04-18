@@ -58,6 +58,9 @@ func GetShops(c *gin.Context) {
 		return
 	}
 
+	// limit we page boyunca offset hasaplanyar
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -70,7 +73,7 @@ func GetShops(c *gin.Context) {
 	query := `SELECT id,name_tm,name_ru,latitude,longitude,image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL`
 	if requestQuery.IsBrend {
 		// query = query + ` AND is_brend=true LIMIT $1`
-		query = query + fmt.Sprintf(" AND is_brend=true LIMIT %v", requestQuery.Limit)
+		query = query + fmt.Sprintf(" AND is_brend=true LIMIT %v OFFSET %v", requestQuery.Limit, offset)
 	}
 	rowsShop, err := db.Query(context.Background(), query)
 	if err != nil {
