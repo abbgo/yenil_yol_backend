@@ -12,19 +12,6 @@ import (
 )
 
 func GetShopsForMap(c *gin.Context) {
-	var rq models.ShopQueryForMap
-
-	// request query - den maglumatlar bind edilyar
-	if err := c.Bind(&rq); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	// request query - den maglumatlar validate edilyar
-	if err := helpers.ValidateStructData(&rq); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -35,9 +22,7 @@ func GetShopsForMap(c *gin.Context) {
 
 	// database - den shop - lar alynyar
 	rowsShop, err := db.Query(context.Background(),
-		`SELECT id,name_tm,name_ru,latitude,longitude FROM shops WHERE deleted_at IS NULL
-	AND (ST_MakePoint(longitude, latitude) && ST_MakeEnvelope($1, $2, $3, $4, 4326))`,
-		rq.MinLng, rq.MinLat, rq.MaxLng, rq.MaxLat)
+		`SELECT id,name_tm,name_ru,latitude,longitude FROM shops WHERE deleted_at IS NULL`)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

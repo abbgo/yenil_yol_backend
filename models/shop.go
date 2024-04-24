@@ -38,13 +38,6 @@ type ShopQuery struct {
 	MaxLng      float64 `form:"max_lng"`
 }
 
-type ShopQueryForMap struct {
-	MinLat float64 `form:"min_lat" validate:"required"`
-	MaxLat float64 `form:"max_lat" validate:"required"`
-	MinLng float64 `form:"min_lng" validate:"required"`
-	MaxLng float64 `form:"max_lng" validate:"required"`
-}
-
 func ValidateShop(shop Shop, isCreateFunction bool) error {
 	db, err := config.ConnDB()
 	if err != nil {
