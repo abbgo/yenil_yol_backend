@@ -30,12 +30,8 @@ type Shop struct {
 
 type ShopQuery struct {
 	helpers.StandartQuery
-	ShopOwnerID string  `form:"shop_owner_id"`
-	IsBrend     bool    `form:"is_brend"`
-	MinLat      float64 `form:"min_lat"`
-	MaxLat      float64 `form:"max_lat"`
-	MinLng      float64 `form:"min_lng"`
-	MaxLng      float64 `form:"max_lng"`
+	ShopOwnerID string `form:"shop_owner_id"`
+	IsBrend     bool   `form:"is_brend"`
 }
 
 func ValidateShop(shop Shop, isCreateFunction bool) error {
