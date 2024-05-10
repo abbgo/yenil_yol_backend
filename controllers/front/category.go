@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
@@ -10,47 +11,61 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetCategoriesShopID(c *gin.Context) {
-	var categories []models.Category
+// func GetCategoriesShopID(c *gin.Context) {
+// 	var categories []models.Category
 
-	// initialize database connection
-	db, err := config.ConnDB()
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	defer db.Close()
+// 	// initialize database connection
+// 	db, err := config.ConnDB()
+// 	if err != nil {
+// 		helpers.HandleError(c, 400, err.Error())
+// 		return
+// 	}
+// 	defer db.Close()
 
-	// request parametrden shop id alynyar
-	shopID := c.Param("shop_id")
+// 	// request parametrden shop id alynyar
+// 	shopID := c.Param("shop_id")
 
-	// shop - a degisli category - ler alynyar
-	rowsCategory, err := db.Query(context.Background(),
-		`SELECT c.id,c.name_tm,c.name_ru FROM categories c 
-		INNER JOIN shop_categories sc ON sc.category_id=c.id 
-		WHERE sc.shop_id=$1 AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`,
-		shopID)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	defer rowsCategory.Close()
-	for rowsCategory.Next() {
-		var category models.Category
-		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-		categories = append(categories, category)
-	}
+// 	// shop - a degisli category - ler alynyar
+// 	rowsCategory, err := db.Query(context.Background(),
+// 		`SELECT c.id,c.name_tm,c.name_ru FROM categories c
+// 		INNER JOIN shop_categories sc ON sc.category_id=c.id
+// 		WHERE sc.shop_id=$1 AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`,
+// 		shopID)
+// 	if err != nil {
+// 		helpers.HandleError(c, 400, err.Error())
+// 		return
+// 	}
+// 	defer rowsCategory.Close()
+// 	for rowsCategory.Next() {
+// 		var category models.Category
+// 		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU); err != nil {
+// 			helpers.HandleError(c, 400, err.Error())
+// 			return
+// 		}
+// 		categories = append(categories, category)
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":     true,
-		"categories": categories,
-	})
-}
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"status":     true,
+// 		"categories": categories,
+// 	})
+// }
 
 func GetCategoriesByCategoryID(c *gin.Context) {
+	var requestQuery = models.CategoryQuery{}
+	var categories []models.Category
+
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -59,38 +74,61 @@ func GetCategoriesByCategoryID(c *gin.Context) {
 	}
 	defer db.Close()
 
-	// request parametrden shop id alynyar
-	shopID := c.Param("shop_id")
-	// request parametrden category id alynyar
-	categoryID := c.Param("category_id")
+	// shop - a degisli category - ler alynyar
+	queryCategoriesByShopID := fmt.Sprintf(`
+		SELECT c.id,c.name_tm,c.name_ru FROM categories c
+		INNER JOIN shop_categories sc ON sc.category_id=c.id
+		WHERE sc.shop_id=$1 AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL
+	`)
 
-	var category models.Category
-	db.QueryRow(context.Background(),
-		`SELECT id,name_tm,name_ru FROM categories WHERE id=$1 AND deleted_at IS NULL`,
-		categoryID).Scan(&category.ID, &category.NameTM, &category.NameRU)
-	if category.ID == "" {
-		helpers.HandleError(c, 404, "record not found")
-		return
-	}
-
-	rowsChildCategory, err := db.Query(context.Background(),
-		`SELECT c.id,c.name_tm,c.name_ru FROM categories c 
-		INNER JOIN shop_categories sc ON sc.category_id=c.id 
-		WHERE sc.shop_id=$1 AND c.parent_category_id=$2 AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`,
-		shopID, categoryID)
+	rowsCategoriesByShopID, err := db.Query(context.Background(),
+		`SELECT c.id,c.name_tm,c.name_ru FROM categories c
+		INNER JOIN shop_categories sc ON sc.category_id=c.id
+		WHERE sc.shop_id=$1 AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`,
+		requestQuery.ShopID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-	defer rowsChildCategory.Close()
-	for rowsChildCategory.Next() {
-		var childCategory models.Category
-		if err := rowsChildCategory.Scan(&childCategory.ID, &childCategory.NameTM, &childCategory.NameRU); err != nil {
+	defer rowsCategoriesByShopID.Close()
+	for rowsCategoriesByShopID.Next() {
+		var parentCategory models.Category
+		if err := rowsCategoriesByShopID.Scan(&parentCategory.ID, &parentCategory.NameTM, &parentCategory.NameRU); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
-		category.ChildCategories = append(category.ChildCategories, childCategory)
+		// categories = append(categories, category)
+
+		// child category alynyar
+		rowsChildCategory, err := db.Query(context.Background(),
+			`SELECT c.id,c.name_tm,c.name_ru FROM categories c 
+		INNER JOIN shop_categories sc ON sc.category_id=c.id 
+		WHERE sc.shop_id=$1 AND c.parent_category_id=$2 AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`,
+			requestQuery.ShopID, requestQuery.CategoryID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsChildCategory.Close()
+		for rowsChildCategory.Next() {
+			var childCategory models.Category
+			if err := rowsChildCategory.Scan(&childCategory.ID, &childCategory.NameTM, &childCategory.NameRU); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			category.ChildCategories = append(category.ChildCategories, childCategory)
+		}
+
 	}
+
+	// var category models.Category
+	// db.QueryRow(context.Background(),
+	// 	`SELECT id,name_tm,name_ru FROM categories WHERE id=$1 AND deleted_at IS NULL`,
+	// 	requestQuery.CategoryID).Scan(&category.ID, &category.NameTM, &category.NameRU)
+	// if category.ID == "" {
+	// 	helpers.HandleError(c, 404, "record not found")
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":   true,
