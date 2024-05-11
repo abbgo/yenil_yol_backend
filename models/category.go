@@ -20,10 +20,10 @@ type Category struct {
 	ChildCategories  []Category  `json:"child_categories"`
 }
 
-type CategoryQuery struct {
-	ShopID     string `form:"shop_id" validate:"required"`
-	CategoryID string `form:"category_id"`
-}
+// type CategoryQuery struct {
+// 	ShopID     string `form:"shop_id" validate:"required"`
+// 	CategoryID string `form:"category_id"`
+// }
 
 func ValidateCategory(category Category, isCreateFunction bool) error {
 	// initialize database connection
