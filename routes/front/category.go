@@ -11,8 +11,5 @@ func CategoryRoutes(front *gin.RouterGroup) {
 	{
 		// GetCategoriesShopID - request parameter-den gelen shop_id boyunca category - leri ugratyar
 		categoryRoutes.GET(":shop_id", controllers.GetCategoriesShopID)
-
-		// GetCategoriesByCategoryID - request parameter-den gelen shop_id we category_id boyunca category - leri ugratyar
-		// categoryRoutes.GET("for-shop", controllers.GetCategoriesByCategoryID)
 	}
 }
