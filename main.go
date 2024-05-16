@@ -36,3 +36,11 @@ func main() {
 	}
 
 }
+
+// SELECT * FROM shops
+// WHERE
+//     6371 * acos(
+//         cos(radians(37.9220637)) * cos(radians(latitude)) *
+//         cos(radians(longitude) - radians(58.4370119)) +
+//         sin(radians(37.9220637)) * sin(radians(latitude))
+//     ) <= 4;
