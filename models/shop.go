@@ -34,6 +34,12 @@ type ShopQuery struct {
 	IsBrend     bool   `form:"is_brend"`
 }
 
+type ShopForMapQuery struct {
+	Latitude  float64 `form:"latitude" validate:"required"`
+	Longitude float64 `form:"longitude" validate:"required"`
+	Kilometer int8    `form:"kilometer" validate:"required,min=1"`
+}
+
 func ValidateShop(shop Shop, isCreateFunction bool) error {
 	db, err := config.ConnDB()
 	if err != nil {
