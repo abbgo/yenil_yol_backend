@@ -7,13 +7,14 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 )
 
 func GetShopsForMap(c *gin.Context) {
 	var requestQuery models.ShopForMapQuery
-	// var search, searchStr string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -25,12 +26,6 @@ func GetShopsForMap(c *gin.Context) {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-
-	// if requestQuery.Search != "" {
-	// 	incomingsSarch := slug.MakeLang(c.Query("search"), "en")
-	// 	search = strings.ReplaceAll(incomingsSarch, "-", " | ")
-	// 	searchStr = fmt.Sprintf("%%%s%%", search)
-	// }
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -84,6 +79,7 @@ func GetShopsForMap(c *gin.Context) {
 
 func GetShops(c *gin.Context) {
 	var requestQuery models.ShopQuery
+	var search, searchStr, queryIsBrend, querySearch string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -99,6 +95,12 @@ func GetShops(c *gin.Context) {
 	// limit we page boyunca offset hasaplanyar
 	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
+	if requestQuery.Search != "" {
+		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+		searchStr = fmt.Sprintf("%%%s%%", search)
+	}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -108,12 +110,16 @@ func GetShops(c *gin.Context) {
 	defer db.Close()
 
 	// database - den shop - lar alynyar
-	query := `SELECT id,name_tm,name_ru,latitude,longitude,image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL`
+	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL`
 	if requestQuery.IsBrend {
-		// query = query + ` AND is_brend=true LIMIT $1`
-		query = query + fmt.Sprintf(" AND is_brend=true LIMIT %v OFFSET %v", requestQuery.Limit, offset)
+		queryIsBrend = ` AND is_brend=true`
 	}
-	rowsShop, err := db.Query(context.Background(), query)
+	if requestQuery.Search != "" {
+		querySearch = fmt.Sprintf(` AND to_tsvector(slug_tm) @@ to_tsquery('%s') OR slug_tm LIKE '%s'`, search, searchStr)
+	}
+	queryLimitOffset := fmt.Sprintf(` LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
+
+	rowsShop, err := db.Query(context.Background(), queryDefault+queryIsBrend+querySearch+queryLimitOffset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
