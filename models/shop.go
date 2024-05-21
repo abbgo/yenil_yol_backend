@@ -38,7 +38,7 @@ type ShopForMapQuery struct {
 	Latitude  float64 `form:"latitude" validate:"required"`
 	Longitude float64 `form:"longitude" validate:"required"`
 	Kilometer int8    `form:"kilometer"`
-	Search    string  `form:"search"`
+	// Search    string  `form:"search"`
 }
 
 func ValidateShop(shop Shop, isCreateFunction bool) error {

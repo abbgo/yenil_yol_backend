@@ -7,15 +7,13 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gosimple/slug"
 )
 
 func GetShopsForMap(c *gin.Context) {
 	var requestQuery models.ShopForMapQuery
-	var search, searchStr string
+	// var search, searchStr string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -28,11 +26,11 @@ func GetShopsForMap(c *gin.Context) {
 		return
 	}
 
-	if requestQuery.Search != "" {
-		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
-		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
-		searchStr = fmt.Sprintf("%%%s%%", search)
-	}
+	// if requestQuery.Search != "" {
+	// 	incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+	// 	search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+	// 	searchStr = fmt.Sprintf("%%%s%%", search)
+	// }
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -51,16 +49,16 @@ func GetShopsForMap(c *gin.Context) {
 									) <= %d AND deleted_at IS NULL;
 						`, requestQuery.Latitude, requestQuery.Longitude, requestQuery.Latitude, requestQuery.Kilometer)
 
-	if requestQuery.Search != "" {
-		rowsShopQuery = fmt.Sprintf(`
-							SELECT id,name_tm,name_ru,latitude,longitude FROM shops 
-							WHERE 6371 * acos(
-										cos(radians(%f)) * cos(radians(latitude)) *
-										cos(radians(longitude) - radians(%f)) +
-										sin(radians(%f)) * sin(radians(latitude))
-									) <= %d AND to_tsvector(slug_tm) @@ to_tsquery('%s') OR slug_tm LIKE '%s'  AND deleted_at IS NULL;
-						`, requestQuery.Latitude, requestQuery.Longitude, requestQuery.Latitude, requestQuery.Kilometer, search, searchStr)
-	}
+	// if requestQuery.Search != "" {
+	// 	rowsShopQuery = fmt.Sprintf(`
+	// 						SELECT id,name_tm,name_ru,latitude,longitude FROM shops
+	// 						WHERE 6371 * acos(
+	// 									cos(radians(%f)) * cos(radians(latitude)) *
+	// 									cos(radians(longitude) - radians(%f)) +
+	// 									sin(radians(%f)) * sin(radians(latitude))
+	// 								) <= %d AND to_tsvector(slug_tm) @@ to_tsquery('%s') OR slug_tm LIKE '%s'  AND deleted_at IS NULL;
+	// 					`, requestQuery.Latitude, requestQuery.Longitude, requestQuery.Latitude, requestQuery.Kilometer, search, searchStr)
+	// }
 
 	rowsShop, err := db.Query(context.Background(), rowsShopQuery)
 	if err != nil {
