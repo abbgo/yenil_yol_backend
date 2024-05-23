@@ -41,6 +41,7 @@ type ProductQuery struct {
 	ShopID     string   `form:"shop_id"`
 	Categories []string `form:"categories"`
 	ProductID  string   `form:"product_id"`
+	Search     string   `form:"search"`
 }
 
 func ValidateProduct(product Product, isCreateFunction bool) (productCode string, err error) {
