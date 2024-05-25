@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 	"github.com/lib/pq"
 )
 
@@ -95,7 +96,7 @@ func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := models.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var count uint
-	var shopCountJoinQuery, shopCountWhereQuery string
+	var shopJoinQuery, shopWhereQuery, searchQuery, search, searchStr string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -115,6 +116,12 @@ func GetProducts(c *gin.Context) {
 	// limit we page boyunca offset hasaplanyar
 	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
+	if requestQuery.Search != "" {
+		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+		searchStr = fmt.Sprintf("%%%s%%", search)
+	}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -122,15 +129,21 @@ func GetProducts(c *gin.Context) {
 		return
 	}
 	defer db.Close()
+
 	defaultCountQuery := `SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id`
-	categoryCountQuery := ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL `
+	categoryQuery := ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL `
 
 	if requestQuery.ShopID != "" {
-		shopCountJoinQuery = ` INNER JOIN shop_categories sc ON sc.category_id=cp.category_id `
-		shopCountWhereQuery = fmt.Sprintf(` AND sc.shop_id='%s' AND sc.deleted_at IS NULL `, requestQuery.ShopID)
+		shopJoinQuery = ` INNER JOIN shop_categories sc ON sc.category_id=cp.category_id `
+		shopWhereQuery = fmt.Sprintf(` AND sc.shop_id='%s' AND sc.deleted_at IS NULL `, requestQuery.ShopID)
 	}
+
+	if requestQuery.Search != "" {
+		searchQuery = fmt.Sprintf(` AND to_tsvector(p.slug_tm) @@ to_tsquery('%s') OR p.slug_tm LIKE '%s' `, search, searchStr)
+	}
+
 	// database - den product - laryn sany alynyar
-	if err = db.QueryRow(context.Background(), defaultCountQuery+shopCountJoinQuery+`WHERE`+categoryCountQuery+shopCountWhereQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
+	if err = db.QueryRow(context.Background(), defaultCountQuery+shopJoinQuery+`WHERE`+categoryQuery+shopWhereQuery+searchQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -139,7 +152,7 @@ func GetProducts(c *gin.Context) {
 	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id`
 
 	// product - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), defaultQuery+shopCountJoinQuery+`WHERE`+categoryCountQuery+shopCountWhereQuery+`ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+	rowsProducts, err := db.Query(context.Background(), defaultQuery+shopJoinQuery+`WHERE`+categoryQuery+shopWhereQuery+searchQuery+`ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
