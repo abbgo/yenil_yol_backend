@@ -123,32 +123,23 @@ func GetProducts(c *gin.Context) {
 	}
 	defer db.Close()
 	defaultCountQuery := `SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id`
-	categoryCountQuery := fmt.Sprintf(` cp.category_id=ANY(%v) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL `, pq.Array(requestQuery.Categories))
+	categoryCountQuery := ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL `
 
-	// countQuery := "SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL"
 	if requestQuery.ShopID != "" {
 		shopCountJoinQuery = ` INNER JOIN shop_categories sc ON sc.category_id=cp.category_id `
 		shopCountWhereQuery = fmt.Sprintf(` AND sc.shop_id='%s' AND sc.deleted_at IS NULL `, requestQuery.ShopID)
-		// rows := strings.Split(countQuery, " WHERE ")
-		// countQuery = fmt.Sprintf("%v INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS NULL AND %v ", rows[0], requestQuery.ShopID, rows[1])
 	}
-	fmt.Println(defaultCountQuery + shopCountJoinQuery + `WHERE` + categoryCountQuery + shopCountWhereQuery)
 	// database - den product - laryn sany alynyar
-	// if err = db.QueryRow(context.Background(), countQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
-	if err = db.QueryRow(context.Background(), defaultCountQuery+shopCountJoinQuery+`WHERE`+categoryCountQuery+shopCountWhereQuery).Scan(&count); err != nil {
+	if err = db.QueryRow(context.Background(), defaultCountQuery+shopCountJoinQuery+`WHERE`+categoryCountQuery+shopCountWhereQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := "SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL ORDER BY p.created_at DESC LIMIT $2 OFFSET $3"
-	if requestQuery.ShopID != "" {
-		rows := strings.Split(rowQuery, " WHERE ")
-		rowQuery = fmt.Sprintf("%v INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS NULL AND %v ", rows[0], requestQuery.ShopID, rows[1])
-	}
+	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id`
 
 	// product - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), rowQuery, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+	rowsProducts, err := db.Query(context.Background(), defaultQuery+shopCountJoinQuery+`WHERE`+categoryCountQuery+shopCountWhereQuery+`ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -161,7 +152,11 @@ func GetProducts(c *gin.Context) {
 		}
 
 		// haryda degisli yekeje surat alyas
-		if err := db.QueryRow(context.Background(), "SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1", product.ID).Scan(&product.Image); err != nil {
+		if err := db.QueryRow(context.Background(), `
+								SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
+								WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1
+							`,
+			product.ID).Scan(&product.Image); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
