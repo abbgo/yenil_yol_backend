@@ -95,6 +95,7 @@ func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := models.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var count uint
+	var shopCountJoinQuery, shopCountWhereQuery string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -121,14 +122,20 @@ func GetProducts(c *gin.Context) {
 		return
 	}
 	defer db.Close()
+	defaultCountQuery := `SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id`
+	categoryCountQuery := fmt.Sprintf(` cp.category_id=ANY(%v) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL `, pq.Array(requestQuery.Categories))
 
-	countQuery := "SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL"
+	// countQuery := "SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id WHERE cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL"
 	if requestQuery.ShopID != "" {
-		rows := strings.Split(countQuery, " WHERE ")
-		countQuery = fmt.Sprintf("%v INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS NULL AND %v ", rows[0], requestQuery.ShopID, rows[1])
+		shopCountJoinQuery = ` INNER JOIN shop_categories sc ON sc.category_id=cp.category_id `
+		shopCountWhereQuery = fmt.Sprintf(` AND sc.shop_id='%s' AND sc.deleted_at IS NULL `, requestQuery.ShopID)
+		// rows := strings.Split(countQuery, " WHERE ")
+		// countQuery = fmt.Sprintf("%v INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS NULL AND %v ", rows[0], requestQuery.ShopID, rows[1])
 	}
+	fmt.Println(defaultCountQuery + shopCountJoinQuery + `WHERE` + categoryCountQuery + shopCountWhereQuery)
 	// database - den product - laryn sany alynyar
-	if err = db.QueryRow(context.Background(), countQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
+	// if err = db.QueryRow(context.Background(), countQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
+	if err = db.QueryRow(context.Background(), defaultCountQuery+shopCountJoinQuery+`WHERE`+categoryCountQuery+shopCountWhereQuery).Scan(&count); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
