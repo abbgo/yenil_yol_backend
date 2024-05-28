@@ -79,7 +79,7 @@ func GetShopsForMap(c *gin.Context) {
 
 func GetShops(c *gin.Context) {
 	var requestQuery models.ShopQuery
-	var search, searchStr, queryIsBrend, querySearch string
+	var search, searchStr, queryRandom, querySearch string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -111,15 +111,15 @@ func GetShops(c *gin.Context) {
 
 	// database - den shop - lar alynyar
 	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL`
-	if requestQuery.IsBrend {
-		queryIsBrend = ` AND is_brend=true`
+	if requestQuery.IsRandom {
+		queryRandom = ` ORDER BY RANDOM()`
 	}
 	if requestQuery.Search != "" {
 		querySearch = fmt.Sprintf(` AND to_tsvector(slug_tm) @@ to_tsquery('%s') OR slug_tm LIKE '%s'`, search, searchStr)
 	}
 	queryLimitOffset := fmt.Sprintf(` LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 
-	rowsShop, err := db.Query(context.Background(), queryDefault+queryIsBrend+querySearch+queryLimitOffset)
+	rowsShop, err := db.Query(context.Background(), queryDefault+querySearch+queryRandom+queryLimitOffset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

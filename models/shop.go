@@ -31,7 +31,7 @@ type Shop struct {
 type ShopQuery struct {
 	helpers.StandartQuery
 	ShopOwnerID string `form:"shop_owner_id"`
-	IsBrend     bool   `form:"is_brend"`
+	IsRandom    bool   `form:"is_random"`
 	Search      string `form:"search"`
 }
 
