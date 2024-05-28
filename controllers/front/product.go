@@ -139,7 +139,7 @@ func GetProducts(c *gin.Context) {
 	}
 
 	if requestQuery.Search != "" {
-		searchQuery = fmt.Sprintf(` AND to_tsvector(p.slug_tm) @@ to_tsquery('%s') OR p.slug_tm LIKE '%s' `, search, searchStr)
+		searchQuery = fmt.Sprintf(` AND to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s' `, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
 	// database - den product - laryn sany alynyar
