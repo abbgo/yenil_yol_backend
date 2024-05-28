@@ -33,6 +33,7 @@ type ShopQuery struct {
 	ShopOwnerID string `form:"shop_owner_id"`
 	IsRandom    bool   `form:"is_random"`
 	Search      string `form:"search"`
+	Lang        string `form:"lang"`
 }
 
 type ShopForMapQuery struct {
