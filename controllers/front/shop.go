@@ -115,7 +115,7 @@ func GetShops(c *gin.Context) {
 		queryRandom = ` ORDER BY RANDOM()`
 	}
 	if requestQuery.Search != "" {
-		querySearch = fmt.Sprintf(` AND to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s'`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		querySearch = fmt.Sprintf(` AND (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s')`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 	queryLimitOffset := fmt.Sprintf(` LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 
