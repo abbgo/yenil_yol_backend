@@ -21,5 +21,8 @@ func ShopRoutes(front *gin.RouterGroup) {
 
 		// GetShopsForMap - funksiya front - daky karta ucin gerek bolan ahli magazynlary alyar
 		shopRoutes.GET("map", controllers.GetShopsForMap)
+
+		// GetShopByIDs - funksiya query - dan gelen id - ler boyunca magazynlary alyar
+		shopRoutes.GET(":id", controllers.GetShopByIDs)
 	}
 }

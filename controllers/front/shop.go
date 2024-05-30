@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
+	"github.com/lib/pq"
 )
 
 func GetShopsForMap(c *gin.Context) {
@@ -200,5 +201,40 @@ func GetShopByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
 		"shop":   shop,
+	})
+}
+
+func GetShopByIDs(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametrden shop id - ler alynyar
+	shopIDs := c.QueryArray("ids")
+
+	// database - den request parametr - den gelen id - ler boyunca maglumat cekilyar
+	var shops []models.Shop
+	rows, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image FROM shops WHERE id = ANY($1) AND deleted_at IS NULL", pq.Array(shopIDs))
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var shop models.Shop
+		if err := rows.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		shops = append(shops, shop)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true,
+		"shops":  shops,
 	})
 }
