@@ -23,6 +23,6 @@ func ShopRoutes(front *gin.RouterGroup) {
 		shopRoutes.GET("map", controllers.GetShopsForMap)
 
 		// GetShopByIDs - funksiya query - dan gelen id - ler boyunca magazynlary alyar
-		shopRoutes.GET(":id", controllers.GetShopByIDs)
+		shopRoutes.GET("favorite", controllers.GetShopByIDs)
 	}
 }
