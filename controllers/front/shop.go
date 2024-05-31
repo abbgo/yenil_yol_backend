@@ -205,6 +205,22 @@ func GetShopByID(c *gin.Context) {
 }
 
 func GetShopByIDs(c *gin.Context) {
+	var requestQuery helpers.StandartQuery
+
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -218,7 +234,12 @@ func GetShopByIDs(c *gin.Context) {
 
 	// database - den request parametr - den gelen id - ler boyunca maglumat cekilyar
 	var shops []models.Shop
-	rows, err := db.Query(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image FROM shops WHERE id = ANY($1) AND deleted_at IS NULL", pq.Array(shopIDs))
+	rows, err := db.Query(context.Background(),
+		`
+			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image FROM shops 
+			WHERE id = ANY($1) AND deleted_at IS NULL LIMIT $2 OFFSET $3
+		`,
+		pq.Array(shopIDs), requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
