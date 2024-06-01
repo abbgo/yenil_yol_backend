@@ -257,3 +257,53 @@ func GetSimilarProductsByProductID(c *gin.Context) {
 	})
 
 }
+
+func GetProductsByIDs(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametrden product id - ler alynyar
+	productIDs := c.QueryArray("ids")
+
+	// database - den request parametr - den gelen id - ler boyunca maglumat cekilyar
+	var products []models.Product
+	rows, err := db.Query(context.Background(),
+		`
+			SELECT id,name_tm,name_ru,price,old_price FROM products 
+			WHERE id = ANY($1) AND deleted_at IS NULL
+		`,
+		pq.Array(productIDs))
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	for rows.Next() {
+		var product models.Product
+		if err := rows.Scan(&product.ID, &product.NameTM, &product.NameRU, &product.Price, &product.OldPrice); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// haryda degisli yekeje surat alyas
+		if err := db.QueryRow(context.Background(), `
+								SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
+								WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1
+							`,
+			product.ID).Scan(&product.Image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		products = append(products, product)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":   true,
+		"products": products,
+	})
+
+}
