@@ -27,6 +27,7 @@ type Product struct {
 	ProductColors []ProductColor  `json:"product_colors,omitempty" binding:"required"`
 	Image         null.String     `json:"image"`
 	Brend         BrendForProduct `json:"brend,omitempty"`
+	Shop          ShopForProduct  `json:"shop,omitempty"`
 }
 
 type BrendForProduct struct {
@@ -34,6 +35,12 @@ type BrendForProduct struct {
 	Name  string `json:"name"`
 	Image string `json:"image,omitempty"`
 	Slug  string `json:"slug,omitempty"`
+}
+
+type ShopForProduct struct {
+	ID     string `json:"id,omitempty"`
+	NameTM string `json:"name_tm"`
+	NameRU string `json:"name_ru"`
 }
 
 type ProductQuery struct {
