@@ -219,11 +219,6 @@ func GetSimilarProductsByProductID(c *gin.Context) {
 				ORDER BY p.created_at DESC LIMIT $2
 				`
 
-	if requestQuery.ShopID != "" {
-		rows := strings.SplitN(rowQuery, " WHERE ", 2)
-		rowQuery = fmt.Sprintf("%v INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS NULL AND %v ", rows[0], requestQuery.ShopID, rows[1])
-	}
-
 	// product - lar alynyar
 	rowsProducts, err := db.Query(context.Background(), rowQuery, requestQuery.ProductID, requestQuery.Limit)
 	if err != nil {
