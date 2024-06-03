@@ -38,7 +38,7 @@ type BrendForProduct struct {
 }
 
 type ShopForProduct struct {
-	ID     string `json:"id,omitempty"`
+	ID     string `json:"id"`
 	NameTM string `json:"name_tm"`
 	NameRU string `json:"name_ru"`
 }
