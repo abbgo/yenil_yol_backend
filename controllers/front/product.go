@@ -110,8 +110,8 @@ func GetProductByID(c *gin.Context) {
 func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := models.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
-	var count uint
-	var shopJoinQuery, shopWhereQuery, searchQuery, search, searchStr string
+	// var count uint
+	var shopJoinQuery, shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -123,10 +123,10 @@ func GetProducts(c *gin.Context) {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-	if len(requestQuery.Categories) == 0 {
-		helpers.HandleError(c, 400, "categories is required")
-		return
-	}
+	// if len(requestQuery.Categories) == 0 {
+	// 	helpers.HandleError(c, 400, "categories is required")
+	// 	return
+	// }
 
 	// limit we page boyunca offset hasaplanyar
 	offset := requestQuery.Limit * (requestQuery.Page - 1)
@@ -145,29 +145,38 @@ func GetProducts(c *gin.Context) {
 	}
 	defer db.Close()
 
-	defaultCountQuery := `SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id`
-	categoryQuery := ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL `
+	// defaultCountQuery := `SELECT COUNT(DISTINCT(p.id)) FROM products p INNER JOIN category_products cp ON cp.product_id=p.id`
 
 	if requestQuery.ShopID != "" {
 		shopJoinQuery = ` INNER JOIN shop_categories sc ON sc.category_id=cp.category_id `
-		shopWhereQuery = fmt.Sprintf(` AND sc.shop_id='%s' AND sc.deleted_at IS NULL `, requestQuery.ShopID)
+		shopWhereQuery = fmt.Sprintf(` sc.shop_id='%s' AND sc.deleted_at IS NULL `, requestQuery.ShopID)
 	}
 
 	if requestQuery.Search != "" {
-		searchQuery = fmt.Sprintf(` AND (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		searchQuery = fmt.Sprintf(` (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
 	// database - den product - laryn sany alynyar
-	if err = db.QueryRow(context.Background(), defaultCountQuery+shopJoinQuery+`WHERE`+categoryQuery+shopWhereQuery+searchQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
+	// if err = db.QueryRow(context.Background(), defaultCountQuery+categoryJoinQuery+shopJoinQuery+`WHERE`+categoryQuery+shopWhereQuery+searchQuery, pq.Array(requestQuery.Categories)).Scan(&count); err != nil {
+	// 	helpers.HandleError(c, 400, err.Error())
+	// 	return
+	// }
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p INNER JOIN category_products cp ON cp.product_id=p.id`
+	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
+
+	if len(requestQuery.Categories) != 0 {
+		categoryJoinQuery = ` INNER JOIN category_products cp ON cp.product_id=p.id `
+		categoryQuery = ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL AND `
+	}
+
+	fmt.Println(defaultQuery + categoryJoinQuery + shopJoinQuery + ` WHERE` + categoryQuery + shopWhereQuery + ` AND ` + searchQuery)
 
 	// product - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), defaultQuery+shopJoinQuery+`WHERE`+categoryQuery+shopWhereQuery+searchQuery+`ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+	rowsProducts, err := db.Query(context.Background(), defaultQuery+categoryJoinQuery+shopJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+` AND `+searchQuery+`ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
+	if len(requestQuery.Categories) != 0 {
+		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+shopJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+` AND `+searchQuery+`ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+	}
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -195,7 +204,7 @@ func GetProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":   true,
 		"products": products,
-		"total":    count,
+		// "total":    count,
 	})
 }
 
