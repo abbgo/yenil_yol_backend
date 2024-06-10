@@ -220,7 +220,7 @@ func GetShopByIDs(c *gin.Context) {
 	var shops []models.Shop
 	rows, err := db.Query(context.Background(),
 		`
-			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image FROM shops 
+			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image FROM shops 
 			WHERE id = ANY($1) AND deleted_at IS NULL
 		`,
 		pq.Array(shopIDs))
