@@ -111,7 +111,7 @@ func GetShops(c *gin.Context) {
 	defer db.Close()
 
 	// database - den shop - lar alynyar
-	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL`
+	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL`
 	if requestQuery.IsRandom {
 		queryRandom = ` ORDER BY RANDOM()`
 	}
