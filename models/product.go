@@ -22,6 +22,7 @@ type Product struct {
 	SlugTM        string          `json:"slug_tm,omitempty"`
 	SlugRU        string          `json:"slug_ru,omitempty"`
 	BrendID       null.String     `json:"brend_id,omitempty"`
+	ShopID        string          `json:"shop_id,omitempty" binding:"required"`
 	Dimensions    []string        `json:"dimensions,omitempty"`
 	Categories    []string        `json:"categories,omitempty" binding:"required"`
 	ProductColors []ProductColor  `json:"product_colors,omitempty" binding:"required"`
