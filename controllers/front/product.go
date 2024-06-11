@@ -110,7 +110,7 @@ func GetProductByID(c *gin.Context) {
 func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := models.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
-	var shopJoinQuery, shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr string
+	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -144,8 +144,7 @@ func GetProducts(c *gin.Context) {
 	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
 
 	if requestQuery.ShopID != "" {
-		shopJoinQuery = ` INNER JOIN shop_categories sc ON sc.category_id=cp.category_id `
-		shopWhereQuery = fmt.Sprintf(` sc.shop_id='%s' AND sc.deleted_at IS NULL `, requestQuery.ShopID)
+		shopWhereQuery = fmt.Sprintf(` p.shop_id='%s' `, requestQuery.ShopID)
 	}
 
 	if requestQuery.Search != "" {
@@ -163,7 +162,7 @@ func GetProducts(c *gin.Context) {
 	// product - lar alynyar
 	rowsProducts, err := db.Query(context.Background(), defaultQuery+searchQuery+`ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	if len(requestQuery.Categories) != 0 {
-		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+shopJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+searchQuery+`ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+searchQuery+`ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	}
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
