@@ -30,9 +30,7 @@ func GetProductByID(c *gin.Context) {
 	var product models.Product
 	db.QueryRow(context.Background(),
 		`SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.brend_id,s.id,s.name_tm,s.name_ru FROM products p 
-		INNER JOIN category_products cp ON cp.product_id=p.id
-		INNER JOIN shop_categories sc ON sc.category_id=cp.category_id
-		INNER JOIN shops s ON s.id=sc.shop_id
+		INNER JOIN shops s ON s.id=p.shop_id
 		WHERE p.id=$1 AND p.deleted_at IS NULL`,
 		productID).Scan(
 		&product.ID,
