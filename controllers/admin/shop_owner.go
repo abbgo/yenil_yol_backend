@@ -110,7 +110,7 @@ func LoginShopOwner(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"access_token":  accessTokenString,
 		"refresh_token": refreshTokenString,
-		"admin":         adm,
+		"shop_owner":    adm,
 	})
 }
 
