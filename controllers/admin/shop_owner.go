@@ -124,7 +124,7 @@ func GetShopOwnerByID(id string) (models.Admin, error) {
 
 	// parametrler edilip berilen id - boyunca database - den shop_owner - in maglumatlary cekilyar
 	var shopOwner models.Admin
-	db.QueryRow(context.Background(), "SELECT full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL AND id = $1", id).Scan(&shopOwner.FullName, &shopOwner.PhoneNumber)
+	db.QueryRow(context.Background(), "SELECT id,full_name,phone_number FROM shop_owners WHERE deleted_at IS NULL AND id = $1", id).Scan(&shopOwner.ID, &shopOwner.FullName, &shopOwner.PhoneNumber)
 
 	// eger parametrler edilip berilen id boyunca database - de maglumat yok bolsa error return edilyar
 	if shopOwner.PhoneNumber == "" {
