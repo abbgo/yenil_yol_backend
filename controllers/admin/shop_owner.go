@@ -111,6 +111,7 @@ func LoginShopOwner(c *gin.Context) {
 		"access_token":  accessTokenString,
 		"refresh_token": refreshTokenString,
 		"shop_owner":    adm,
+		"status":        true,
 	})
 }
 
