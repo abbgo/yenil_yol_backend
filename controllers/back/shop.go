@@ -207,7 +207,6 @@ func GetShopByID(c *gin.Context) {
 
 func GetShops(c *gin.Context) {
 	var shopQuery models.ShopQuery
-	var countOfShops uint
 	var shops []models.Shop
 	isDeleted := "NULL"
 
@@ -238,20 +237,8 @@ func GetShops(c *gin.Context) {
 		isDeleted = "NOT NULL"
 	}
 
-	// request query - den status - a gora shop - laryn sanyny almak ucin query yazylyar
-	queryCount := fmt.Sprintf("SELECT COUNT(id) FROM shops WHERE deleted_at IS %v", isDeleted)
-	if shopQuery.ShopOwnerID != "" {
-		queryCount = fmt.Sprintf("%v AND shop_owner_id = '%v'", queryCount, shopQuery.ShopOwnerID)
-	}
-
-	// database - den shop - laryn sany alynyar
-	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfShops); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT id,name_tm,image FROM shops WHERE deleted_at IS %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", isDeleted)
+	rowQuery := fmt.Sprintf("SELECT id,name_tm,name_ru,image FROM shops WHERE deleted_at IS %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", isDeleted)
 	if shopQuery.ShopOwnerID != "" {
 		rows := strings.Split(rowQuery, " ORDER BY created_at DESC ")
 		rowQuery = fmt.Sprintf("%v AND shop_owner_id = '%v' %v %v", rows[0], shopQuery.ShopOwnerID, "ORDER BY created_at DESC ", rows[1])
@@ -267,7 +254,7 @@ func GetShops(c *gin.Context) {
 
 	for rowsShop.Next() {
 		var shop models.Shop
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.Image); err != nil {
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Image); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
@@ -277,7 +264,6 @@ func GetShops(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
 		"shops":  shops,
-		"total":  countOfShops,
 	})
 }
 
