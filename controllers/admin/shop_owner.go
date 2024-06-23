@@ -94,7 +94,7 @@ func LoginShopOwner(c *gin.Context) {
 	}
 
 	// maglumatlar dogry bolsa auth ucin access_toke bilen resfresh_token generate edilyar
-	accessTokenString, refreshTokenString, err := helpers.GenerateAccessTokenForAdmin(shopOwner.PhoneNumber, id, false)
+	accessTokenString /* refreshTokenString, */, err := helpers.GenerateAccessTokenForAdmin(shopOwner.PhoneNumber, id, false)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -108,10 +108,10 @@ func LoginShopOwner(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"access_token":  accessTokenString,
-		"refresh_token": refreshTokenString,
-		"shop_owner":    adm,
-		"status":        true,
+		"access_token": accessTokenString,
+		// "refresh_token": refreshTokenString,
+		"shop_owner": adm,
+		"status":     true,
 	})
 }
 

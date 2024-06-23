@@ -2,7 +2,6 @@ package adminApi
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/admin"
-	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/middlewares"
 
 	"github.com/gin-gonic/gin"
@@ -24,9 +23,9 @@ func ShopOwnerRoutes(back *gin.RouterGroup) {
 		// UpdateShopOwnerPassword shop owner - in parolyny uytgetmek ucin ulanylyar.
 		shopOwner.PUT("update-password", middlewares.CheckTokenAdminOrShopOwner(), controllers.UpdateShopOwnerPassword)
 
-		// ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
-		// ucin ulanylyar
-		shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
+		// // ShopOwner - in access tokenin tazelelap refresh bilen access tokeni bile bermek
+		// // ucin ulanylyar
+		// shopOwner.POST("refresh", helpers.RefreshTokenForAdmin)
 
 		// GetShopOwner funksiya haeder - den gelen id boyunca bir sany shop_owneri almak ucin ulanylyar.
 		shopOwner.GET(":id", middlewares.CheckTokenAdminOrShopOwner(), controllers.GetShopOwner)

@@ -2,7 +2,6 @@ package adminApi
 
 import (
 	controllers "github/abbgo/yenil_yol/backend/controllers/admin"
-	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/middlewares"
 
 	"github.com/gin-gonic/gin"
@@ -23,9 +22,9 @@ func AdminRoutes(back *gin.RouterGroup) {
 		// UpdateAdminPassword admin - in parolyny uytgetmek ucin ulanylyar.
 		admin.PUT("update-password", middlewares.IsSuperAdmin(), controllers.UpdateAdminPassword)
 
-		// Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
-		// ucin ulanylyar
-		admin.POST("refresh", middlewares.CheckToken("admin"), helpers.RefreshTokenForAdmin)
+		// // Adminin - in access tokenin tazelelap refresh bilen access tokeni bile bermek
+		// // ucin ulanylyar
+		// admin.POST("refresh", middlewares.CheckToken("admin"), helpers.RefreshTokenForAdmin)
 
 		// GetAdmin funksiya haeder - den gelen id boyunca bir sany admin - i almak ucin ulanylyar.
 		admin.GET("one", middlewares.CheckToken("admin"), controllers.GetAdmin)

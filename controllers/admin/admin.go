@@ -91,7 +91,7 @@ func LoginAdmin(c *gin.Context) {
 	}
 
 	// maglumatlar dogry bolsa auth ucin access_toke bilen resfresh_token generate edilyar
-	accessTokenString, refreshTokenString, err := helpers.GenerateAccessTokenForAdmin(admin.PhoneNumber, id, is_super_admin)
+	accessTokenString /* refreshTokenString,*/, err := helpers.GenerateAccessTokenForAdmin(admin.PhoneNumber, id, is_super_admin)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -105,9 +105,9 @@ func LoginAdmin(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"access_token":  accessTokenString,
-		"refresh_token": refreshTokenString,
-		"admin":         adm,
+		"access_token": accessTokenString,
+		// "refresh_token": refreshTokenString,
+		"admin": adm,
 	})
 }
 
