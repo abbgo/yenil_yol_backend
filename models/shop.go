@@ -23,9 +23,9 @@ type Shop struct {
 	SlugTM      string      `json:"slug_tm,omitempty"`
 	SlugRU      string      `json:"slug_ru,omitempty"`
 	ShopPhones  []string    `json:"phones,omitempty" binding:"required"`
-	Categories  []string    `json:"categories,omitempty" binding:"required"`
-	OrderNumber uint        `json:"order_number,omitempty"`
-	IsBrend     bool        `json:"is_brend"`
+	// Categories  []string    `json:"categories,omitempty" binding:"required"`
+	OrderNumber uint `json:"order_number,omitempty"`
+	IsBrend     bool `json:"is_brend"`
 }
 
 // shop - a degisli kategoriyalary ayyrsak
@@ -65,11 +65,11 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 		return err
 	}
 
-	for _, v := range shop.Categories {
-		if err := helpers.ValidateRecordByID("categories", v, "NULL", db); err != nil {
-			return err
-		}
-	}
+	// for _, v := range shop.Categories {
+	// 	if err := helpers.ValidateRecordByID("categories", v, "NULL", db); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	if shop.OrderNumber != 0 {
 		if isCreateFunction {
