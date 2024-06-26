@@ -25,10 +25,19 @@ func GetCategoriesShopID(c *gin.Context) {
 	shopID := c.Param("shop_id")
 
 	// shop - a degisli category - ler alynyar
+	// rowsCategory, err := db.Query(context.Background(),
+	// 	`SELECT DISTINCT ON (c.id) c.id,c.name_tm,c.name_ru FROM categories c
+	// 	INNER JOIN shop_categories sc ON sc.category_id=c.id
+	// 	WHERE sc.shop_id=$1 AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`,
+	// 	shopID)
 	rowsCategory, err := db.Query(context.Background(),
 		`SELECT DISTINCT ON (c.id) c.id,c.name_tm,c.name_ru FROM categories c
-		INNER JOIN shop_categories sc ON sc.category_id=c.id
-		WHERE sc.shop_id=$1 AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`,
+		INNER JOIN category_products cp ON cp.category_id=c.id
+		INNER JOIN products p ON p.id=cp.product_id
+		WHERE p.shop_id=$1 AND c.parent_category_id IS NULL 
+		AND c.deleted_at IS NULL 
+		AND cp.deleted_at IS NULL 
+		AND p.deleted_at IS NULL`,
 		shopID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
