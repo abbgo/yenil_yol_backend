@@ -28,6 +28,11 @@ type Shop struct {
 	IsBrend     bool        `json:"is_brend"`
 }
 
+// shop - a degisli kategoriyalary ayyrsak
+// kategoriya dine harytda gorkezsek
+// we magazyna girende sona degisli kategoriyalary harytlaryndan alyp gorkezsek
+// we kategoriyanyn ustune basanda shop_id - e gorade alsak kategoriyany
+
 type ShopQuery struct {
 	helpers.StandartQuery
 	ShopOwnerID string `form:"shop_owner_id"`
