@@ -151,7 +151,7 @@ func GetSubscribes(customerID string) ([]models.Shop, error) {
 	defer db.Close()
 
 	rowsShop, err := db.Query(context.Background(),
-		"SELECT sh.id,sh.name_tm,sh.name_ru,sh.address_tm,sh.address_ru,sh.latitude,sh.longitude,sh.image,sh.has_delivery,sh.shop_owner_id,sh.order_number FROM shops sh INNER JOIN subscribes su ON su.shop_id = sh.id WHERE su.customer_id = $1 AND su.deleted_at IS NULL AND sh.deleted_at IS NULL",
+		"SELECT sh.id,sh.name_tm,sh.name_ru,sh.address_tm,sh.address_ru,sh.latitude,sh.longitude,sh.image,sh.has_shipping,sh.shop_owner_id,sh.order_number FROM shops sh INNER JOIN subscribes su ON su.shop_id = sh.id WHERE su.customer_id = $1 AND su.deleted_at IS NULL AND sh.deleted_at IS NULL",
 		customerID)
 	if err != nil {
 		return []models.Shop{}, err
@@ -170,7 +170,7 @@ func GetSubscribes(customerID string) ([]models.Shop, error) {
 			&shop.Latitude,
 			&shop.Longitude,
 			&shop.Image,
-			&shop.HasDelivery,
+			&shop.HasShipping,
 			&shop.ShopOwnerID,
 			&shop.OrderNumber,
 		); err != nil {
