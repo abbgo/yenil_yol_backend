@@ -52,9 +52,16 @@ func GetCategoriesShopID(c *gin.Context) {
 		}
 
 		// child category alynyar
+		// queryForChildCategory := `SELECT DISTINCT ON (c.id) c.id,c.name_tm,c.name_ru,c.parent_category_id FROM categories c
+		// INNER JOIN shop_categories sc ON sc.category_id=c.id
+		// WHERE sc.shop_id=$1 AND c.parent_category_id=$2 AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`
 		queryForChildCategory := `SELECT DISTINCT ON (c.id) c.id,c.name_tm,c.name_ru,c.parent_category_id FROM categories c 
-		INNER JOIN shop_categories sc ON sc.category_id=c.id 
-		WHERE sc.shop_id=$1 AND c.parent_category_id=$2 AND c.deleted_at IS NULL AND sc.deleted_at IS NULL`
+		INNER JOIN category_products cp ON cp.category_id=c.id
+		INNER JOIN products p ON p.id=cp.product_id
+		WHERE p.shop_id=$1 AND c.parent_category_id=$2 
+		AND c.deleted_at IS NULL 
+		AND cp.deleted_at IS NULL 
+		AND p.deleted_at IS NULL`
 
 		rowsChildCategory, err := db.Query(context.Background(), queryForChildCategory, shopID, category.ID)
 		if err != nil {
