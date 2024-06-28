@@ -19,7 +19,7 @@ func AddOrUpdateImage(c *gin.Context) {
 	defer db.Close()
 
 	var path, file_name string
-	var resizedSize int
+	// var resizedSize int
 
 	imageType := c.Query("image_type")
 
@@ -46,29 +46,29 @@ func AddOrUpdateImage(c *gin.Context) {
 	case "product":
 		path = "product"
 		file_name = "image"
-		resizedSize = 200
+		// resizedSize = 200
 	case "setting":
 		path = "setting"
 		file_name = "image"
-		resizedSize = 0
+		// resizedSize = 0
 	case "category":
 		path = "category"
 		file_name = "image"
-		resizedSize = 200
+		// resizedSize = 200
 	case "brend":
 		path = "brend"
 		file_name = "image"
-		resizedSize = 200
+		// resizedSize = 200
 	case "shop":
 		path = "shop"
 		file_name = "image"
-		resizedSize = 230
+		// resizedSize = 230
 	default:
 		helpers.HandleError(c, 400, "invalid image")
 		return
 	}
 
-	image, err := helpers.FileUpload(file_name, path, "image", c, resizedSize)
+	image, err := helpers.FileUpload(file_name, path, "image", c)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

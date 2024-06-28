@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/disintegration/imaging v1.6.2
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
@@ -17,10 +16,7 @@ require (
 	gopkg.in/guregu/null.v4 v4.0.0
 )
 
-require (
-	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
-)
+require gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
