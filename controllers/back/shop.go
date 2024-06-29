@@ -160,11 +160,6 @@ func GetShopByID(c *gin.Context) {
 		return
 	}
 
-	if err := helpers.ValidateShopOwnerByToken(c, db, shop.ShopOwnerID); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
 	// shop alynanadan son shop_id boyunca shop_phone - lar cekilyar
 	rowsShopImage, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id=$1 AND deleted_at IS NULL", shop.ID)
 	if err != nil {
