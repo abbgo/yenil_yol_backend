@@ -215,6 +215,7 @@ func GetShops(c *gin.Context) {
 	var shopQuery models.ShopQuery
 	var shops []models.Shop
 	isDeleted := "NULL"
+	selectedRows := "image"
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -243,8 +244,15 @@ func GetShops(c *gin.Context) {
 		isDeleted = "NOT NULL"
 	}
 
+	isShoppingCenter := shopQuery.IsShoppingCenter
+	if isShoppingCenter {
+		selectedRows = "latitude,longitude"
+	}
+
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT id,name_tm,name_ru,image FROM shops WHERE deleted_at IS %v ORDER BY created_at DESC LIMIT $1 OFFSET $2", isDeleted)
+	rowQuery := fmt.Sprintf(
+		"SELECT id,name_tm,name_ru,%s FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+		selectedRows, isDeleted, isShoppingCenter)
 	if shopQuery.ShopOwnerID != "" {
 		rows := strings.Split(rowQuery, " ORDER BY created_at DESC ")
 		rowQuery = fmt.Sprintf("%v AND shop_owner_id = '%v' %v %v", rows[0], shopQuery.ShopOwnerID, "ORDER BY created_at DESC ", rows[1])
@@ -260,9 +268,16 @@ func GetShops(c *gin.Context) {
 
 	for rowsShop.Next() {
 		var shop models.Shop
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Image); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
+		if isShoppingCenter {
+			if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+		} else {
+			if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Image); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
 		}
 		shops = append(shops, shop)
 	}
