@@ -105,23 +105,25 @@ func UpdateShopByID(c *gin.Context) {
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
 	_, err = db.Exec(context.Background(),
-		"UPDATE shops SET name_tm=$1 , name_ru=$2 , address_tm=$3 , address_ru=$4 , latitude=$5 , longitude=$6 , image=$7 , has_shipping=$8 , shop_owner_id=$9 , slug_tm=$10 , slug_ru=$11 , order_number=$12 , parent_shop_id=$13 WHERE id=$14",
-		shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, shop.Image, shop.HasShipping, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ParentShopID, shop.ID)
+		"UPDATE shops SET name_tm=$1 , name_ru=$2 , address_tm=$3 , address_ru=$4 , latitude=$5 , longitude=$6 , image=$7 , has_shipping=$8 , shop_owner_id=$9 , slug_tm=$10 , slug_ru=$11 , order_number=$12 , parent_shop_id=$13 , is_shopping_center=$14 WHERE id=$15",
+		shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, shop.Image, shop.HasShipping, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ParentShopID, shop.IsShoppingCenter, shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	// shop - yn onki nomerleri pozulyar we taze telefon nomerler shop_phones tablisa gosulyar
+	// eger shop sowda merkezi dal bolsa shop - yn onki nomerleri pozulyar we taze telefon nomerler shop_phones tablisa gosulyar
 	_, err = db.Exec(context.Background(), "DELETE FROM shop_phones WHERE shop_id = $1", shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-	_, err = db.Exec(context.Background(), "INSERT INTO shop_phones (phone_number,shop_id) VALUES (unnest($1::varchar[]),$2)", pq.Array(shop.ShopPhones), shop.ID)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
+	if len(shop.ShopPhones) != 0 {
+		_, err = db.Exec(context.Background(), "INSERT INTO shop_phones (phone_number,shop_id) VALUES (unnest($1::varchar[]),$2)", pq.Array(shop.ShopPhones), shop.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	// // shop - a degisli onki kategoriyalar pozulyar we taze kategoriyalar gosulyar
