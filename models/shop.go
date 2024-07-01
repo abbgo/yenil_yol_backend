@@ -72,6 +72,16 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 		}
 	}
 
+	if !isCreateFunction {
+		if shop.ID == "" {
+			return errors.New("shop_id is required")
+		}
+
+		if err := helpers.ValidateRecordByID("shops", shop.ID, "NULL", db); err != nil {
+			return errors.New("record not found")
+		}
+	}
+
 	// for _, v := range shop.Categories {
 	// 	if err := helpers.ValidateRecordByID("categories", v, "NULL", db); err != nil {
 	// 		return err
