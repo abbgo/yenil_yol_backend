@@ -38,7 +38,7 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	// eger maglumatlar dogry bolsa onda products tablisa maglumatlar gosulyar we yzyna id return edilyar
-	if err := db.QueryRow(context.Background(), "INSERT INTO products (name_tm,name_ru,price,old_price,code,slug_tm,slug_ru,brend_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id", product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID).Scan(&product.ID); err != nil {
+	if err := db.QueryRow(context.Background(), "INSERT INTO products (name_tm,name_ru,price,old_price,code,slug_tm,slug_ru,brend_id,is_visible) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id", product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID, product.IsVisible).Scan(&product.ID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -102,7 +102,7 @@ func UpdateProductByID(c *gin.Context) {
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE products SET name_tm=$1 , name_ru=$2 , price=$3 , old_price=$4 , code=$5 , slug_tm=$6 , slug_ru=$7 , brend_id=$8 WHERE id=$9", product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID, product.ID)
+	_, err = db.Exec(context.Background(), "UPDATE products SET name_tm=$1 , name_ru=$2 , price=$3 , old_price=$4 , code=$5 , slug_tm=$6 , slug_ru=$7 , brend_id=$8 , is_visible=$9 WHERE id=$10", product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID, product.IsVisible, product.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -178,7 +178,7 @@ func GetProductByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var product models.Product
-	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,code,brend_id FROM products WHERE id = $1 AND deleted_at IS NULL", productID).Scan(
+	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,code,brend_id,is_visible FROM products WHERE id = $1 AND deleted_at IS NULL", productID).Scan(
 		&product.ID,
 		&product.NameTM,
 		&product.NameRU,
@@ -186,6 +186,7 @@ func GetProductByID(c *gin.Context) {
 		&product.OldPrice,
 		&product.Code,
 		&product.BrendID,
+		&product.IsVisible,
 	); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -318,7 +319,7 @@ func GetProducts(c *gin.Context) {
 	}
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.code,p.brend_id FROM products p WHERE p.deleted_at IS %v ORDER BY p.created_at DESC LIMIT $1 OFFSET $2", isDeleted)
+	rowQuery := fmt.Sprintf("SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.code,p.brend_id,p.is_visible FROM products p WHERE p.deleted_at IS %v ORDER BY p.created_at DESC LIMIT $1 OFFSET $2", isDeleted)
 	if requestQuery.ShopID != "" {
 		rows := strings.Split(rowQuery, " WHERE ")
 		rowQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
@@ -342,6 +343,7 @@ func GetProducts(c *gin.Context) {
 			&product.OldPrice,
 			&product.Code,
 			&product.BrendID,
+			&product.IsVisible,
 		); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return

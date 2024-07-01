@@ -31,7 +31,7 @@ func GetProductByID(c *gin.Context) {
 	db.QueryRow(context.Background(),
 		`SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.brend_id,s.id,s.name_tm,s.name_ru FROM products p 
 		INNER JOIN shops s ON s.id=p.shop_id
-		WHERE p.id=$1 AND p.deleted_at IS NULL`,
+		WHERE p.id=$1 AND p.deleted_at IS NULL AND p.is_visible=true`,
 		productID).Scan(
 		&product.ID,
 		&product.NameTM,
@@ -151,7 +151,7 @@ func GetProducts(c *gin.Context) {
 
 	if len(requestQuery.Categories) != 0 {
 		categoryJoinQuery = ` INNER JOIN category_products cp ON cp.product_id=p.id `
-		categoryQuery = ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND cp.deleted_at IS NULL AND `
+		categoryQuery = ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND p.is_visible=true AND cp.deleted_at IS NULL AND `
 		if requestQuery.Search != "" {
 			searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 		}
@@ -224,6 +224,7 @@ func GetSimilarProductsByProductID(c *gin.Context) {
 				AND c.deleted_at IS NULL 
 				AND p.deleted_at IS NULL 
 				AND cp.deleted_at IS NULL 
+				AND p.is_visible=true
 				ORDER BY p.created_at DESC LIMIT $2
 				`
 
@@ -278,7 +279,7 @@ func GetProductsByIDs(c *gin.Context) {
 	rows, err := db.Query(context.Background(),
 		`
 			SELECT id,name_tm,name_ru,price,old_price FROM products 
-			WHERE id = ANY($1) AND deleted_at IS NULL
+			WHERE id = ANY($1) AND deleted_at IS NULL AND is_visible=true
 		`,
 		pq.Array(productIDs))
 	if err != nil {

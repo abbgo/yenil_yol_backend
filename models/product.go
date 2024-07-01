@@ -29,6 +29,7 @@ type Product struct {
 	Image         null.String     `json:"image"`
 	Brend         BrendForProduct `json:"brend,omitempty"`
 	Shop          ShopForProduct  `json:"shop,omitempty"`
+	IsVisible     bool            `json:"is_visible,omitempty"`
 }
 
 type BrendForProduct struct {
