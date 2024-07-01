@@ -24,9 +24,10 @@ type Shop struct {
 	SlugRU      string      `json:"slug_ru,omitempty"`
 	ShopPhones  []string    `json:"phones,omitempty" binding:"required"`
 	// Categories  []string    `json:"categories,omitempty" binding:"required"`
-	OrderNumber  uint        `json:"order_number,omitempty"`
-	IsBrend      bool        `json:"is_brend"`
-	ParentShopID null.String `json:"parent_shop_id,omitempty"`
+	OrderNumber      uint        `json:"order_number,omitempty"`
+	IsBrend          bool        `json:"is_brend"`
+	IsShoppingCenter bool        `json:"is_shopping_center"`
+	ParentShopID     null.String `json:"parent_shop_id,omitempty"`
 }
 
 // shop - a degisli kategoriyalary ayyrsak
@@ -67,8 +68,9 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 	}
 
 	if shop.ParentShopID.String != "" {
-		if err := helpers.ValidateRecordByID("shops", shop.ParentShopID.String, "NULL", db); err != nil {
-			return err
+		var parentShopID string
+		if err := db.QueryRow(context.Background(), "SELECT id FROM shops WHERE deleted_at IS NULL AND is_shopping_center=true").Scan(&parentShopID); err != nil {
+			return errors.New("record not found")
 		}
 
 		// egerde shop - yn parenti bar bolsa onda shop awtomat parent shop - ynyn kordinatalaryny almaly

@@ -111,7 +111,7 @@ func GetShops(c *gin.Context) {
 	defer db.Close()
 
 	// database - den shop - lar alynyar
-	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL`
+	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL AND is_shopping_center=false`
 	if requestQuery.IsRandom {
 		queryRandom = ` ORDER BY RANDOM()`
 	}
@@ -221,7 +221,7 @@ func GetShopByIDs(c *gin.Context) {
 	rows, err := db.Query(context.Background(),
 		`
 			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image FROM shops 
-			WHERE id = ANY($1) AND deleted_at IS NULL
+			WHERE id = ANY($1) AND deleted_at IS NULL AND is_shopping_center=false
 		`,
 		pq.Array(shopIDs))
 	if err != nil {
