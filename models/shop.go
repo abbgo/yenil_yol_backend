@@ -66,6 +66,12 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 		return err
 	}
 
+	if shop.ParentShopID.String != "" {
+		if err := helpers.ValidateRecordByID("shops", shop.ParentShopID.String, "NULL", db); err != nil {
+			return err
+		}
+	}
+
 	// for _, v := range shop.Categories {
 	// 	if err := helpers.ValidateRecordByID("categories", v, "NULL", db); err != nil {
 	// 		return err
