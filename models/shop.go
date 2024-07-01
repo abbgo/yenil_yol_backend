@@ -24,8 +24,9 @@ type Shop struct {
 	SlugRU      string      `json:"slug_ru,omitempty"`
 	ShopPhones  []string    `json:"phones,omitempty" binding:"required"`
 	// Categories  []string    `json:"categories,omitempty" binding:"required"`
-	OrderNumber uint `json:"order_number,omitempty"`
-	IsBrend     bool `json:"is_brend"`
+	OrderNumber  uint        `json:"order_number,omitempty"`
+	IsBrend      bool        `json:"is_brend"`
+	ParentShopID null.String `json:"parent_shop_id,omitempty"`
 }
 
 // shop - a degisli kategoriyalary ayyrsak
