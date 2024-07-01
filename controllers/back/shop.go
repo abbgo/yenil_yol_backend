@@ -93,7 +93,7 @@ func UpdateShopByID(c *gin.Context) {
 		return
 	}
 
-	if err := helpers.ValidateShopOwnerByToken(c, db, shop.ShopOwnerID); err != nil {
+	if err := helpers.ValidateShopOwnerByToken(c, db, shop.ShopOwnerID.String); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}

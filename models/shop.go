@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 
@@ -19,7 +20,7 @@ type Shop struct {
 	Longitude   float64     `json:"longitude,omitempty" binding:"required"`
 	Image       null.String `json:"image,omitempty"`
 	HasShipping bool        `json:"has_shipping,omitempty"`
-	ShopOwnerID string      `json:"shop_owner_id,omitempty"`
+	ShopOwnerID null.String `json:"shop_owner_id,omitempty"`
 	SlugTM      string      `json:"slug_tm,omitempty"`
 	SlugRU      string      `json:"slug_ru,omitempty"`
 	ShopPhones  []string    `json:"phones,omitempty"`
@@ -50,29 +51,35 @@ type ShopForMapQuery struct {
 }
 
 func ValidateShop(shop Shop, isCreateFunction bool) error {
+	fmt.Println("=================================")
+	fmt.Println(shop)
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	// telefon belgiler barlanylyar
-	for _, v := range shop.ShopPhones {
-		if !helpers.ValidatePhoneNumber(v) {
-			return errors.New("invalid phone number")
-		}
-	}
-
-	if err := helpers.ValidateRecordByID("shop_owners", shop.ShopOwnerID, "NULL", db); err != nil {
-		return err
-	}
-
-	if !shop.IsShoppingCenter && shop.ShopOwnerID == "" {
+	if !shop.IsShoppingCenter && shop.ShopOwnerID.String == "" {
 		return errors.New("shop_owner_id is required")
 	}
 
 	if !shop.IsShoppingCenter && len(shop.ShopPhones) == 0 {
 		return errors.New("shop_phones is required")
+	}
+
+	// telefon belgiler barlanylyar
+	if len(shop.ShopPhones) != 0 {
+		for _, v := range shop.ShopPhones {
+			if !helpers.ValidatePhoneNumber(v) {
+				return errors.New("invalid phone number")
+			}
+		}
+	}
+
+	if shop.ShopOwnerID.String != "" {
+		if err := helpers.ValidateRecordByID("shop_owners", shop.ShopOwnerID.String, "NULL", db); err != nil {
+			return err
+		}
 	}
 
 	if shop.ParentShopID.String != "" {
