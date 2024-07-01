@@ -22,7 +22,7 @@ type Shop struct {
 	ShopOwnerID string      `json:"shop_owner_id,omitempty"`
 	SlugTM      string      `json:"slug_tm,omitempty"`
 	SlugRU      string      `json:"slug_ru,omitempty"`
-	ShopPhones  []string    `json:"phones,omitempty" binding:"required"`
+	ShopPhones  []string    `json:"phones,omitempty"`
 	// Categories  []string    `json:"categories,omitempty" binding:"required"`
 	OrderNumber      uint        `json:"order_number,omitempty"`
 	IsBrend          bool        `json:"is_brend"`
@@ -69,6 +69,10 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 
 	if !shop.IsShoppingCenter && shop.ShopOwnerID == "" {
 		return errors.New("shop_owner_id is required")
+	}
+
+	if !shop.IsShoppingCenter && len(shop.ShopPhones) == 0 {
+		return errors.New("shop_phones is required")
 	}
 
 	if shop.ParentShopID.String != "" {
