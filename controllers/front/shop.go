@@ -37,7 +37,7 @@ func GetShopsForMap(c *gin.Context) {
 	defer db.Close()
 
 	rowsShopQuery := fmt.Sprintf(`
-							SELECT id,name_tm,name_ru,latitude,longitude FROM shops 
+							SELECT id,name_tm,name_ru,latitude,longitude,is_shopping_center FROM shops 
 							WHERE 6371 * acos(
 										cos(radians(%f)) * cos(radians(latitude)) *
 										cos(radians(longitude) - radians(%f)) +
@@ -65,7 +65,7 @@ func GetShopsForMap(c *gin.Context) {
 	var shops []models.Shop
 	for rowsShop.Next() {
 		var shop models.Shop
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude); err != nil {
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shop.IsShoppingCenter); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
