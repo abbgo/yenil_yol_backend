@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 
@@ -38,10 +37,11 @@ type Shop struct {
 
 type ShopQuery struct {
 	helpers.StandartQuery
-	ShopOwnerID string `form:"shop_owner_id"`
-	IsRandom    bool   `form:"is_random"`
-	Search      string `form:"search"`
-	Lang        string `form:"lang"`
+	ShopOwnerID      string `form:"shop_owner_id"`
+	IsRandom         bool   `form:"is_random"`
+	Search           string `form:"search"`
+	Lang             string `form:"lang"`
+	IsShoppingCenter bool   `form:"is_shopping_center"`
 }
 
 type ShopForMapQuery struct {
@@ -51,8 +51,6 @@ type ShopForMapQuery struct {
 }
 
 func ValidateShop(shop Shop, isCreateFunction bool) error {
-	fmt.Println("=================================")
-	fmt.Println(shop)
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
