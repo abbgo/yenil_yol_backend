@@ -19,7 +19,7 @@ type Shop struct {
 	Longitude   float64     `json:"longitude,omitempty" binding:"required"`
 	Image       null.String `json:"image,omitempty"`
 	HasShipping bool        `json:"has_shipping,omitempty"`
-	ShopOwnerID string      `json:"shop_owner_id,omitempty" binding:"required"`
+	ShopOwnerID string      `json:"shop_owner_id,omitempty"`
 	SlugTM      string      `json:"slug_tm,omitempty"`
 	SlugRU      string      `json:"slug_ru,omitempty"`
 	ShopPhones  []string    `json:"phones,omitempty" binding:"required"`
@@ -65,6 +65,10 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 
 	if err := helpers.ValidateRecordByID("shop_owners", shop.ShopOwnerID, "NULL", db); err != nil {
 		return err
+	}
+
+	if !shop.IsShoppingCenter && shop.ShopOwnerID == "" {
+		return errors.New("shop_owner_id is required")
 	}
 
 	if shop.ParentShopID.String != "" {
