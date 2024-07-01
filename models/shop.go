@@ -71,6 +71,7 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 			return err
 		}
 
+		// egerde shop - yn parenti bar bolsa onda shop awtomat parent shop - ynyn kordinatalaryny almaly
 		if err := db.QueryRow(context.Background(), "SELECT latitude,longitude FROM shops WHERE id=$1 AND deleted_at IS NULL", shop.ParentShopID.String).Scan(&shop.Latitude, &shop.Longitude); err != nil {
 			return err
 		}
