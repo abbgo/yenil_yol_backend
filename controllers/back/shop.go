@@ -39,16 +39,21 @@ func CreateShop(c *gin.Context) {
 
 	// eger maglumatlar dogry bolsa onda shops tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
 	var shop_id string
-	if err = db.QueryRow(context.Background(), "INSERT INTO shops (name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_shipping,shop_owner_id,slug_tm,slug_ru,order_number,parent_shop_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id", shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, shop.Image, shop.HasShipping, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ParentShopID).Scan(&shop_id); err != nil {
+	if err = db.QueryRow(context.Background(),
+		"INSERT INTO shops (name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_shipping,shop_owner_id,slug_tm,slug_ru,order_number,parent_shop_id,is_shopping_center) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id",
+		shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, shop.Image, shop.HasShipping, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"), slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ParentShopID, shop.IsShoppingCenter).
+		Scan(&shop_id); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
-	// shop_phones tablisa maglumat gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO shop_phones (phone_number,shop_id) VALUES (unnest($1::varchar[]),$2)", pq.Array(shop.ShopPhones), shop_id)
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
+	// eger shop sowda merkezi dal bolsa shop_phones tablisa maglumat gosulyar
+	if len(shop.ShopPhones) != 0 {
+		_, err = db.Exec(context.Background(), "INSERT INTO shop_phones (phone_number,shop_id) VALUES (unnest($1::varchar[]),$2)", pq.Array(shop.ShopPhones), shop_id)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	// // shop_categories tablisa maglumat gosulyar
