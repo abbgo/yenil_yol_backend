@@ -216,6 +216,7 @@ func GetShops(c *gin.Context) {
 	var shops []models.Shop
 	isDeleted := "NULL"
 	selectedRows := "image"
+	var queryShopOwner, search, searchStr, querySearch string
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -239,6 +240,12 @@ func GetShops(c *gin.Context) {
 	// limit we page boyunca offset hasaplanyar
 	offset := shopQuery.Limit * (shopQuery.Page - 1)
 
+	if shopQuery.Search != "" {
+		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+		searchStr = fmt.Sprintf("%%%s%%", search)
+	}
+
 	// request - den gelen deleted statusa gora pozulan ya-da pozulmadyk maglumatlar alynmaly
 	if shopQuery.IsDeleted {
 		isDeleted = "NOT NULL"
@@ -251,15 +258,21 @@ func GetShops(c *gin.Context) {
 
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
 	rowQuery := fmt.Sprintf(
-		"SELECT id,name_tm,name_ru,%s FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+		`SELECT id,name_tm,name_ru,%s FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v`,
 		selectedRows, isDeleted, isShoppingCenter)
+
 	if shopQuery.ShopOwnerID != "" {
-		rows := strings.Split(rowQuery, " ORDER BY created_at DESC ")
-		rowQuery = fmt.Sprintf("%v AND shop_owner_id = '%v' %v %v", rows[0], shopQuery.ShopOwnerID, "ORDER BY created_at DESC ", rows[1])
+		queryShopOwner = fmt.Sprintf(` AND shop_owner_id = '%v'`, shopQuery.ShopOwnerID)
 	}
 
+	if shopQuery.Search != "" {
+		querySearch = fmt.Sprintf(` AND (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s')`, shopQuery.Lang, search, shopQuery.Lang, searchStr)
+	}
+
+	queryLimitOffset := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, shopQuery.Limit, offset)
+
 	// database - den shop - lar alynyar
-	rowsShop, err := db.Query(context.Background(), rowQuery, shopQuery.Limit, offset)
+	rowsShop, err := db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+queryLimitOffset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
