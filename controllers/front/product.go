@@ -80,21 +80,21 @@ func GetProductByID(c *gin.Context) {
 			productColor.Dimensions = append(productColor.Dimensions, dimension)
 		}
 
-		// sonra renke degisli suratlar alynyar
-		rowsImage, err := db.Query(context.Background(), "SELECT image FROM product_images WHERE product_color_id=$1 AND deleted_at IS NULL", productColor.ID)
-		if err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-		defer rowsColor.Close()
-		for rowsImage.Next() {
-			var image string
-			if err := rowsImage.Scan(&image); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
-			productColor.Images = append(productColor.Images, image)
-		}
+		// // sonra renke degisli suratlar alynyar
+		// rowsImage, err := db.Query(context.Background(), "SELECT image FROM product_images WHERE product_color_id=$1 AND deleted_at IS NULL", productColor.ID)
+		// if err != nil {
+		// 	helpers.HandleError(c, 400, err.Error())
+		// 	return
+		// }
+		// defer rowsColor.Close()
+		// for rowsImage.Next() {
+		// 	var image string
+		// 	if err := rowsImage.Scan(&image); err != nil {
+		// 		helpers.HandleError(c, 400, err.Error())
+		// 		return
+		// 	}
+		// 	productColor.Images = append(productColor.Images, image)
+		// }
 
 		product.ProductColors = append(product.ProductColors, productColor)
 	}
