@@ -8,7 +8,6 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
@@ -287,6 +286,7 @@ func GetProducts(c *gin.Context) {
 	var requestQuery models.ProductQuery
 	var products []models.Product
 	isDeleted := "NULL"
+	var searchQuery string
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -316,26 +316,28 @@ func GetProducts(c *gin.Context) {
 	}
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT p.id,p.name_tm,p.name_ru,p.is_visible FROM products p WHERE p.deleted_at IS %v ORDER BY p.created_at DESC LIMIT $1 OFFSET $2", isDeleted)
+	rowQuery := fmt.Sprintf(`SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.is_visible FROM products p WHERE p.deleted_at IS %v`, isDeleted)
+	orderQuery := fmt.Sprintf(` ORDER BY p.created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 	if requestQuery.ShopID != "" {
-		rows := strings.Split(rowQuery, " WHERE ")
-		rowQuery = fmt.Sprintf("%v WHERE p.shop_id='%v' AND %v ", rows[0], requestQuery.ShopID, rows[1])
+		searchQuery = fmt.Sprintf(` AND p.shop_id = '%v'`, requestQuery.ShopID)
 	}
 
 	// database - den brend - lar alynyar
-	rowsBrend, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
+	rowsProducts, err := db.Query(context.Background(), rowQuery+searchQuery+orderQuery)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
-	defer rowsBrend.Close()
+	defer rowsProducts.Close()
 
-	for rowsBrend.Next() {
+	for rowsProducts.Next() {
 		var product models.Product
-		if err := rowsBrend.Scan(
+		if err := rowsProducts.Scan(
 			&product.ID,
 			&product.NameTM,
 			&product.NameRU,
+			&product.Price,
+			&product.OldPrice,
 			&product.IsVisible,
 		); err != nil {
 			helpers.HandleError(c, 400, err.Error())
