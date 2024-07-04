@@ -52,6 +52,8 @@ func CreateProduct(c *gin.Context) {
 
 	// bu yerde harydyn renkleri we sol renklere degisli suratlar we razmerler gosulyar
 	for _, v := range product.ProductColors {
+		var resizedImages []string
+
 		var productColorID string
 		if err := db.QueryRow(context.Background(), "INSERT INTO product_colors (name,product_id) VALUES ($1,$2) RETURNING id", v.Name, product.ID).Scan(&productColorID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
@@ -65,8 +67,12 @@ func CreateProduct(c *gin.Context) {
 			return
 		}
 
+		for _, rm := range v.Images {
+			resizedImages = append(resizedImages, "assets/"+rm)
+		}
+
 		// bu yerde renke degisli suratlar gosulyar
-		_, err = db.Exec(context.Background(), "INSERT INTO product_images (product_color_id,image) VALUES ($1,unnest($2::varchar[]))", productColorID, pq.Array(v.Images))
+		_, err = db.Exec(context.Background(), "INSERT INTO product_images (product_color_id,image,resized_image) VALUES ($1,unnest($2::varchar[]),unnest($3::varchar[]))", productColorID, pq.Array(v.Images), pq.Array(resizedImages))
 		if err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
