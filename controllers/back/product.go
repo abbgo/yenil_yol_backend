@@ -187,16 +187,16 @@ func GetProductByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var product models.Product
-	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,code,brend_id,is_visible FROM products WHERE id = $1 AND deleted_at IS NULL", productID).Scan(
-		&product.ID,
-		&product.NameTM,
-		&product.NameRU,
-		&product.Price,
-		&product.OldPrice,
-		&product.Code,
-		&product.BrendID,
-		&product.IsVisible,
-	); err != nil {
+	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,code,brend_id,is_visible FROM products WHERE id = $1 AND deleted_at IS NULL", productID).
+		Scan(&product.ID,
+			&product.NameTM,
+			&product.NameRU,
+			&product.Price,
+			&product.OldPrice,
+			&product.Code,
+			&product.BrendID,
+			&product.IsVisible,
+		); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -343,6 +343,14 @@ func GetProducts(c *gin.Context) {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
+
+		if err := db.QueryRow(context.Background(),
+			`SELECT image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pc.order_number=1 AND pi.order_number=1`,
+			product.ID).Scan(&product.Image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
 		products = append(products, product)
 	}
 
