@@ -275,7 +275,6 @@ func GetProductByID(c *gin.Context) {
 
 func GetProducts(c *gin.Context) {
 	var requestQuery models.ProductQuery
-	var count uint
 	var products []models.Product
 	isDeleted := "NULL"
 
@@ -306,23 +305,11 @@ func GetProducts(c *gin.Context) {
 		isDeleted = "NOT NULL"
 	}
 
-	countQuery := fmt.Sprintf("SELECT COUNT(p.id) FROM products p WHERE p.deleted_at IS %v", isDeleted)
-	if requestQuery.ShopID != "" {
-		rows := strings.Split(countQuery, " WHERE ")
-		countQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
-	}
-
-	// database - den product - laryn sany alynyar
-	if err = db.QueryRow(context.Background(), countQuery).Scan(&count); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf("SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.code,p.brend_id,p.is_visible FROM products p WHERE p.deleted_at IS %v ORDER BY p.created_at DESC LIMIT $1 OFFSET $2", isDeleted)
+	rowQuery := fmt.Sprintf("SELECT p.id,p.name_tm,p.name_ru,p.is_visible FROM products p WHERE p.deleted_at IS %v ORDER BY p.created_at DESC LIMIT $1 OFFSET $2", isDeleted)
 	if requestQuery.ShopID != "" {
 		rows := strings.Split(rowQuery, " WHERE ")
-		rowQuery = fmt.Sprintf("%v INNER JOIN category_products cp ON cp.product_id=p.id INNER JOIN shop_categories sc ON sc.category_id=cp.category_id WHERE sc.shop_id='%v' AND sc.deleted_at IS %v AND cp.deleted_at IS %v AND %v ", rows[0], requestQuery.ShopID, isDeleted, isDeleted, rows[1])
+		rowQuery = fmt.Sprintf("%v WHERE p.shop_id='%v' AND %v ", rows[0], requestQuery.ShopID, rows[1])
 	}
 
 	// database - den brend - lar alynyar
@@ -339,10 +326,6 @@ func GetProducts(c *gin.Context) {
 			&product.ID,
 			&product.NameTM,
 			&product.NameRU,
-			&product.Price,
-			&product.OldPrice,
-			&product.Code,
-			&product.BrendID,
 			&product.IsVisible,
 		); err != nil {
 			helpers.HandleError(c, 400, err.Error())
@@ -354,7 +337,6 @@ func GetProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":   true,
 		"products": products,
-		"total":    count,
 	})
 }
 
