@@ -11,7 +11,7 @@ func LikeRoutes(front *gin.RouterGroup) {
 
 	likeRoutes := front.Group("/likes")
 	{
-		// AddOrRemoveSubscribe -> customer -e like gosmak ya-da pozmak ucin ulanylyar
+		// AddOrRemoveLike -> customer -e like gosmak ya-da pozmak ucin ulanylyar
 		// gosmak ucin request query - de status = true
 		// pozmak ucin request query - de status = false ugratmaly
 		// bu api - yn islemegi ucin customer token gerek

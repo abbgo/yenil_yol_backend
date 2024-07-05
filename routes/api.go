@@ -36,9 +36,6 @@ func Routes() *gin.Engine {
 		// bu route - ler halanlarym ucin doredilen rout - laryn toplumy
 		frontApi.LikeRoutes(front)
 
-		// bu route - ler subscribe ucin doredilen rout - laryn toplumy
-		frontApi.SubscribeRoutes(front)
-
 		// bu route - ler shop - lar ucin doredilen rout - laryn toplumy
 		frontApi.ShopRoutes(front)
 
