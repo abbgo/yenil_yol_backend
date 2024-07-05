@@ -59,13 +59,6 @@ func CreateShop(c *gin.Context) {
 		}
 	}
 
-	// // shop_categories tablisa maglumat gosulyar
-	// _, err = db.Exec(context.Background(), "INSERT INTO shop_categories (category_id,shop_id) VALUES (unnest($1::uuid[]),$2)", pq.Array(shop.Categories), shop_id)
-	// if err != nil {
-	// 	helpers.HandleError(c, 400, err.Error())
-	// 	return
-	// }
-
 	// shop - yn maglumatlary gosulandan sonra helper_images tablisa shop ucin gosulan surat pozulyar
 	if shop.Image.String != "" {
 		if err := DeleteImageFromDB(shop.Image.String); err != nil {
@@ -131,18 +124,6 @@ func UpdateShopByID(c *gin.Context) {
 		}
 	}
 
-	// // shop - a degisli onki kategoriyalar pozulyar we taze kategoriyalar gosulyar
-	// _, err = db.Exec(context.Background(), "DELETE FROM shop_categories WHERE shop_id = $1", shop.ID)
-	// if err != nil {
-	// 	helpers.HandleError(c, 400, err.Error())
-	// 	return
-	// }
-	// _, err = db.Exec(context.Background(), "INSERT INTO shop_categories (category_id,shop_id) VALUES (unnest($1::uuid[]),$2)", pq.Array(shop.Categories), shop.ID)
-	// if err != nil {
-	// 	helpers.HandleError(c, 400, err.Error())
-	// 	return
-	// }
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully updated",
@@ -192,23 +173,6 @@ func GetShopByID(c *gin.Context) {
 		}
 		shop.ShopPhones = append(shop.ShopPhones, phoneNumber)
 	}
-
-	// // shop_id boyunca shop_category - lar cekilyar
-	// rowsShopCategory, err := db.Query(context.Background(), "SELECT category_id FROM shop_categories WHERE shop_id=$1 AND deleted_at IS NULL", shop.ID)
-	// if err != nil {
-	// 	helpers.HandleError(c, 400, err.Error())
-	// 	return
-	// }
-	// defer rowsShopCategory.Close()
-
-	// for rowsShopCategory.Next() {
-	// 	var categoryID string
-	// 	if err := rowsShopCategory.Scan(&categoryID); err != nil {
-	// 		helpers.HandleError(c, 400, err.Error())
-	// 		return
-	// 	}
-	// 	shop.Categories = append(shop.Categories, categoryID)
-	// }
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,

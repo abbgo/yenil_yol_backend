@@ -10,20 +10,19 @@ import (
 )
 
 type Shop struct {
-	ID          string      `json:"id,omitempty"`
-	NameTM      string      `json:"name_tm,omitempty" binding:"required"`
-	NameRU      string      `json:"name_ru,omitempty" binding:"required"`
-	AddressTM   string      `json:"address_tm,omitempty" binding:"required"`
-	AddressRU   string      `json:"address_ru,omitempty" binding:"required"`
-	Latitude    float64     `json:"latitude,omitempty" binding:"required"`
-	Longitude   float64     `json:"longitude,omitempty" binding:"required"`
-	Image       null.String `json:"image,omitempty"`
-	HasShipping bool        `json:"has_shipping,omitempty"`
-	ShopOwnerID null.String `json:"shop_owner_id,omitempty"`
-	SlugTM      string      `json:"slug_tm,omitempty"`
-	SlugRU      string      `json:"slug_ru,omitempty"`
-	ShopPhones  []string    `json:"phones,omitempty"`
-	// Categories  []string    `json:"categories,omitempty" binding:"required"`
+	ID               string      `json:"id,omitempty"`
+	NameTM           string      `json:"name_tm,omitempty" binding:"required"`
+	NameRU           string      `json:"name_ru,omitempty" binding:"required"`
+	AddressTM        string      `json:"address_tm,omitempty" binding:"required"`
+	AddressRU        string      `json:"address_ru,omitempty" binding:"required"`
+	Latitude         float64     `json:"latitude,omitempty" binding:"required"`
+	Longitude        float64     `json:"longitude,omitempty" binding:"required"`
+	Image            null.String `json:"image,omitempty"`
+	HasShipping      bool        `json:"has_shipping,omitempty"`
+	ShopOwnerID      null.String `json:"shop_owner_id,omitempty"`
+	SlugTM           string      `json:"slug_tm,omitempty"`
+	SlugRU           string      `json:"slug_ru,omitempty"`
+	ShopPhones       []string    `json:"phones,omitempty"`
 	OrderNumber      uint        `json:"order_number,omitempty"`
 	IsBrend          bool        `json:"is_brend"`
 	IsShoppingCenter bool        `json:"is_shopping_center"`
@@ -101,12 +100,6 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 			return errors.New("record not found")
 		}
 	}
-
-	// for _, v := range shop.Categories {
-	// 	if err := helpers.ValidateRecordByID("categories", v, "NULL", db); err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	if shop.OrderNumber != 0 {
 		if isCreateFunction {

@@ -96,7 +96,10 @@ func ValidateProduct(product Product, isCreateFunction bool) (productCode string
 
 	// haryt kot generate edilyar
 	var categoryName, shopName string
-	db.QueryRow(context.Background(), "SELECT c.name_tm,s.name_tm FROM categories c INNER JOIN shop_categories sc ON sc.category_id=c.id INNER JOIN shops s ON s.id=sc.shop_id WHERE c.id=ANY($1) AND c.parent_category_id IS NULL AND c.deleted_at IS NULL AND sc.deleted_at IS NULL AND s.deleted_at IS NULL", pq.Array(product.Categories)).Scan(&categoryName, &shopName)
+	db.QueryRow(context.Background(),
+		`SELECT name_tm FROM categories WHERE id=ANY($1) AND parent_category_id IS NULL AND deleted_at IS NULL`,
+		pq.Array(product.Categories)).Scan(&categoryName)
+	db.QueryRow(context.Background(), `SELECT name_tm FROM shops WHERE id=$1 AND deleted_at IS NULL`, product.ShopID).Scan(&shopName)
 	code := strings.ToUpper(slug.MakeLang(shopName, "en")[:2]) + strings.ToUpper(slug.MakeLang(categoryName, "en")[:2]) + helpers.GenerateRandomCode()
 
 	if !isCreateFunction {
