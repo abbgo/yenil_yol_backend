@@ -7,6 +7,7 @@ import (
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
+	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 	"os"
 	"strings"
@@ -181,7 +182,7 @@ func GetShopByID(c *gin.Context) {
 }
 
 func GetShops(c *gin.Context) {
-	var shopQuery models.ShopQuery
+	var shopQuery serializations.ShopQuery
 	var shops []models.Shop
 	isDeleted := "NULL"
 	selectedRows := "image"

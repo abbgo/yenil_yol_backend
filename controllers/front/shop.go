@@ -6,6 +6,7 @@ import (
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
+	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 	"strings"
 
@@ -15,7 +16,7 @@ import (
 )
 
 func GetShopsForMap(c *gin.Context) {
-	var requestQuery models.ShopForMapQuery
+	var requestQuery serializations.ShopForMapQuery
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -79,7 +80,7 @@ func GetShopsForMap(c *gin.Context) {
 }
 
 func GetShops(c *gin.Context) {
-	var requestQuery models.ShopQuery
+	var requestQuery serializations.ShopQuery
 	var search, searchStr, queryRandom, querySearch string
 
 	// request query - den maglumatlar bind edilyar
