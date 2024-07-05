@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
@@ -34,5 +33,4 @@ func main() {
 	if err := r.Run(":" + os.Getenv("PROJECT_RUN_PORT")); err != nil {
 		log.Fatal(err)
 	}
-
 }

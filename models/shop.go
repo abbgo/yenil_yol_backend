@@ -29,11 +29,6 @@ type Shop struct {
 	ParentShopID     null.String `json:"parent_shop_id,omitempty"`
 }
 
-// shop - a degisli kategoriyalary ayyrsak
-// kategoriya dine harytda gorkezsek
-// we magazyna girende sona degisli kategoriyalary harytlaryndan alyp gorkezsek
-// we kategoriyanyn ustune basanda shop_id - e gorade alsak kategoriyany
-
 type ShopQuery struct {
 	helpers.StandartQuery
 	ShopOwnerID      string `form:"shop_owner_id"`
