@@ -287,7 +287,7 @@ func GetProducts(c *gin.Context) {
 	var requestQuery serializations.ProductQuery
 	var products []serializations.GetProductsForBack
 	isDeleted := "NULL"
-	var searchQuery string
+	var shopQuery string
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -320,11 +320,11 @@ func GetProducts(c *gin.Context) {
 	rowQuery := fmt.Sprintf(`SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.is_visible FROM products p WHERE p.deleted_at IS %v`, isDeleted)
 	orderQuery := fmt.Sprintf(` ORDER BY p.created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 	if requestQuery.ShopID != "" {
-		searchQuery = fmt.Sprintf(` AND p.shop_id = '%v'`, requestQuery.ShopID)
+		shopQuery = fmt.Sprintf(` AND p.shop_id = '%v'`, requestQuery.ShopID)
 	}
 
 	// database - den brend - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), rowQuery+searchQuery+orderQuery)
+	rowsProducts, err := db.Query(context.Background(), rowQuery+shopQuery+orderQuery)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

@@ -2,11 +2,14 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
+	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
@@ -112,9 +115,10 @@ func GetBrendByID(c *gin.Context) {
 }
 
 func GetBrends(c *gin.Context) {
-	var requestQuery helpers.StandartQuery
-	var countOfBrends uint
+	var requestQuery serializations.BrendQuery
 	var brends []models.Brend
+	isDeleted := "NULL"
+	var search, searchStr, searchQuery string
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -135,27 +139,34 @@ func GetBrends(c *gin.Context) {
 		return
 	}
 
+	// request - den gelen deleted statusa gora pozulan ya-da pozulmadyk maglumatlar alynmaly
+	if requestQuery.IsDeleted {
+		isDeleted = "NOT NULL"
+	}
+
 	// limit we page boyunca offset hasaplanyar
 	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
-	// request query - den status - a gora brend - leryn sanyny almak ucin query yazylyar
-	queryCount := `SELECT COUNT(id) FROM brends WHERE deleted_at IS NULL`
-	if requestQuery.IsDeleted {
-		queryCount = `SELECT COUNT(id) FROM brends WHERE deleted_at IS NOT NULL`
-	}
-	// database - den brend - laryn sany alynyar
-	if err = db.QueryRow(context.Background(), queryCount).Scan(&countOfBrends); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
+	if requestQuery.Search != "" {
+		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+		searchStr = fmt.Sprintf("%%%s%%", search)
 	}
 
 	// request query - den status - a gora brend - lary almak ucin query yazylyar
-	rowQuery := `SELECT id,name,image FROM brends WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	if requestQuery.IsDeleted {
-		rowQuery = `SELECT id,name,image FROM brends WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	rowQuery := fmt.Sprintf(`SELECT id,name,image FROM brends WHERE deleted_at IS %v`, isDeleted)
+	orderQuery := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
+
+	if requestQuery.Search != "" {
+		searchQuery = fmt.Sprintf(` AND (to_tsvector(slug) @@ to_tsquery('%s') OR slug LIKE '%s')`, search, searchStr)
 	}
+
+	// rowQuery := `SELECT id,name,image FROM brends WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	// if requestQuery.IsDeleted {
+	// 	rowQuery = `SELECT id,name,image FROM brends WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	// }
 	// database - den brend - lar alynyar
-	rowsBrend, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
+	rowsBrend, err := db.Query(context.Background(), rowQuery+searchQuery+orderQuery)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -173,8 +184,7 @@ func GetBrends(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
-		"brens":  brends,
-		"total":  countOfBrends,
+		"brends": brends,
 	})
 }
 
