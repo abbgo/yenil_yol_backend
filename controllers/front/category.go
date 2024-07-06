@@ -33,7 +33,8 @@ func GetCategoriesShopID(c *gin.Context) {
 		AND c.deleted_at IS NULL 
 		AND cp.deleted_at IS NULL 
 		AND p.deleted_at IS NULL`,
-		shopID)
+		shopID,
+	)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
