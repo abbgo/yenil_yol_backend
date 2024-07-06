@@ -6,6 +6,7 @@ import (
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
+	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 	"os"
 
@@ -283,7 +284,7 @@ func GetProductByID(c *gin.Context) {
 }
 
 func GetProducts(c *gin.Context) {
-	var requestQuery models.ProductQuery
+	var requestQuery serializations.ProductQuery
 	var products []models.Product
 	isDeleted := "NULL"
 	var searchQuery string

@@ -6,6 +6,7 @@ import (
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
+	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 	"strings"
 
@@ -27,7 +28,7 @@ func GetProductByID(c *gin.Context) {
 	productID := c.Param("id")
 
 	// request - dan gelen id boyunca haryt alynyar
-	var product models.Product
+	var product serializations.GetProducts
 	db.QueryRow(context.Background(),
 		`SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.brend_id,s.id,s.name_tm,s.name_ru FROM products p 
 		INNER JOIN shops s ON s.id=p.shop_id
@@ -107,7 +108,7 @@ func GetProductByID(c *gin.Context) {
 
 func GetProducts(c *gin.Context) {
 	var products []models.Product
-	requestQuery := models.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
+	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr string
 
 	// request query - den maglumatlar bind edilyar
@@ -194,7 +195,7 @@ func GetProducts(c *gin.Context) {
 
 func GetSimilarProductsByProductID(c *gin.Context) {
 	var products []models.Product
-	requestQuery := models.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
+	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
