@@ -28,7 +28,7 @@ func GetProductByID(c *gin.Context) {
 	productID := c.Param("id")
 
 	// request - dan gelen id boyunca haryt alynyar
-	var product serializations.GetProducts
+	var product serializations.GetProductsForFront
 	db.QueryRow(context.Background(),
 		`SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.brend_id,s.id,s.name_tm,s.name_ru FROM products p 
 		INNER JOIN shops s ON s.id=p.shop_id

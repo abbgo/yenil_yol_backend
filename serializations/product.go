@@ -7,7 +7,17 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-type GetProducts struct {
+type GetProductsForBack struct {
+	ID        string      `json:"id,omitempty"`
+	NameTM    string      `json:"name_tm,omitempty"`
+	NameRU    string      `json:"name_ru,omitempty"`
+	Price     float32     `json:"price,omitempty"`
+	OldPrice  null.Float  `json:"old_price,omitempty"`
+	Image     null.String `json:"image"`
+	IsVisible bool        `json:"is_visible,omitempty"`
+}
+
+type GetProductsForFront struct {
 	ID            string                `json:"id,omitempty"`
 	NameTM        string                `json:"name_tm,omitempty" binding:"required"`
 	NameRU        string                `json:"name_ru,omitempty" binding:"required"`

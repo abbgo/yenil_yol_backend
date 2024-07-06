@@ -285,7 +285,7 @@ func GetProductByID(c *gin.Context) {
 
 func GetProducts(c *gin.Context) {
 	var requestQuery serializations.ProductQuery
-	var products []models.Product
+	var products []serializations.GetProductsForBack
 	isDeleted := "NULL"
 	var searchQuery string
 
@@ -332,7 +332,7 @@ func GetProducts(c *gin.Context) {
 	defer rowsProducts.Close()
 
 	for rowsProducts.Next() {
-		var product models.Product
+		var product serializations.GetProductsForBack
 		if err := rowsProducts.Scan(
 			&product.ID,
 			&product.NameTM,
