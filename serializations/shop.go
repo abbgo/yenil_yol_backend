@@ -43,4 +43,10 @@ type GetShop struct {
 	HasShipping bool        `json:"has_shipping,omitempty"`
 	ShopOwnerID null.String `json:"shop_owner_id,omitempty"`
 	ShopPhones  []string    `json:"phones,omitempty"`
+	ParentShop  ParentShop  `json:"parent_shop,omitempty"`
+}
+
+type ParentShop struct {
+	NameTM string `json:"name_tm,omitempty" binding:"required"`
+	NameRU string `json:"name_ru,omitempty" binding:"required"`
 }
