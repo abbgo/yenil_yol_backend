@@ -48,6 +48,6 @@ type GetShop struct {
 }
 
 type ParentShop struct {
-	NameTM string `json:"name_tm,omitempty"`
-	NameRU string `json:"name_ru,omitempty"`
+	NameTM string `json:"name_tm"`
+	NameRU string `json:"name_ru"`
 }
