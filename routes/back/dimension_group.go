@@ -21,7 +21,7 @@ func DimensionGroupRoutes(back *gin.RouterGroup) {
 
 		// GetDimensionGroups -> Ahli DimensionGroup - laryn maglumatlaryny request query - den gelen
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
-		backDimensionGroupApi.GET("", controllers.GetDimensionGroups)
+		backDimensionGroupApi.GET("", controllers.GetDimensionGroupsWithDimensions)
 
 		// DeleteDimensionGroupByID -> id boyunca DimensionGroup - y korzina salmak ucin ulanylyar
 		backDimensionGroupApi.DELETE(":id", controllers.DeleteDimensionGroupByID)

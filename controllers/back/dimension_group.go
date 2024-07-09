@@ -101,8 +101,7 @@ func GetDimensionGroupByID(c *gin.Context) {
 	})
 }
 
-func GetDimensionGroups(c *gin.Context) {
-	var count uint
+func GetDimensionGroupsWithDimensions(c *gin.Context) {
 	var dimensionGroups []models.DimensionGroup
 	var requestQuery helpers.StandartQuery
 
@@ -127,16 +126,6 @@ func GetDimensionGroups(c *gin.Context) {
 
 	// query - den gelyan limit we page boyunca databasede ulanyljak offset hasaplanyar
 	offset := requestQuery.Limit * (requestQuery.Page - 1)
-
-	// request query - den status - a gora dimension_group - laryn sanyny almak ucin query yazylyar
-	queryCount := `SELECT COUNT(id) FROM dimension_groups WHERE deleted_at IS NULL`
-	if requestQuery.IsDeleted {
-		queryCount = `SELECT COUNT(id) FROM dimension_groups WHERE deleted_at IS NOT NULL`
-	}
-	if err = db.QueryRow(context.Background(), queryCount).Scan(&count); err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
 
 	// request query - den status - a gora dimension_group - lary almak ucin query yazylyar
 	rowQuery := `SELECT id,name FROM dimension_groups WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
@@ -163,7 +152,6 @@ func GetDimensionGroups(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":           true,
 		"dimension_groups": dimensionGroups,
-		"total":            count,
 	})
 }
 
