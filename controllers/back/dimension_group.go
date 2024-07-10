@@ -151,7 +151,7 @@ func GetDimensionGroupsWithDimensions(c *gin.Context) {
 			return
 		}
 
-		rowsDimensions, err := db.Query(context.Background(), `SELECT id,dimension FROM dimensions WHERE id=$1 AND deleted_at IS NULL`, dimensionGroup.ID)
+		rowsDimensions, err := db.Query(context.Background(), `SELECT id,dimension FROM dimensions WHERE dimension_group_id=$1 AND deleted_at IS NULL`, dimensionGroup.ID)
 		if err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
