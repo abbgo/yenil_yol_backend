@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
@@ -104,6 +105,7 @@ func GetDimensionGroupByID(c *gin.Context) {
 func GetDimensionGroupsWithDimensions(c *gin.Context) {
 	var dimensionGroups []models.DimensionGroup
 	var requestQuery helpers.StandartQuery
+	var IsDeleted = "NULL"
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -124,16 +126,18 @@ func GetDimensionGroupsWithDimensions(c *gin.Context) {
 		return
 	}
 
+	if requestQuery.IsDeleted {
+		IsDeleted = "NOT NULL"
+	}
+
 	// query - den gelyan limit we page boyunca databasede ulanyljak offset hasaplanyar
 	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
 	// request query - den status - a gora dimension_group - lary almak ucin query yazylyar
-	rowQuery := `SELECT id,name FROM dimension_groups WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	if requestQuery.IsDeleted {
-		rowQuery = `SELECT id,name FROM dimension_groups WHERE deleted_at IS NOT NULL ORDER BY created_at DESC LIMIT $1 OFFSET $2`
-	}
+	rowQuery := fmt.Sprintf(`SELECT id,name FROM dimension_groups WHERE deleted_at IS %s ORDER BY created_at DESC LIMIT %v OFFSET %v`, IsDeleted, requestQuery.Limit, offset)
+
 	// database - den brend - lar alynyar
-	rows, err := db.Query(context.Background(), rowQuery, requestQuery.Limit, offset)
+	rows, err := db.Query(context.Background(), rowQuery)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -145,6 +149,22 @@ func GetDimensionGroupsWithDimensions(c *gin.Context) {
 		if err := rows.Scan(&dimensionGroup.ID, &dimensionGroup.Name); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
+		}
+
+		rowsDimensions, err := db.Query(context.Background(), `SELECT id,dimension FROM dimensions WHERE id=$1 AND deleted_at IS NULL`, dimensionGroup.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsDimensions.Close()
+
+		for rowsDimensions.Next() {
+			var dimension models.Dimension
+			if err := rowsDimensions.Scan(&dimension.ID, &dimension.Dimension); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			dimensionGroup.Dimensions = append(dimensionGroup.Dimensions, dimension)
 		}
 		dimensionGroups = append(dimensionGroups, dimensionGroup)
 	}
