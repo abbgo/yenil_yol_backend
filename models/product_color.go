@@ -8,7 +8,7 @@ type ProductColor struct {
 	ProductID   string         `json:"product_id,omitempty"`
 	Images      []ProductImage `json:"images,omitempty" binding:"required"`
 	Dimensions  []string       `json:"dimensions,omitempty" binding:"required"`
-	OrderNumber int8           `json:"order_number,omitempty"`
+	OrderNumber int8           `json:"order_number,omitempty" binding:"required"`
 }
 
 type ProductDimension struct {
