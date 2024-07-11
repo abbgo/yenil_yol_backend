@@ -38,7 +38,11 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	// eger maglumatlar dogry bolsa onda products tablisa maglumatlar gosulyar we yzyna id return edilyar
-	if err := db.QueryRow(context.Background(), "INSERT INTO products (name_tm,name_ru,price,old_price,code,slug_tm,slug_ru,brend_id,is_visible) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id", product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID, product.IsVisible).Scan(&product.ID); err != nil {
+	if err := db.QueryRow(context.Background(),
+		`INSERT INTO products (name_tm,name_ru,price,old_price,code,slug_tm,slug_ru,brend_id,is_visible,shop_id) 
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+		product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"),
+		slug.MakeLang(product.NameRU, "en"), product.BrendID, product.IsVisible, product.ShopID).Scan(&product.ID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -53,20 +57,23 @@ func CreateProduct(c *gin.Context) {
 	// bu yerde harydyn renkleri we sol renklere degisli suratlar we razmerler gosulyar
 	for _, v := range product.ProductColors {
 		var productColorID string
-		if err := db.QueryRow(context.Background(), "INSERT INTO product_colors (name,product_id) VALUES ($1,$2) RETURNING id", v.Name, product.ID).Scan(&productColorID); err != nil {
+		if err := db.QueryRow(context.Background(),
+			`INSERT INTO product_colors (name,product_id,order_number) VALUES ($1,$2,$3) RETURNING id`,
+			v.Name, product.ID, v.OrderNumber).Scan(&productColorID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		// renk gosulandan sonra sol renke degisli razmerler gosulyar
-		_, err := db.Exec(context.Background(), "INSERT INTO product_dimensions (product_color_id,dimension_id) VALUES ($1,unnest($2::uuid[]))", productColorID, pq.Array(v.Dimensions))
+		_, err := db.Exec(context.Background(),
+			`INSERT INTO product_dimensions (product_color_id,dimension_id) VALUES ($1,unnest($2::uuid[]))`,
+			productColorID, pq.Array(v.Dimensions))
 		if err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		for _, image := range v.Images {
-			// resizedImages = append(resizedImages, "assets/"+rm)
 			// bu yerde renke degisli suratlar gosulyar
 			_, err = db.Exec(context.Background(),
 				"INSERT INTO product_images (product_color_id,image,resized_image,order_number) VALUES ($1,$2,$3,$4)",
