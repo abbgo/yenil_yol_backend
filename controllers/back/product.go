@@ -220,7 +220,12 @@ func GetProductByID(c *gin.Context) {
 	}
 
 	// haryda degisli category - lar alynyar
-	rowsCategory, err := db.Query(context.Background(), "SELECT category_id FROM category_products WHERE product_id=$1 AND deleted_at IS NULL", productID)
+	rowsCategory, err := db.Query(
+		context.Background(),
+		`SELECT c.id,c.name_tm,c.name_ru FROM categories c 
+		INNER JOIN category_products cp ON cp.category_id=c.id 
+		WHERE cp.product_id=$1 AND cp.deleted_at IS NULL AND c.deleted_at IS NULL`,
+		productID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -228,12 +233,12 @@ func GetProductByID(c *gin.Context) {
 	defer rowsCategory.Close()
 
 	for rowsCategory.Next() {
-		var categoryID string
-		if err := rowsCategory.Scan(&categoryID); err != nil {
+		var category serializations.GetCategories
+		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
-		product.Categories = append(product.Categories, categoryID)
+		product.Categories = append(product.Categories, category)
 	}
 
 	// haryda degisli renkler , razmerler we suratlar alynyar
