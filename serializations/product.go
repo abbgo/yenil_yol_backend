@@ -7,6 +7,20 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
+type GetProductForBack struct {
+	ID            string                `json:"id,omitempty"`
+	NameTM        string                `json:"name_tm,omitempty"`
+	NameRU        string                `json:"name_ru,omitempty"`
+	Price         float32               `json:"price,omitempty"`
+	OldPrice      null.Float            `json:"old_price,omitempty"`
+	ShopID        string                `json:"shop_id,omitempty"`
+	Categories    []string              `json:"categories,omitempty"`
+	ProductColors []models.ProductColor `json:"product_colors,omitempty"`
+	IsVisible     bool                  `json:"is_visible,omitempty"`
+	Brend         BrendForProduct       `json:"brend,omitempty"`
+	BrendID       null.String           `json:"-"`
+}
+
 type GetProductsForBack struct {
 	ID        string      `json:"id,omitempty"`
 	NameTM    string      `json:"name_tm,omitempty"`
@@ -19,18 +33,18 @@ type GetProductsForBack struct {
 
 type GetProductsForFront struct {
 	ID            string                `json:"id,omitempty"`
-	NameTM        string                `json:"name_tm,omitempty" binding:"required"`
-	NameRU        string                `json:"name_ru,omitempty" binding:"required"`
-	Price         float32               `json:"price,omitempty" binding:"required"`
+	NameTM        string                `json:"name_tm,omitempty"`
+	NameRU        string                `json:"name_ru,omitempty"`
+	Price         float32               `json:"price,omitempty"`
 	OldPrice      null.Float            `json:"old_price,omitempty"`
 	Code          string                `json:"code,omitempty"`
 	SlugTM        string                `json:"slug_tm,omitempty"`
 	SlugRU        string                `json:"slug_ru,omitempty"`
 	BrendID       null.String           `json:"brend_id,omitempty"`
-	ShopID        string                `json:"shop_id,omitempty" binding:"required"`
+	ShopID        string                `json:"shop_id,omitempty"`
 	Dimensions    []string              `json:"dimensions,omitempty"`
-	Categories    []string              `json:"categories,omitempty" binding:"required"`
-	ProductColors []models.ProductColor `json:"product_colors,omitempty" binding:"required"`
+	Categories    []string              `json:"categories,omitempty"`
+	ProductColors []models.ProductColor `json:"product_colors,omitempty"`
 	Image         null.String           `json:"image"`
 	Brend         BrendForProduct       `json:"brend,omitempty"`
 	Shop          ShopForProduct        `json:"shop,omitempty"`
@@ -39,7 +53,7 @@ type GetProductsForFront struct {
 
 type BrendForProduct struct {
 	ID    string `json:"id,omitempty"`
-	Name  string `json:"name"`
+	Name  string `json:"name,omitempty"`
 	Image string `json:"image,omitempty"`
 	Slug  string `json:"slug,omitempty"`
 }

@@ -194,7 +194,7 @@ func GetProductByID(c *gin.Context) {
 	productID := c.Param("id")
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
-	var product models.Product
+	var product serializations.GetProductForBack
 	if err := db.QueryRow(context.Background(),
 		`SELECT id,name_tm,name_ru,price,old_price,brend_id,is_visible FROM products WHERE id = $1 AND deleted_at IS NULL`,
 		productID).
@@ -209,6 +209,14 @@ func GetProductByID(c *gin.Context) {
 		); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
+	}
+
+	if product.BrendID.String != "" {
+		if err := db.QueryRow(context.Background(), `SELECT id,name FROM brends WHERE id=$1`, product.BrendID.String).
+			Scan(&product.Brend.ID, &product.Brend.Name); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	// haryda degisli category - lar alynyar
