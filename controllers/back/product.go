@@ -195,13 +195,15 @@ func GetProductByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var product models.Product
-	if err := db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,price,old_price,code,brend_id,is_visible FROM products WHERE id = $1 AND deleted_at IS NULL", productID).
-		Scan(&product.ID,
+	if err := db.QueryRow(context.Background(),
+		`SELECT id,name_tm,name_ru,price,old_price,brend_id,is_visible FROM products WHERE id = $1 AND deleted_at IS NULL`,
+		productID).
+		Scan(
+			&product.ID,
 			&product.NameTM,
 			&product.NameRU,
 			&product.Price,
 			&product.OldPrice,
-			&product.Code,
 			&product.BrendID,
 			&product.IsVisible,
 		); err != nil {
@@ -227,7 +229,9 @@ func GetProductByID(c *gin.Context) {
 	}
 
 	// haryda degisli renkler , razmerler we suratlar alynyar
-	rowsColor, err := db.Query(context.Background(), "SELECT id,name FROM product_colors WHERE product_id=$1 AND deleted_at IS NULL", productID)
+	rowsColor, err := db.Query(context.Background(),
+		`SELECT name,order_number FROM product_colors WHERE product_id=$1 AND deleted_at IS NULL`,
+		productID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -236,7 +240,7 @@ func GetProductByID(c *gin.Context) {
 
 	for rowsColor.Next() {
 		var productColor models.ProductColor
-		if err := rowsColor.Scan(&productColor.ID, &productColor.Name); err != nil {
+		if err := rowsColor.Scan(&productColor.Name, &productColor.OrderNumber); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
@@ -258,22 +262,22 @@ func GetProductByID(c *gin.Context) {
 			productColor.Dimensions = append(productColor.Dimensions, dimension)
 		}
 
-		// // renk alynandan son sol renke degisli suratlar alynyar
-		// rowsImage, err := db.Query(context.Background(), "SELECT image FROM product_images WHERE product_color_id=$1 AND deleted_at IS NULL", productColor.ID)
-		// if err != nil {
-		// 	helpers.HandleError(c, 400, err.Error())
-		// 	return
-		// }
-		// defer rowsImage.Close()
+		// renk alynandan son sol renke degisli suratlar alynyar
+		rowsImage, err := db.Query(context.Background(), "SELECT image FROM product_images WHERE product_color_id=$1 AND deleted_at IS NULL", productColor.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsImage.Close()
 
-		// for rowsImage.Next() {
-		// 	var image string
-		// 	if err := rowsImage.Scan(&image); err != nil {
-		// 		helpers.HandleError(c, 400, err.Error())
-		// 		return
-		// 	}
-		// 	productColor.Images = append(productColor.Images, image)
-		// }
+		for rowsImage.Next() {
+			var image models.ProductImage
+			if err := rowsImage.Scan(&image); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			productColor.Images = append(productColor.Images, image)
+		}
 
 		product.ProductColors = append(product.ProductColors, productColor)
 	}
