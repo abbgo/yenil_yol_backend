@@ -15,7 +15,7 @@ type GetProductForBack struct {
 	OldPrice      null.Float            `json:"old_price,omitempty"`
 	ShopID        string                `json:"shop_id,omitempty"`
 	Categories    []GetCategories       `json:"categories,omitempty"`
-	ProductColors []models.ProductColor `json:"product_colors,omitempty"`
+	ProductColors []ProductColorForBack `json:"product_colors,omitempty"`
 	IsVisible     bool                  `json:"is_visible,omitempty"`
 	Brend         BrendForProduct       `json:"brend,omitempty"`
 	BrendID       null.String           `json:"-"`

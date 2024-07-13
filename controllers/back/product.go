@@ -252,14 +252,19 @@ func GetProductByID(c *gin.Context) {
 	defer rowsColor.Close()
 
 	for rowsColor.Next() {
-		var productColor models.ProductColor
+		var productColor serializations.ProductColorForBack
 		if err := rowsColor.Scan(&productColor.ID, &productColor.Name, &productColor.OrderNumber); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		// renk alynandan son sol renke degisli razmerler alynyar
-		rowsDimension, err := db.Query(context.Background(), "SELECT dimension_id FROM product_dimensions WHERE product_color_id=$1 AND deleted_at IS NULL", productColor.ID)
+		rowsDimension, err := db.Query(context.Background(),
+			`SELECT d.id,d.dimension FROM dimensions d 
+			INNER JOIN product_dimensions pd ON pd.dimension_id=d.id 
+			WHERE pd.product_color_id=$1 
+			AND pd.deleted_at IS NULL AND d.deleted_at IS NULL`,
+			productColor.ID)
 		if err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
@@ -267,8 +272,8 @@ func GetProductByID(c *gin.Context) {
 		defer rowsDimension.Close()
 
 		for rowsDimension.Next() {
-			var dimension string
-			if err := rowsDimension.Scan(&dimension); err != nil {
+			var dimension models.Dimension
+			if err := rowsDimension.Scan(&dimension.ID, &dimension.Dimension); err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
