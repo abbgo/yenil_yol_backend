@@ -16,7 +16,7 @@ import (
 func GetCategories(c *gin.Context) {
 	var categories []serializations.GetCategories
 	requestQuery := serializations.CategoryQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
-	var searchQuery, search, searchStr string
+	var searchQuery, search, searchStr, parentCategoryQuery string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -46,19 +46,31 @@ func GetCategories(c *gin.Context) {
 	}
 	defer db.Close()
 
+	orderByQuery := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
+
 	if requestQuery.Search != "" {
-		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+	} else {
+		parentCategoryQuery = `AND parent_category_id IS NULL`
 	}
 
-	rowQuery := `SELECT id,name_tm,name_ru FROM categories WHERE deleted_at IS NULL AND parent_category_id IS NULL`
+	rowQuery := fmt.Sprintf(`SELECT id,name_tm,name_ru FROM categories WHERE deleted_at IS NULL %s %s %s`, parentCategoryQuery, searchQuery, orderByQuery)
 	if requestQuery.ShopID != "" {
+		orderByQuery = fmt.Sprintf(` ORDER BY c.created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
+
+		if requestQuery.Search != "" {
+			searchQuery = fmt.Sprintf(` %s (to_tsvector(c.slug_%s) @@ to_tsquery('%s') OR c.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		} else {
+			parentCategoryQuery = `AND c.parent_category_id IS NULL`
+		}
+
 		rowQuery = fmt.Sprintf(`SELECT DISTINCT ON (c.id) c.id,c.name_tm,c.name_ru FROM categories c
 		INNER JOIN category_products cp ON cp.category_id=c.id
 		INNER JOIN products p ON p.id=cp.product_id
-		WHERE p.shop_id='%s' AND c.parent_category_id IS NULL 
+		WHERE p.shop_id='%s' %s 
 		AND c.deleted_at IS NULL 
 		AND cp.deleted_at IS NULL 
-		AND p.deleted_at IS NULL`, requestQuery.ShopID)
+		AND p.deleted_at IS NULL %s %s`, requestQuery.ShopID, parentCategoryQuery, searchQuery, orderByQuery)
 	}
 
 	// shop - a degisli category - ler alynyar
