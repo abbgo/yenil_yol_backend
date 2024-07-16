@@ -4,6 +4,7 @@ import "gopkg.in/guregu/null.v4"
 
 type CategoryQuery struct {
 	ShopID string `form:"shop_id"`
+	Search string `form:"search"`
 }
 
 type GetCategories struct {
