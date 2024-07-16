@@ -1,10 +1,16 @@
 package serializations
 
-import "gopkg.in/guregu/null.v4"
+import (
+	"github/abbgo/yenil_yol/backend/helpers"
+
+	"gopkg.in/guregu/null.v4"
+)
 
 type CategoryQuery struct {
+	helpers.StandartQuery
 	ShopID string `form:"shop_id"`
 	Search string `form:"search"`
+	Lang   string `form:"lang"`
 }
 
 type GetCategories struct {

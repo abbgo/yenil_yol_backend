@@ -7,13 +7,16 @@ import (
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 )
 
 func GetCategories(c *gin.Context) {
 	var categories []serializations.GetCategories
-	var requestQuery serializations.CategoryQuery
+	requestQuery := serializations.CategoryQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
+	var searchQuery, search, searchStr string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -26,6 +29,15 @@ func GetCategories(c *gin.Context) {
 		return
 	}
 
+	// limit we page boyunca offset hasaplanyar
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
+	if requestQuery.Search != "" {
+		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+		searchStr = fmt.Sprintf("%%%s%%", search)
+	}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -33,6 +45,10 @@ func GetCategories(c *gin.Context) {
 		return
 	}
 	defer db.Close()
+
+	if requestQuery.Search != "" {
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+	}
 
 	rowQuery := `SELECT id,name_tm,name_ru FROM categories WHERE deleted_at IS NULL AND parent_category_id IS NULL`
 	if requestQuery.ShopID != "" {
