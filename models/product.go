@@ -72,7 +72,8 @@ func ValidateProduct(product Product, isCreateFunction bool) (productCode string
 
 	// haryt kot generate edilyar
 	var categoryName, shopName string
-	db.QueryRow(context.Background(),
+	db.QueryRow(
+		context.Background(),
 		`SELECT name_tm FROM categories WHERE id=ANY($1) AND parent_category_id IS NULL AND deleted_at IS NULL`,
 		pq.Array(product.Categories)).Scan(&categoryName)
 	db.QueryRow(context.Background(), `SELECT name_tm FROM shops WHERE id=$1 AND deleted_at IS NULL`, product.ShopID).Scan(&shopName)

@@ -57,7 +57,8 @@ func CreateProduct(c *gin.Context) {
 	// bu yerde harydyn renkleri we sol renklere degisli suratlar we razmerler gosulyar
 	for _, v := range product.ProductColors {
 		var productColorID string
-		if err := db.QueryRow(context.Background(),
+		if err := db.QueryRow(
+			context.Background(),
 			`INSERT INTO product_colors (name,product_id,order_number) VALUES ($1,$2,$3) RETURNING id`,
 			v.Name, product.ID, v.OrderNumber).Scan(&productColorID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
@@ -65,7 +66,8 @@ func CreateProduct(c *gin.Context) {
 		}
 
 		// renk gosulandan sonra sol renke degisli razmerler gosulyar
-		_, err := db.Exec(context.Background(),
+		_, err := db.Exec(
+			context.Background(),
 			`INSERT INTO product_dimensions (product_color_id,dimension_id) VALUES ($1,unnest($2::uuid[]))`,
 			productColorID, pq.Array(v.Dimensions))
 		if err != nil {
@@ -75,7 +77,8 @@ func CreateProduct(c *gin.Context) {
 
 		for _, image := range v.Images {
 			// bu yerde renke degisli suratlar gosulyar
-			_, err = db.Exec(context.Background(),
+			_, err = db.Exec(
+				context.Background(),
 				"INSERT INTO product_images (product_color_id,image,resized_image,order_number) VALUES ($1,$2,$3,$4)",
 				productColorID, image.Image, "assets/"+image.Image, image.OrderNumber)
 			if err != nil {
@@ -114,7 +117,12 @@ func UpdateProductByID(c *gin.Context) {
 	}
 
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE products SET name_tm=$1 , name_ru=$2 , price=$3 , old_price=$4 , code=$5 , slug_tm=$6 , slug_ru=$7 , brend_id=$8 , is_visible=$9 WHERE id=$10", product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"), product.BrendID, product.IsVisible, product.ID)
+	_, err = db.Exec(
+		context.Background(),
+		`UPDATE products SET name_tm=$1 , name_ru=$2 , price=$3 , old_price=$4 , code=$5 , 
+		slug_tm=$6 , slug_ru=$7 , brend_id=$8 , is_visible=$9 , shop_id=$10 WHERE id=$11`,
+		product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"),
+		product.BrendID, product.IsVisible, product.ShopID, product.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -150,23 +158,30 @@ func UpdateProductByID(c *gin.Context) {
 	}
 	for _, v := range product.ProductColors {
 		var productColorID string
-		if err := db.QueryRow(context.Background(), "INSERT INTO product_colors (name,product_id) VALUES ($1,$2) RETURNING id", v.Name, product.ID).Scan(&productColorID); err != nil {
+		if err := db.QueryRow(
+			context.Background(),
+			`INSERT INTO product_colors (name,product_id,order_number) VALUES ($1,$2,$3) RETURNING id`,
+			v.Name, product.ID, v.OrderNumber).
+			Scan(&productColorID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		// renk gosulandan sonra sol renke degisli razmerler gosulyar
-		_, err := db.Exec(context.Background(), "INSERT INTO product_dimensions (product_color_id,dimension_id) VALUES ($1,unnest($2::uuid[]))", productColorID, pq.Array(v.Dimensions))
+		_, err := db.Exec(
+			context.Background(),
+			`INSERT INTO product_dimensions (product_color_id,dimension_id) VALUES ($1,unnest($2::uuid[]))`,
+			productColorID, pq.Array(v.Dimensions))
 		if err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		for _, image := range v.Images {
-			// resizedImages = append(resizedImages, "assets/"+rm)
 			// bu yerde renke degisli suratlar gosulyar
 			_, err = db.Exec(context.Background(),
-				"INSERT INTO product_images (product_color_id,image,resized_image,order_number) VALUES ($1,$2,$3,$4)",
+				`INSERT INTO product_images (product_color_id,image,resized_image,order_number) 
+				VALUES ($1,$2,$3,$4)`,
 				productColorID, image.Image, "assets/"+image.Image, image.OrderNumber)
 			if err != nil {
 				helpers.HandleError(c, 400, err.Error())
