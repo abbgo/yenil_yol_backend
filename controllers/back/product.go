@@ -9,6 +9,7 @@ import (
 	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
@@ -332,7 +333,7 @@ func GetProducts(c *gin.Context) {
 	var requestQuery serializations.ProductQuery
 	var products []serializations.GetProductsForBack
 	isDeleted := "NULL"
-	var shopQuery string
+	var shopQuery, searchQuery, search, searchStr string
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -356,6 +357,12 @@ func GetProducts(c *gin.Context) {
 	// limit we page boyunca offset hasaplanyar
 	offset := requestQuery.Limit * (requestQuery.Page - 1)
 
+	if requestQuery.Search != "" {
+		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+		searchStr = fmt.Sprintf("%%%s%%", search)
+	}
+
 	// request - den gelen deleted statusa gora pozulan ya-da pozulmadyk maglumatlar alynmaly
 	if requestQuery.IsDeleted {
 		isDeleted = "NOT NULL"
@@ -368,8 +375,12 @@ func GetProducts(c *gin.Context) {
 		shopQuery = fmt.Sprintf(` AND p.shop_id = '%v'`, requestQuery.ShopID)
 	}
 
+	if requestQuery.Search != "" {
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+	}
+
 	// database - den brend - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), rowQuery+shopQuery+orderQuery)
+	rowsProducts, err := db.Query(context.Background(), rowQuery+shopQuery+searchQuery+orderQuery)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -396,7 +407,6 @@ func GetProducts(c *gin.Context) {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
-
 		products = append(products, product)
 	}
 
