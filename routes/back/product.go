@@ -23,6 +23,10 @@ func ProductRoutes(back *gin.RouterGroup) {
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		backProductApi.GET("", controllers.GetProducts)
 
+		// GetCountOfProducts -> Ahli Product - leryn sanyny request query - den gelen
+		// maglumatlar boyunca boyunca filterlap beryar
+		backProductApi.GET("count", controllers.GetCountOfProducts)
+
 		// DeleteProductByID -> id boyunca product - y korzina salmak ucin ulanylyar
 		backProductApi.DELETE(":id", controllers.DeleteProductByID)
 

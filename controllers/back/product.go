@@ -416,6 +416,64 @@ func GetProducts(c *gin.Context) {
 	})
 }
 
+func GetCountOfProducts(c *gin.Context) {
+	var requestQuery serializations.ProductQuery
+	isDeleted := "NULL"
+	var shopQuery, searchQuery, search, searchStr string
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	if requestQuery.Search != "" {
+		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+		searchStr = fmt.Sprintf("%%%s%%", search)
+	}
+
+	// request - den gelen deleted statusa gora pozulan ya-da pozulmadyk maglumatlar alynmaly
+	if requestQuery.IsDeleted {
+		isDeleted = "NOT NULL"
+	}
+
+	// request query - den status - a gora product - lary almak ucin query yazylyar
+	rowQuery := fmt.Sprintf(`SELECT COUNT(p.id) FROM products p WHERE p.deleted_at IS %v`, isDeleted)
+	if requestQuery.ShopID != "" {
+		shopQuery = fmt.Sprintf(` AND p.shop_id = '%v'`, requestQuery.ShopID)
+	}
+
+	if requestQuery.Search != "" {
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+	}
+
+	// database - den brend - lar alynyar
+	var count uint
+	if err := db.QueryRow(context.Background(), rowQuery+shopQuery+searchQuery).Scan(&count); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true,
+		"count":  count,
+	})
+}
+
 func DeleteProductByID(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
