@@ -145,8 +145,10 @@ func GetShopByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca shop - yn maglumatlary cekilyar
 	var shop serializations.GetShop
-	if err := db.QueryRow(context.Background(),
-		"SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_shipping,shop_owner_id,parent_shop_id FROM shops WHERE id = $1 AND deleted_at IS NULL",
+	if err := db.QueryRow(
+		context.Background(),
+		`SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_shipping,shop_owner_id,parent_shop_id 
+		FROM shops WHERE id = $1 AND deleted_at IS NULL`,
 		shopID).
 		Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU,
 			&shop.Latitude, &shop.Longitude, &shop.Image,
@@ -180,8 +182,8 @@ func GetShopByID(c *gin.Context) {
 
 	if shop.ParentShopID.String != "" {
 		var parentShop serializations.ParentShop
-		if err := db.QueryRow(context.Background(), `SELECT name_tm,name_ru FROM shops WHERE id=$1`, shop.ParentShopID.String).
-			Scan(&parentShop.NameTM, &parentShop.NameRU); err != nil {
+		if err := db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru FROM shops WHERE id=$1`, shop.ParentShopID.String).
+			Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
