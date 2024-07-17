@@ -72,3 +72,10 @@ type ProductQuery struct {
 	Search     string   `form:"search"`
 	Lang       string   `form:"lang"`
 }
+
+type ProductCountQuery struct {
+	IsDeleted bool   `form:"is_deleted"`
+	ShopID    string `form:"shop_id"`
+	Search    string `form:"search"`
+	Lang      string `form:"lang"`
+}

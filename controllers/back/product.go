@@ -417,7 +417,7 @@ func GetProducts(c *gin.Context) {
 }
 
 func GetCountOfProducts(c *gin.Context) {
-	var requestQuery serializations.ProductQuery
+	var requestQuery serializations.ProductCountQuery
 	isDeleted := "NULL"
 	var shopQuery, searchQuery, search, searchStr string
 
