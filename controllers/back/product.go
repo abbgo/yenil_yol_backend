@@ -547,7 +547,9 @@ func DeletePermanentlyProductByID(c *gin.Context) {
 		return
 	}
 
-	rows, err := db.Query(context.Background(), "SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 GROUP BY pi.image", ID)
+	rows, err := db.Query(context.Background(),
+		`SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 GROUP BY pi.image`,
+		ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
