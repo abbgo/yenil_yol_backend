@@ -144,12 +144,12 @@ func GetProducts(c *gin.Context) {
 	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
 
 	if requestQuery.ShopID != "" {
-		isVisibleQuery = ""
 		shopWhereQuery = fmt.Sprintf(` p.shop_id='%s' `, requestQuery.ShopID)
 	}
 
 	if requestQuery.Search != "" {
-		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE AND p.is_visible=true`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		isVisibleQuery = ""
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE p.is_visible=true AND `, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
 	if len(requestQuery.Categories) != 0 {
@@ -278,7 +278,6 @@ func GetProductsByIDs(c *gin.Context) {
 
 	// request parametrden product id - ler alynyar
 	productIDs := c.QueryArray("ids")
-	fmt.Println(productIDs)
 
 	// database - den request parametr - den gelen id - ler boyunca maglumat cekilyar
 	var products []models.Product
@@ -298,8 +297,6 @@ func GetProductsByIDs(c *gin.Context) {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
-
-		fmt.Println(product.ID)
 
 		// haryda degisli yekeje surat alyas
 		db.QueryRow(
