@@ -140,7 +140,7 @@ func GetProducts(c *gin.Context) {
 	defer db.Close()
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	defaultQuery := `SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
+	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
 
 	if requestQuery.ShopID != "" {
 		shopWhereQuery = fmt.Sprintf(` p.shop_id='%s' `, requestQuery.ShopID)
@@ -159,11 +159,11 @@ func GetProducts(c *gin.Context) {
 	}
 
 	// product - lar alynyar
-	rowsProducts, errRows := db.Query(context.Background(), defaultQuery+searchQuery+` GROUP BY p.id ORDER BY RANDOM() LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
+	rowsProducts, errRows := db.Query(context.Background(), defaultQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	if len(requestQuery.Categories) != 0 {
 		rowsProducts, errRows = db.Query(
 			context.Background(),
-			defaultQuery+categoryJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+searchQuery+` GROUP BY p.id ORDER BY RANDOM() LIMIT $2 OFFSET $3`,
+			defaultQuery+categoryJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
 			pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	}
 
