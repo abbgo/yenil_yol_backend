@@ -26,7 +26,7 @@ type Product struct {
 	Dimensions    []string       `json:"dimensions,omitempty"`
 	Categories    []string       `json:"categories,omitempty" binding:"required"`
 	ProductColors []ProductColor `json:"product_colors,omitempty" binding:"required"`
-	Image         null.String    `json:"image"`
+	Image         null.String    `json:"image,omitempty"`
 	IsVisible     bool           `json:"is_visible,omitempty"`
 }
 

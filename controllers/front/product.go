@@ -159,12 +159,13 @@ func GetProducts(c *gin.Context) {
 	}
 
 	// product - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), defaultQuery+searchQuery+`ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
+	rowsProducts, errRows := db.Query(context.Background(), defaultQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	if len(requestQuery.Categories) != 0 {
-		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+searchQuery+`ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+		rowsProducts, errRows = db.Query(context.Background(), defaultQuery+categoryJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	}
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
+
+	if errRows != nil {
+		helpers.HandleError(c, 400, errRows.Error())
 		return
 	}
 	for rowsProducts.Next() {
@@ -175,14 +176,12 @@ func GetProducts(c *gin.Context) {
 		}
 
 		// haryda degisli yekeje surat alyas
-		if err := db.QueryRow(context.Background(), `
+		db.QueryRow(
+			context.Background(), `
 								SELECT pi.resized_image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
 								WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1
 							`,
-			product.ID).Scan(&product.Image); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
+			product.ID).Scan(&product.Image)
 
 		products = append(products, product)
 	}
