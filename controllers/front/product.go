@@ -110,6 +110,7 @@ func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr string
+	isVisibleQuery := ` WHERE p.is_visible=true `
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -143,11 +144,12 @@ func GetProducts(c *gin.Context) {
 	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
 
 	if requestQuery.ShopID != "" {
+		isVisibleQuery = ""
 		shopWhereQuery = fmt.Sprintf(` p.shop_id='%s' `, requestQuery.ShopID)
 	}
 
 	if requestQuery.Search != "" {
-		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE AND p.is_visible=true`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
 	if len(requestQuery.Categories) != 0 {
@@ -159,11 +161,11 @@ func GetProducts(c *gin.Context) {
 	}
 
 	// product - lar alynyar
-	rowsProducts, errRows := db.Query(context.Background(), defaultQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
+	rowsProducts, errRows := db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	if len(requestQuery.Categories) != 0 {
 		rowsProducts, errRows = db.Query(
 			context.Background(),
-			defaultQuery+categoryJoinQuery+` WHERE `+categoryQuery+shopWhereQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
+			defaultQuery+categoryJoinQuery+isVisibleQuery+categoryQuery+shopWhereQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`,
 			pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	}
 
@@ -276,6 +278,7 @@ func GetProductsByIDs(c *gin.Context) {
 
 	// request parametrden product id - ler alynyar
 	productIDs := c.QueryArray("ids")
+	fmt.Println(productIDs)
 
 	// database - den request parametr - den gelen id - ler boyunca maglumat cekilyar
 	var products []models.Product
@@ -296,15 +299,16 @@ func GetProductsByIDs(c *gin.Context) {
 			return
 		}
 
+		fmt.Println(product.ID)
+
 		// haryda degisli yekeje surat alyas
-		if err := db.QueryRow(context.Background(), `
-								SELECT pi.image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
+		db.QueryRow(
+			context.Background(), `
+								SELECT pi.resized_image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
 								WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1
 							`,
-			product.ID).Scan(&product.Image); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
+			product.ID).Scan(&product.Image)
+
 		products = append(products, product)
 	}
 
@@ -312,5 +316,4 @@ func GetProductsByIDs(c *gin.Context) {
 		"status":   true,
 		"products": products,
 	})
-
 }
