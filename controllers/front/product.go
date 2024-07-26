@@ -144,7 +144,7 @@ func GetProducts(c *gin.Context) {
 	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
 
 	if requestQuery.ShopID != "" {
-		shopWhereQuery = fmt.Sprintf(` p.shop_id='%s' `, requestQuery.ShopID)
+		shopWhereQuery = fmt.Sprintf(` AND p.shop_id='%s' `, requestQuery.ShopID)
 	}
 
 	if requestQuery.Search != "" {
@@ -154,14 +154,14 @@ func GetProducts(c *gin.Context) {
 
 	if len(requestQuery.Categories) != 0 {
 		categoryJoinQuery = ` INNER JOIN category_products cp ON cp.product_id=p.id `
-		categoryQuery = ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND p.is_visible=true AND cp.deleted_at IS NULL AND `
+		categoryQuery = ` cp.category_id=ANY($1) AND p.deleted_at IS NULL AND p.is_visible=true AND cp.deleted_at IS NULL `
 		if requestQuery.Search != "" {
 			searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 		}
 	}
 
 	// product - lar alynyar
-	rowsProducts, errRows := db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
+	rowsProducts, errRows := db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+shopWhereQuery+` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	if len(requestQuery.Categories) != 0 {
 		rowsProducts, errRows = db.Query(
 			context.Background(),

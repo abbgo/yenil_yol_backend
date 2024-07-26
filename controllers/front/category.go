@@ -64,13 +64,15 @@ func GetCategories(c *gin.Context) {
 			parentCategoryQuery = `AND c.parent_category_id IS NULL`
 		}
 
-		rowQuery = fmt.Sprintf(`SELECT DISTINCT ON (c.id) c.id,c.name_tm,c.name_ru FROM categories c
-		INNER JOIN category_products cp ON cp.category_id=c.id
-		INNER JOIN products p ON p.id=cp.product_id
-		WHERE p.shop_id='%s' %s 
-		AND c.deleted_at IS NULL 
-		AND cp.deleted_at IS NULL 
-		AND p.deleted_at IS NULL %s %s`, requestQuery.ShopID, parentCategoryQuery, searchQuery, orderByQuery)
+		rowQuery = fmt.Sprintf(
+			`SELECT DISTINCT ON (c.id,c.created_at) c.id,c.name_tm,c.name_ru FROM categories c
+			INNER JOIN category_products cp ON cp.category_id=c.id
+			INNER JOIN products p ON p.id=cp.product_id
+			WHERE p.shop_id='%s' %s 
+			AND c.deleted_at IS NULL 
+			AND cp.deleted_at IS NULL 
+			AND p.deleted_at IS NULL %s %s`,
+			requestQuery.ShopID, parentCategoryQuery, searchQuery, orderByQuery)
 	}
 
 	// shop - a degisli category - ler alynyar
