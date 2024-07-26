@@ -302,7 +302,7 @@ func GetProductsByIDs(c *gin.Context) {
 		db.QueryRow(
 			context.Background(), `
 								SELECT pi.resized_image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
-								WHERE pc.product_id=$1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL LIMIT 1
+								WHERE pc.product_id=$1 AND pc.order_number=1 AND pi.order_number=1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL
 							`,
 			product.ID).Scan(&product.Image)
 
