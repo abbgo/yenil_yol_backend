@@ -161,7 +161,7 @@ func GetSimilarProductsByProductID(c *gin.Context) {
 			`SELECT pi.image FROM product_images pi 
 			INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
 			WHERE pc.product_id=$1 AND pi.deleted_at IS NULL 
-			AND pc.deleted_at IS NULL LIMIT 1`,
+			AND pc.deleted_at IS NULL AND pi.order_number=1 AND pc.order_number=1`,
 			product.ID).Scan(&product.Image); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
