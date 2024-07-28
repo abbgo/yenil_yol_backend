@@ -222,10 +222,10 @@ func GetShopByIDs(c *gin.Context) {
 	shopIDs := c.QueryArray("ids")
 
 	// database - den request parametr - den gelen id - ler boyunca maglumat cekilyar
-	var shops []models.Shop
+	var shops []serializations.GetShop
 	rows, err := db.Query(context.Background(),
 		`
-			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image FROM shops 
+			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image,parent_shop_id FROM shops 
 			WHERE id = ANY($1) AND deleted_at IS NULL AND is_shopping_center=false
 		`,
 		pq.Array(shopIDs))
@@ -235,11 +235,20 @@ func GetShopByIDs(c *gin.Context) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var shop models.Shop
-		if err := rows.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image); err != nil {
+		var shop serializations.GetShop
+		if err := rows.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.ParentShopID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
+
+		if shop.ParentShopID.String != "" {
+			var parentShop serializations.ParentShop
+			db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru,is_shopping_center FROM shops WHERE id=$1`, shop.ParentShopID.String).
+				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU, &parentShop.IsShoppingCenter)
+
+			shop.ParentShop = parentShop
+		}
+
 		shops = append(shops, shop)
 	}
 

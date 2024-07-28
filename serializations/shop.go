@@ -24,22 +24,22 @@ type ShopForMapQuery struct {
 
 type GetShops struct {
 	ID          string      `json:"id,omitempty"`
-	NameTM      string      `json:"name_tm,omitempty" binding:"required"`
-	NameRU      string      `json:"name_ru,omitempty" binding:"required"`
-	Latitude    float64     `json:"latitude,omitempty" binding:"required"`
-	Longitude   float64     `json:"longitude,omitempty" binding:"required"`
+	NameTM      string      `json:"name_tm,omitempty"`
+	NameRU      string      `json:"name_ru,omitempty"`
+	Latitude    float64     `json:"latitude,omitempty"`
+	Longitude   float64     `json:"longitude,omitempty"`
 	Image       null.String `json:"image,omitempty"`
 	HasShipping bool        `json:"has_shipping"`
 }
 
 type GetShop struct {
 	ID           string      `json:"id,omitempty"`
-	NameTM       string      `json:"name_tm,omitempty" binding:"required"`
-	NameRU       string      `json:"name_ru,omitempty" binding:"required"`
-	AddressTM    string      `json:"address_tm,omitempty" binding:"required"`
-	AddressRU    string      `json:"address_ru,omitempty" binding:"required"`
-	Latitude     float64     `json:"latitude,omitempty" binding:"required"`
-	Longitude    float64     `json:"longitude,omitempty" binding:"required"`
+	NameTM       string      `json:"name_tm,omitempty"`
+	NameRU       string      `json:"name_ru,omitempty"`
+	AddressTM    string      `json:"address_tm,omitempty"`
+	AddressRU    string      `json:"address_ru,omitempty"`
+	Latitude     float64     `json:"latitude,omitempty"`
+	Longitude    float64     `json:"longitude,omitempty"`
 	Image        null.String `json:"image,omitempty"`
 	HasShipping  bool        `json:"has_shipping,omitempty"`
 	ShopOwnerID  null.String `json:"shop_owner_id,omitempty"`
@@ -49,7 +49,8 @@ type GetShop struct {
 }
 
 type ParentShop struct {
-	ID     string `json:"id"`
-	NameTM string `json:"name_tm"`
-	NameRU string `json:"name_ru"`
+	ID               string `json:"id,omitempty"`
+	NameTM           string `json:"name_tm,omitempty"`
+	NameRU           string `json:"name_ru,omitempty"`
+	IsShoppingCenter string `json:"is_shopping_center,omitempty"`
 }
