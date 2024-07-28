@@ -81,7 +81,7 @@ func GetShopsForMap(c *gin.Context) {
 
 func GetShops(c *gin.Context) {
 	var requestQuery serializations.ShopQuery
-	var search, searchStr, queryRandom, querySearch string
+	var search, searchStr, queryRandom, querySearch, parentShopIDQuery string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -103,6 +103,10 @@ func GetShops(c *gin.Context) {
 		searchStr = fmt.Sprintf("%%%s%%", search)
 	}
 
+	if requestQuery.ParentShopID != "" {
+		parentShopIDQuery = fmt.Sprintf(` AND parent_shop_id='%s'`, requestQuery.ParentShopID)
+	}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -121,7 +125,7 @@ func GetShops(c *gin.Context) {
 	}
 	queryLimitOffset := fmt.Sprintf(` LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 
-	rowsShop, err := db.Query(context.Background(), queryDefault+querySearch+queryRandom+queryLimitOffset)
+	rowsShop, err := db.Query(context.Background(), queryDefault+parentShopIDQuery+querySearch+queryRandom+queryLimitOffset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
