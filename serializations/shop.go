@@ -13,6 +13,7 @@ type ShopQuery struct {
 	Search           string `form:"search"`
 	Lang             string `form:"lang"`
 	IsShoppingCenter bool   `form:"is_shopping_center"`
+	ParentShopID     string `form:"parent_shop_id"`
 }
 
 type ShopForMapQuery struct {
