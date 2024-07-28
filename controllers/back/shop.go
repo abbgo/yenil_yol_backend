@@ -107,12 +107,19 @@ func UpdateShopByID(c *gin.Context) {
 		return
 	}
 
+	var resizedImage interface{}
+	if shop.Image.String == "" {
+		resizedImage = nil
+	} else {
+		resizedImage = "assets/" + shop.Image.String
+	}
+
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
 	_, err = db.Exec(context.Background(),
 		`UPDATE shops SET name_tm=$1 , name_ru=$2 , address_tm=$3 , address_ru=$4 , latitude=$5 , longitude=$6 , image=$7 , has_shipping=$8 , shop_owner_id=$9 , slug_tm=$10 , slug_ru=$11 , 
 		order_number=$12 , parent_shop_id=$13 , is_shopping_center=$14 , resized_image=$15 WHERE id=$16`,
 		shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, shop.Image, shop.HasShipping, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"),
-		slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ParentShopID, shop.IsShoppingCenter, "assets/"+shop.Image.String, shop.ID)
+		slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ParentShopID, shop.IsShoppingCenter, resizedImage, shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
