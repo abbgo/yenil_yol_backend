@@ -117,7 +117,11 @@ func GetShops(c *gin.Context) {
 	defer db.Close()
 
 	// database - den shop - lar alynyar
-	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru FROM shops WHERE deleted_at IS NULL AND is_shopping_center=false`
+	queryDefault := fmt.Sprintf(
+		`SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru FROM shops WHERE 
+		deleted_at IS NULL AND (is_shopping_center=false OR is_shopping_center=%v`,
+		requestQuery.IsShoppingCenter)
+
 	if requestQuery.IsRandom {
 		queryRandom = ` ORDER BY RANDOM()`
 	}
