@@ -118,7 +118,7 @@ func GetShops(c *gin.Context) {
 
 	// database - den shop - lar alynyar
 	queryDefault := fmt.Sprintf(
-		`SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru FROM shops WHERE 
+		`SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru,parent_shop_id FROM shops WHERE 
 		deleted_at IS NULL AND (is_shopping_center=false OR is_shopping_center=%v)`,
 		requestQuery.IsShoppingCenter)
 
@@ -137,12 +137,21 @@ func GetShops(c *gin.Context) {
 	}
 	defer rowsShop.Close()
 
-	var shops []models.Shop
+	var shops []serializations.GetShop
 	for rowsShop.Next() {
-		var shop models.Shop
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.AddressTM, &shop.AddressRU); err != nil {
+		var shop serializations.GetShop
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.AddressTM, &shop.AddressRU, &shop.ParentShopID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
+		}
+
+		// eger shop - yn parent shop - y bar bolsa onda sol alynyar
+		if shop.ParentShopID.String != "" {
+			var parentShop serializations.ParentShop
+			db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru,is_shopping_center FROM shops WHERE id=$1`, shop.ParentShopID.String).
+				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU, &parentShop.IsShoppingCenter)
+
+			shop.ParentShop = parentShop
 		}
 
 		rowsShopPhones, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
@@ -160,7 +169,6 @@ func GetShops(c *gin.Context) {
 			}
 			shop.ShopPhones = append(shop.ShopPhones, phoneNumber)
 		}
-
 		shops = append(shops, shop)
 	}
 
