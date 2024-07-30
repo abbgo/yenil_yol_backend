@@ -118,7 +118,7 @@ func GetShops(c *gin.Context) {
 
 	// database - den shop - lar alynyar
 	queryDefault := fmt.Sprintf(
-		`SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru,parent_shop_id FROM shops WHERE 
+		`SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru,parent_shop_id,is_shopping_center FROM shops WHERE 
 		deleted_at IS NULL AND (is_shopping_center=false OR is_shopping_center=%v)`,
 		requestQuery.IsShoppingCenter)
 
@@ -140,7 +140,8 @@ func GetShops(c *gin.Context) {
 	var shops []serializations.GetShop
 	for rowsShop.Next() {
 		var shop serializations.GetShop
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.AddressTM, &shop.AddressRU, &shop.ParentShopID); err != nil {
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shop.Image,
+			&shop.AddressTM, &shop.AddressRU, &shop.ParentShopID, &shop.IsShoppingCenter); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
