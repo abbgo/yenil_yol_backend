@@ -81,7 +81,8 @@ func GetShopsForMap(c *gin.Context) {
 
 func GetShops(c *gin.Context) {
 	var requestQuery serializations.ShopQuery
-	var search, searchStr, queryRandom, querySearch, parentShopIDQuery string
+	var search, searchStr, querySearch, parentShopIDQuery string
+	queryRandom := ` ORDER BY created_at DESC`
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -116,7 +117,7 @@ func GetShops(c *gin.Context) {
 	defer db.Close()
 
 	// database - den shop - lar alynyar
-	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru,is_brend FROM shops WHERE deleted_at IS NULL AND is_shopping_center=false`
+	queryDefault := `SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru FROM shops WHERE deleted_at IS NULL AND is_shopping_center=false`
 	if requestQuery.IsRandom {
 		queryRandom = ` ORDER BY RANDOM()`
 	}
@@ -135,7 +136,7 @@ func GetShops(c *gin.Context) {
 	var shops []models.Shop
 	for rowsShop.Next() {
 		var shop models.Shop
-		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.AddressTM, &shop.AddressRU, &shop.IsBrend); err != nil {
+		if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.AddressTM, &shop.AddressRU); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
