@@ -71,6 +71,7 @@ type ProductQuery struct {
 	ProductID  string   `form:"product_id"`
 	Search     string   `form:"search"`
 	Lang       string   `form:"lang"`
+	Sort       string   `form:"sort"`
 }
 
 type ProductCountQuery struct {

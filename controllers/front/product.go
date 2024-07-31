@@ -230,6 +230,7 @@ func GetProducts(c *gin.Context) {
 	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr string
 	isVisibleQuery := ` WHERE p.is_visible=true `
+	orderByQuery := ` ORDER BY p.created_at DESC`
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -251,6 +252,14 @@ func GetProducts(c *gin.Context) {
 		searchStr = fmt.Sprintf("%%%s%%", search)
 	}
 
+	if requestQuery.Sort == "0-1" {
+		orderByQuery = ` ORDER BY p.price ASC`
+	} else if requestQuery.Sort == "1-0" {
+		orderByQuery = ` ORDER BY p.price DESC`
+	} else {
+		orderByQuery = ` ORDER BY p.created_at DESC`
+	}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -260,7 +269,7 @@ func GetProducts(c *gin.Context) {
 	defer db.Close()
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
+	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at,p.price) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
 
 	if requestQuery.ShopID != "" {
 		shopWhereQuery = fmt.Sprintf(` AND p.shop_id='%s' `, requestQuery.ShopID)
@@ -268,7 +277,8 @@ func GetProducts(c *gin.Context) {
 
 	if requestQuery.Search != "" {
 		isVisibleQuery = ""
-		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE p.is_visible=true AND `, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE p.is_visible=true AND `,
+			requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
 	if len(requestQuery.Categories) != 0 {
@@ -282,9 +292,11 @@ func GetProducts(c *gin.Context) {
 	// product - lar alynyar
 	var rowsProducts pgx.Rows
 	if len(requestQuery.Categories) != 0 {
-		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+isVisibleQuery+categoryQuery+shopWhereQuery+searchQuery+` ORDER BY p.created_at DESC LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+isVisibleQuery+categoryQuery+shopWhereQuery+searchQuery+
+			orderByQuery+` LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	} else {
-		rowsProducts, err = db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+shopWhereQuery+` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
+		rowsProducts, err = db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+shopWhereQuery+
+			orderByQuery+` LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	}
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -299,7 +311,9 @@ func GetProducts(c *gin.Context) {
 		}
 
 		// haryda degisli yekeje surat alyas
-		err := db.QueryRow(context.Background(), `SELECT DISTINCT ON (pi.id) pi.resized_image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pc.order_number=1 AND pi.order_number=1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL`, product.ID).Scan(&product.Image)
+		err := db.QueryRow(context.Background(),
+			`SELECT DISTINCT ON (pi.id) pi.resized_image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
+			WHERE pc.product_id=$1 AND pc.order_number=1 AND pi.order_number=1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL`, product.ID).Scan(&product.Image)
 		if err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
