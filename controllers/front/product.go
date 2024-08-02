@@ -260,7 +260,7 @@ func GetProducts(c *gin.Context) {
 		orderByQuery = ` ORDER BY p.created_at DESC`
 	}
 
-	if requestQuery.MinPrice != "" && requestQuery.MaxPrice != "" {
+	if requestQuery.MinPrice != "0" && requestQuery.MaxPrice != "0" {
 		priceRangeQuery = fmt.Sprintf(` AND p.price >= %v AND p.price <= %v `, requestQuery.MinPrice, requestQuery.MaxPrice)
 	}
 
