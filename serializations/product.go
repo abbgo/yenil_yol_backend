@@ -72,6 +72,8 @@ type ProductQuery struct {
 	Search     string   `form:"search"`
 	Lang       string   `form:"lang"`
 	Sort       string   `form:"sort"`
+	MinPrice   string   `form:"min_price"`
+	MaxPrice   string   `form:"max_price"`
 }
 
 type ProductCountQuery struct {

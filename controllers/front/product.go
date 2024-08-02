@@ -228,7 +228,7 @@ func GetProductsByIDs(c *gin.Context) {
 func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
-	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr string
+	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr, priceRangeQuery string
 	isVisibleQuery := ` WHERE p.is_visible=true `
 	orderByQuery := ` ORDER BY p.created_at DESC`
 
@@ -258,6 +258,10 @@ func GetProducts(c *gin.Context) {
 		orderByQuery = ` ORDER BY p.price DESC`
 	} else {
 		orderByQuery = ` ORDER BY p.created_at DESC`
+	}
+
+	if requestQuery.MinPrice != "" && requestQuery.MaxPrice != "" {
+		priceRangeQuery = fmt.Sprintf(` AND p.price >= %v AND p.price <= %v `, requestQuery.MinPrice, requestQuery.MaxPrice)
 	}
 
 	// initialize database connection
@@ -293,10 +297,10 @@ func GetProducts(c *gin.Context) {
 	var rowsProducts pgx.Rows
 	if len(requestQuery.Categories) != 0 {
 		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+isVisibleQuery+categoryQuery+shopWhereQuery+searchQuery+
-			orderByQuery+` LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+			priceRangeQuery+orderByQuery+` LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	} else {
 		rowsProducts, err = db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+shopWhereQuery+
-			orderByQuery+` LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
+			priceRangeQuery+orderByQuery+` LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	}
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
