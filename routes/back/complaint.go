@@ -10,11 +10,11 @@ import (
 func ComplaintRoutes(back *gin.RouterGroup) {
 	backComplaintApi := back.Group("/complaints").Use(middlewares.CheckToken("admin"))
 	{
-		// CreateComplaint -> Salbanyn tekstini gosmak ulanylar
+		// CreateComplaint -> sikayatyn tekstini gosmak ulanylar
 		backComplaintApi.POST("", controllers.CreateComplaint)
 
-		// // UpdateBrendByID -> id boyunca Brend - in maglumatlaryny update etmek ucin ulanylyar
-		// backBrendApi.PUT("", controllers.UpdateBrendByID)
+		// UpdateComplaintByID -> id boyunca sikayatyn tekstini update etmek ucin ulanylyar
+		backComplaintApi.PUT("", controllers.UpdateComplaintByID)
 
 		// // GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
 		// backBrendApi.GET(":id", controllers.GetBrendByID)
