@@ -80,6 +80,9 @@ func Routes() *gin.Engine {
 
 		// bu route - ler dimension ucin doredilen rout - laryn toplumy
 		backApi.DimensionRoutes(back)
+
+		// bu route - ler sikayatlaryn teksti ucin doredilen rout - laryn toplumy
+		backApi.ComplaintRoutes(back)
 	}
 
 	return routes
