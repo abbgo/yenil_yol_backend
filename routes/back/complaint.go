@@ -8,7 +8,7 @@ import (
 )
 
 func ComplaintRoutes(back *gin.RouterGroup) {
-	backComplaintApi := back.Group("/complaints").Use(middlewares.CheckTokenAdminOrShopOwner())
+	backComplaintApi := back.Group("/complaints").Use(middlewares.CheckToken("admin"))
 	{
 		// CreateComplaint -> Salbanyn tekstini gosmak ulanylar
 		backComplaintApi.POST("", controllers.CreateComplaint)
