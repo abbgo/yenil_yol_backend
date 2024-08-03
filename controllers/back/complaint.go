@@ -55,8 +55,13 @@ func UpdateComplaintByID(c *gin.Context) {
 		return
 	}
 
+	if err := helpers.ValidateRecordByID("complaints", complaint.ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
 	// database - daki maglumatlary request body - dan gelen maglumatlar bilen calysyas
-	_, err = db.Exec(context.Background(), "UPDATE complaints SET text_tm=$1 , text_ru=$2 HERE id=$4", complaint.TextTM, complaint.TextRU, complaint.ID)
+	_, err = db.Exec(context.Background(), "UPDATE complaints SET text_tm=$1 , text_ru=$2 WHERE id=$3", complaint.TextTM, complaint.TextRU, complaint.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
