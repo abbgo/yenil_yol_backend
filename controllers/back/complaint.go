@@ -132,3 +132,33 @@ func GetComplaints(c *gin.Context) {
 		"complaints": complaints,
 	})
 }
+
+func DeletePermanentlyComplaintByID(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametr - den brend id alynyar
+	ID := c.Param("id")
+
+	if err := helpers.ValidateRecordByID("complaints", ID, "NULL", db); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// brend - in suraty pozulandan sonra database - den brend pozulyar
+	_, err = db.Exec(context.Background(), "DELETE FROM complaints WHERE id = $1", ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully deleted",
+	})
+}

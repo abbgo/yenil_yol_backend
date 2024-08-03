@@ -22,7 +22,7 @@ func ComplaintRoutes(back *gin.RouterGroup) {
 		// GetComplaints -> Ahli sikayatyn tekstini almak ucin ulanylyar
 		backComplaintApi.GET("", controllers.GetComplaints)
 
-		// // DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
-		// backBrendApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
+		// DeletePermanentlyComplaintByID -> id boyunca sikayaty - i doly pozmak ucin ulanylyar
+		backComplaintApi.DELETE(":id/delete", controllers.DeletePermanentlyComplaintByID)
 	}
 }
