@@ -19,9 +19,8 @@ func ComplaintRoutes(back *gin.RouterGroup) {
 		// GetComplaintByID -> id - si boyunca sikayatyn tekstini almak ucin ulanylyar
 		backComplaintApi.GET(":id", controllers.GetComplaintByID)
 
-		// // GetBrends -> Ahli Brend - leryn maglumatlaryny request query - den gelen
-		// // limit we page boyunca pagination ulanyp almak ucin ulanylyar
-		// backBrendApi.GET("", controllers.GetBrends)
+		// GetComplaints -> Ahli sikayatyn tekstini almak ucin ulanylyar
+		backComplaintApi.GET("", controllers.GetComplaints)
 
 		// // DeletePermanentlyBrendByID -> id boyunca brend - i doly (korzinadan) pozmak ucin ulanylyar
 		// backBrendApi.DELETE(":id/delete", controllers.DeletePermanentlyBrendByID)
