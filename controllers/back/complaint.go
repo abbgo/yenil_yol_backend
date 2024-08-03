@@ -72,3 +72,31 @@ func UpdateComplaintByID(c *gin.Context) {
 		"message": "data successfully updated",
 	})
 }
+
+func GetComplaintByID(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametrden brend id alynyar
+	complaintID := c.Param("id")
+
+	// database - den request parametr - den gelen id boyunca maglumat cekilyar
+	var complaint models.Complaint
+	db.QueryRow(context.Background(), "SELECT id,text_tm,text_ru FROM complaints WHERE id = $1 AND deleted_at IS NULL", complaintID).Scan(&complaint.ID, &complaint.TextTM, &complaint.TextRU)
+
+	// eger databse sol maglumat yok bolsa error return edilyar
+	if complaint.ID == "" {
+		helpers.HandleError(c, 404, "record not found")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":    true,
+		"complaint": complaint,
+	})
+}
