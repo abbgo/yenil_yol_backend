@@ -11,6 +11,6 @@ func ComplaintProductRoutes(front *gin.RouterGroup) {
 	{
 		// GetCustomerLikes funksiya frontdan token bar bolan yagdayynda
 		// musderinin halanlarym sahypasyna gosan harytlaryny getiryar
-		complaintProductRoutes.GET("", controllers.GetComplaints)
+		complaintProductRoutes.POST("", controllers.CreateComplaintProduct)
 	}
 }
