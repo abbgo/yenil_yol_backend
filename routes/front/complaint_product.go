@@ -11,6 +11,5 @@ func ComplaintProductRoutes(front *gin.RouterGroup) {
 	{
 		// CreateComplaintProduct - funksiya front tarapda klient haryda sikayat doretmek ucin ulanylyar
 		complaintProductRoutes.POST("", controllers.CreateComplaintProduct)
-
 	}
 }

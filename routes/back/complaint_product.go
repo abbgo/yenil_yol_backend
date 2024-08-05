@@ -11,6 +11,6 @@ func ComplaintProductRoutes(back *gin.RouterGroup) {
 	complaintProductRoutes := back.Group("/complaint-products").Use(middlewares.CheckTokenAdminOrShopOwner())
 	{
 		// GetComplaintProduct - funksiya haryda edilen sikayatlary admin tarapda gorkezmek ucin
-		complaintProductRoutes.GET("", controllers.GetComplaintProduct)
+		complaintProductRoutes.GET(":shopOwnerID", controllers.GetComplaintProduct)
 	}
 }
