@@ -89,6 +89,9 @@ func Routes() *gin.Engine {
 
 		// bu route - ler sikayatlaryn teksti ucin doredilen rout - laryn toplumy
 		backApi.ComplaintRoutes(back)
+
+		// bu route - ler harydyn sikayatlary ucin doredilen rout - laryn toplumy
+		backApi.ComplaintProductRoutes(back)
 	}
 
 	return routes

@@ -9,8 +9,8 @@ import (
 func ComplaintProductRoutes(front *gin.RouterGroup) {
 	complaintProductRoutes := front.Group("/complaint-products")
 	{
-		// GetCustomerLikes funksiya frontdan token bar bolan yagdayynda
-		// musderinin halanlarym sahypasyna gosan harytlaryny getiryar
+		// CreateComplaintProduct - funksiya front tarapda klient haryda sikayat doretmek ucin ulanylyar
 		complaintProductRoutes.POST("", controllers.CreateComplaintProduct)
+
 	}
 }
