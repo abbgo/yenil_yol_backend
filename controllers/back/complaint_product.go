@@ -133,6 +133,6 @@ func GetProductComplaints(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":             true,
-		"complaint_products": cps,
+		"product_complaints": cps,
 	})
 }
