@@ -8,6 +8,7 @@ type ComplaintProduct struct {
 	NameRU         string `json:"name_ru,omitempty"`
 	Image          string `json:"image,omitempty"`
 	ComplaintCount int    `json:"complaint_count,omitempty"`
+	ShopID         string `json:"shop_id,omitempty"`
 }
 
 type ComplaintProductQuery struct {

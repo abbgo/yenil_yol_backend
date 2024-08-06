@@ -39,7 +39,7 @@ func GetComplaintProducts(c *gin.Context) {
 	var cps []serializations.ComplaintProduct
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru FROM products p 
+		`SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.shop_id FROM products p 
 		INNER JOIN complaint_products cp ON cp.product_id=p.id  
 		INNER JOIN shops s ON s.id=p.shop_id 
 		WHERE s.shop_owner_id=$1 
@@ -55,7 +55,7 @@ func GetComplaintProducts(c *gin.Context) {
 
 	for rows.Next() {
 		var cp serializations.ComplaintProduct
-		if err := rows.Scan(&cp.ID, &cp.NameTM, &cp.NameRU); err != nil {
+		if err := rows.Scan(&cp.ID, &cp.NameTM, &cp.NameRU, &cp.ShopID); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
