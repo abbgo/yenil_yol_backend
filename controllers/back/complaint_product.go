@@ -4,6 +4,7 @@ import (
 	"context"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
+	"github/abbgo/yenil_yol/backend/models"
 	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 
@@ -70,6 +71,47 @@ func GetComplaintProducts(c *gin.Context) {
 		// sikayat edilen haryda degisli sikayatlaryn sanyny alyarys
 		db.QueryRow(context.Background(), `SELECT COUNT(id) FROM complaint_products WHERE product_id=$1`, cp.ID).Scan(&cp.ComplaintCount)
 
+		cps = append(cps, cp)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":             true,
+		"complaint_products": cps,
+	})
+}
+
+func GetProductComplaints(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// requestden product_id alynyar
+	productID := c.Param("product_id")
+
+	// product_id boyunca sol haryda degisli sikayatlar alynyar
+	var cps []models.Complaint
+	rows, err := db.Query(
+		context.Background(),
+		`SELECT c.text_tm,c.text_ru FROM complaints c 
+		INNER JOIN complaint_products cp ON cp.complaint_id=c.id 
+		WHERE cp.product_id=$1 AND cp.deleted_at IS NUL AND c.deleted_at IS NULL 
+		ORDER BY cp.created_at DESC`, productID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cp models.Complaint
+		if err := rows.Scan(&cp.TextTM, &cp.TextRU); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 		cps = append(cps, cp)
 	}
 
