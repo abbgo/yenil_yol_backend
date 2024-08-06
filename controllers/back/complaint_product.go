@@ -81,6 +81,22 @@ func GetComplaintProducts(c *gin.Context) {
 }
 
 func GetProductComplaints(c *gin.Context) {
+	var requestQuery helpers.StandartQuery
+
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -98,8 +114,8 @@ func GetProductComplaints(c *gin.Context) {
 		context.Background(),
 		`SELECT c.text_tm,c.text_ru FROM complaints c 
 		INNER JOIN complaint_products cp ON cp.complaint_id=c.id 
-		WHERE cp.product_id=$1 AND cp.deleted_at IS NUL AND c.deleted_at IS NULL 
-		ORDER BY cp.created_at DESC`, productID)
+		WHERE cp.product_id=$1 AND cp.deleted_at IS NULL AND c.deleted_at IS NULL 
+		ORDER BY cp.created_at DESC LIMIT $2 OFFSET $3`, productID, requestQuery.Limit, offset)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
