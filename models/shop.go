@@ -27,6 +27,7 @@ type Shop struct {
 	IsBrend          bool        `json:"is_brend"`
 	IsShoppingCenter bool        `json:"is_shopping_center"`
 	ParentShopID     null.String `json:"parent_shop_id,omitempty"`
+	CreatedStatus    int8        `json:"created_status,omitempty"`
 }
 
 func ValidateShop(shop Shop, isCreateFunction bool) error {
