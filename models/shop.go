@@ -62,12 +62,16 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 
 	if shop.ParentShopID.String != "" {
 		var parentShopID string
-		if err := db.QueryRow(context.Background(), "SELECT id FROM shops WHERE deleted_at IS NULL AND is_shopping_center=true").Scan(&parentShopID); err != nil {
+		if err := db.QueryRow(
+			context.Background(),
+			`SELECT id FROM shops WHERE id=$1 AND deleted_at IS NULL AND created_status=$2 AND is_shopping_center=true`, shop.ParentShopID.String, helpers.CreatedStatuses["success"]).
+			Scan(&parentShopID); err != nil {
 			return errors.New("record not found")
 		}
 
 		// egerde shop - yn parenti bar bolsa onda shop awtomat parent shop - ynyn kordinatalaryny almaly
-		if err := db.QueryRow(context.Background(), "SELECT latitude,longitude FROM shops WHERE id=$1 AND deleted_at IS NULL", shop.ParentShopID.String).Scan(&shop.Latitude, &shop.Longitude); err != nil {
+		if err := db.QueryRow(context.Background(), "SELECT latitude,longitude FROM shops WHERE id=$1 AND deleted_at IS NULL", shop.ParentShopID.String).
+			Scan(&shop.Latitude, &shop.Longitude); err != nil {
 			return err
 		}
 	}
