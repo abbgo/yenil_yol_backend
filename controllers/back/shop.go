@@ -257,7 +257,7 @@ func GetShops(c *gin.Context) {
 
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
 	rowQuery := fmt.Sprintf(
-		`SELECT id,name_tm,name_ru,has_shipping,%s FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v`,
+		`SELECT id,name_tm,name_ru,has_shipping,%s,created_status FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v`,
 		selectedRows, isDeleted, isShoppingCenter)
 
 	if shopQuery.ShopOwnerID != "" {
@@ -281,12 +281,12 @@ func GetShops(c *gin.Context) {
 	for rowsShop.Next() {
 		var shop serializations.GetShops
 		if isShoppingCenter {
-			if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.HasShipping, &shop.Latitude, &shop.Longitude); err != nil {
+			if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.HasShipping, &shop.Latitude, &shop.Longitude, &shop.CreatedStatus); err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
 		} else {
-			if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.HasShipping, &shop.Image); err != nil {
+			if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.HasShipping, &shop.Image, &shop.CreatedStatus); err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
