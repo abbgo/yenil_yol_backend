@@ -43,8 +43,8 @@ func GetShopsForMap(c *gin.Context) {
 										cos(radians(%f)) * cos(radians(latitude)) *
 										cos(radians(longitude) - radians(%f)) +
 										sin(radians(%f)) * sin(radians(latitude))
-									) <= %d AND deleted_at IS NULL AND parent_shop_id IS NULL;
-						`, requestQuery.Latitude, requestQuery.Longitude, requestQuery.Latitude, requestQuery.Kilometer)
+									) <= %d AND deleted_at IS NULL AND parent_shop_id IS NULL AND created_status=%d;
+						`, requestQuery.Latitude, requestQuery.Longitude, requestQuery.Latitude, requestQuery.Kilometer, helpers.CreatedStatuses["success"])
 
 	// if requestQuery.Search != "" {
 	// 	rowsShopQuery = fmt.Sprintf(`
