@@ -245,9 +245,9 @@ func GetShopByIDs(c *gin.Context) {
 	rows, err := db.Query(context.Background(),
 		`
 			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image,parent_shop_id FROM shops 
-			WHERE id = ANY($1) AND deleted_at IS NULL AND is_shopping_center=false
+			WHERE id = ANY($1) AND created_status=$2 AND deleted_at IS NULL AND is_shopping_center=false
 		`,
-		pq.Array(shopIDs))
+		pq.Array(shopIDs), helpers.CreatedStatuses["success"])
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
