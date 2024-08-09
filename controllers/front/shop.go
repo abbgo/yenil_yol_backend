@@ -119,7 +119,7 @@ func GetShops(c *gin.Context) {
 	// database - den shop - lar alynyar
 	queryDefault := fmt.Sprintf(
 		`SELECT id,name_tm,name_ru,latitude,longitude,resized_image,address_tm,address_ru,parent_shop_id,is_shopping_center FROM shops WHERE 
-		deleted_at IS NULL AND (is_shopping_center=false OR is_shopping_center=%v)`,
+		deleted_at IS NULL AND created_status=%d AND (is_shopping_center=false OR is_shopping_center=%v)`, helpers.CreatedStatuses["success"],
 		requestQuery.IsShoppingCenter)
 
 	if requestQuery.IsRandom {
@@ -149,7 +149,9 @@ func GetShops(c *gin.Context) {
 		// eger shop - yn parent shop - y bar bolsa onda sol alynyar
 		if shop.ParentShopID.String != "" {
 			var parentShop serializations.ParentShop
-			db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru,is_shopping_center FROM shops WHERE id=$1`, shop.ParentShopID.String).
+			db.QueryRow(
+				context.Background(), `SELECT id,name_tm,name_ru,is_shopping_center FROM shops WHERE id=$1 AND created_status=$2`,
+				shop.ParentShopID.String, helpers.CreatedStatuses["successs"]).
 				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU, &parentShop.IsShoppingCenter)
 
 			shop.ParentShop = parentShop
