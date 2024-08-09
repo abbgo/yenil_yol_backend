@@ -186,7 +186,8 @@ func GetAdmin(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"admin": adm,
+		"status": true,
+		"admin":  adm,
 	})
 }
 
