@@ -195,7 +195,10 @@ func GetShopByID(c *gin.Context) {
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var shop models.Shop
-	db.QueryRow(context.Background(), "SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image,has_shipping FROM shops WHERE id = $1 AND deleted_at IS NULL", shopID).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.HasShipping)
+	db.QueryRow(
+		context.Background(), `SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image,has_shipping FROM shops 
+		WHERE id = $1 AND created_status=$2 AND deleted_at IS NULL`,
+		shopID, helpers.CreatedStatuses["success"]).Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude, &shop.Image, &shop.HasShipping)
 
 	// eger databse sol maglumat yok bolsa error return edilyar
 	if shop.ID == "" {
