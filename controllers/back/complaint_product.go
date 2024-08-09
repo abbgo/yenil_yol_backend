@@ -44,6 +44,7 @@ func GetComplaintProducts(c *gin.Context) {
 		INNER JOIN complaint_products cp ON cp.product_id=p.id  
 		INNER JOIN shops s ON s.id=p.shop_id 
 		WHERE s.shop_owner_id=$1 
+		AND s.created_status=2 
 		AND s.deleted_at IS NULL 
 		AND p.deleted_at IS NULL 
 		AND cp.deleted_at IS NULL 
