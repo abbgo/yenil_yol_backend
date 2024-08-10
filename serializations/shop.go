@@ -8,12 +8,13 @@ import (
 
 type ShopQuery struct {
 	helpers.StandartQuery
-	ShopOwnerID      string `form:"shop_owner_id"`
-	IsRandom         bool   `form:"is_random"`
-	Search           string `form:"search"`
-	Lang             string `form:"lang"`
-	IsShoppingCenter bool   `form:"is_shopping_center"`
-	ParentShopID     string `form:"parent_shop_id"`
+	ShopOwnerID      string   `form:"shop_owner_id"`
+	IsRandom         bool     `form:"is_random"`
+	Search           string   `form:"search"`
+	Lang             string   `form:"lang"`
+	IsShoppingCenter bool     `form:"is_shopping_center"`
+	ParentShopID     string   `form:"parent_shop_id"`
+	CratedStatuses   []string `form:"crated_statuses"`
 }
 
 type ShopForMapQuery struct {
