@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
+	"github.com/jackc/pgx/v5"
 	"github.com/lib/pq"
 )
 
@@ -271,7 +272,12 @@ func GetShops(c *gin.Context) {
 	queryLimitOffset := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, shopQuery.Limit, offset)
 
 	// database - den shop - lar alynyar
-	rowsShop, err := db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+queryLimitOffset)
+	var rowsShop pgx.Rows
+	if len(shopQuery.CratedStatuses) != 0 {
+		rowsShop, err = db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+" AND created_status=ANY($1) "+queryLimitOffset, pq.Array(shopQuery.CratedStatuses))
+	} else {
+		rowsShop, err = db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+queryLimitOffset)
+	}
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
