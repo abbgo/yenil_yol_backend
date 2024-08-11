@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func BackShopOwnerRoutes(back *gin.RouterGroup) {
-	backShopOwnerApi := back.Group("/shops").Use(middlewares.CheckTokenAdminOrShopOwner())
+func BackShopForShopOwnerRoutes(back *gin.RouterGroup) {
+	backShopOwnerApi := back.Group("/shops").Use(middlewares.CheckToken("shop_owners"))
 	{
 		// CreateShop -> gosmak ulanylar
 		backShopOwnerApi.POST("", controllers.CreateShop)
