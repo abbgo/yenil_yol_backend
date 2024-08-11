@@ -87,6 +87,10 @@ func GetAdminShops(c *gin.Context) {
 			return
 		}
 
+		// dukanyn eyesinin maglumatlary alynyar
+		db.QueryRow(context.Background(), `SELECT id,full_name,phone_number FROM shop_owners WHERE id=$1`, shop.ShopOwnerID.String).
+			Scan(&shop.ShopOwner.ID, &shop.ShopOwner.FullName, &shop.ShopOwner.PhoneNumber)
+
 		// shop alynanadan son shop_id boyunca shop_phone - lar cekilyar
 		rowsPhoneNumber, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id=$1 AND deleted_at IS NULL", shop.ID)
 		if err != nil {
@@ -105,13 +109,11 @@ func GetAdminShops(c *gin.Context) {
 		}
 
 		if shop.ParentShopID.String != "" {
-			var parentShop serializations.ParentShop
 			if err := db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru FROM shops WHERE id=$1`, shop.ParentShopID.String).
-				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU); err != nil {
+				Scan(&shop.ParentShop.ID, &shop.ParentShop.NameTM, &shop.ParentShop.NameRU); err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
-			shop.ParentShop = parentShop
 		}
 
 		shops = append(shops, shop)
