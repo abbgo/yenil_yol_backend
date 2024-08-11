@@ -14,6 +14,6 @@ func BackShopForAdminRoutes(back *gin.RouterGroup) {
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		// eger request query - den shop_owner_id gelse sol shop_owner degisli
 		// shop - laryn maglumatlary alynyar
-		backShopOwnerApi.GET("", controllers.GetShops)
+		backShopOwnerApi.GET("", controllers.GetAdminShops)
 	}
 }
