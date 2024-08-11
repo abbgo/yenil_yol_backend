@@ -17,9 +17,8 @@ import (
 
 func GetAdminShops(c *gin.Context) {
 	var shopQuery serializations.ShopQuery
-	var shops []serializations.GetShops
+	var shops []serializations.GetShop
 	isDeleted := "NULL"
-	selectedRows := "image"
 	var queryShopOwner, search, searchStr, querySearch string
 
 	// initialize database connection
@@ -55,19 +54,9 @@ func GetAdminShops(c *gin.Context) {
 		isDeleted = "NOT NULL"
 	}
 
-	isShoppingCenter := shopQuery.IsShoppingCenter
-	if isShoppingCenter {
-		selectedRows = "latitude,longitude"
-	}
-
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf(
-		`SELECT id,name_tm,name_ru,has_shipping,%s,created_status FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v`,
-		selectedRows, isDeleted, isShoppingCenter)
-
-	if shopQuery.ShopOwnerID != "" {
-		queryShopOwner = fmt.Sprintf(` AND shop_owner_id = '%v'`, shopQuery.ShopOwnerID)
-	}
+	rowQuery := fmt.Sprintf(`SELECT id,image,name_tm,name_ru,address_tm,address_ru,latitude,longitude,has_shipping,shop_owner_id,parent_shop_id FROM shops 
+	WHERE deleted_at IS %v AND is_shopping_center=false`, isDeleted)
 
 	if shopQuery.Search != "" {
 		querySearch = fmt.Sprintf(` AND (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s')`, shopQuery.Lang, search, shopQuery.Lang, searchStr)
@@ -90,18 +79,41 @@ func GetAdminShops(c *gin.Context) {
 	defer rowsShop.Close()
 
 	for rowsShop.Next() {
-		var shop serializations.GetShops
-		if isShoppingCenter {
-			if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.HasShipping, &shop.Latitude, &shop.Longitude, &shop.CreatedStatus); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
-		} else {
-			if err := rowsShop.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.HasShipping, &shop.Image, &shop.CreatedStatus); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
-			}
+		var shop serializations.GetShop
+		if err := rowsShop.Scan(
+			&shop.ID, &shop.Image, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude,
+			&shop.HasShipping, &shop.ShopOwnerID, &shop.ParentShopID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
 		}
+
+		// shop alynanadan son shop_id boyunca shop_phone - lar cekilyar
+		rowsPhoneNumber, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id=$1 AND deleted_at IS NULL", shop.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsPhoneNumber.Close()
+
+		for rowsPhoneNumber.Next() {
+			var phoneNumber string
+			if err := rowsPhoneNumber.Scan(&phoneNumber); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			shop.ShopPhones = append(shop.ShopPhones, phoneNumber)
+		}
+
+		if shop.ParentShopID.String != "" {
+			var parentShop serializations.ParentShop
+			if err := db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru FROM shops WHERE id=$1`, shop.ParentShopID.String).
+				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			shop.ParentShop = parentShop
+		}
+
 		shops = append(shops, shop)
 	}
 
