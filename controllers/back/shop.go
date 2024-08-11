@@ -261,6 +261,9 @@ func GetShops(c *gin.Context) {
 		`SELECT id,name_tm,name_ru,has_shipping,%s,created_status FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v`,
 		selectedRows, isDeleted, isShoppingCenter)
 
+	rowCountQuery := fmt.Sprintf(`SELECT COUNT(id) FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v`,
+		isDeleted, isShoppingCenter)
+
 	if shopQuery.ShopOwnerID != "" {
 		queryShopOwner = fmt.Sprintf(` AND shop_owner_id = '%v'`, shopQuery.ShopOwnerID)
 	}
@@ -273,10 +276,15 @@ func GetShops(c *gin.Context) {
 
 	// database - den shop - lar alynyar
 	var rowsShop pgx.Rows
+	var countOfShops uint
 	if len(shopQuery.CratedStatuses) != 0 {
 		rowsShop, err = db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+" AND created_status=ANY($1) "+queryLimitOffset, pq.Array(shopQuery.CratedStatuses))
+		db.QueryRow(context.Background(), rowCountQuery+queryShopOwner+querySearch+" AND created_status=ANY($1) ", pq.Array(shopQuery.CratedStatuses)).
+			Scan(&countOfShops)
 	} else {
 		rowsShop, err = db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+queryLimitOffset)
+		db.QueryRow(context.Background(), rowCountQuery+queryShopOwner+querySearch).
+			Scan(&countOfShops)
 	}
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
@@ -303,6 +311,7 @@ func GetShops(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
 		"shops":  shops,
+		"count":  countOfShops,
 	})
 }
 
