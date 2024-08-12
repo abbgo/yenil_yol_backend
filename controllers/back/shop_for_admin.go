@@ -147,4 +147,15 @@ func UpdateShopCreatedStatus(c *gin.Context) {
 		return
 	}
 
+	// maglumatlar barlananda son shop - yn created status - y update edilyar
+	_, err = db.Exec(context.Background(), `UPDATE shops SET created_status=$1 WHERE id=$2`, shop.CreatedStatus, shop.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully updated",
+	})
 }
