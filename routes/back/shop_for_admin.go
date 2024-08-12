@@ -8,10 +8,14 @@ import (
 )
 
 func BackShopForAdminRoutes(back *gin.RouterGroup) {
-	backShopOwnerApi := back.Group("/shops/admin").Use(middlewares.CheckTokenAdminOrShopOwner())
+	backShopOwnerApi := back.Group("/shops/admin").Use(middlewares.CheckToken("admin"))
 	{
 		// GetAdminShops -> Ahli Shop - laryn maglumatlaryny request query - den gelen
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		backShopOwnerApi.GET("", controllers.GetAdminShops)
+
+		// UpdateShopCreatedStatus -> Funksiya shop - yn created status - yny uytgetmek
+		// ucin ulanylyar
+		backShopOwnerApi.PUT("created-status", controllers.UpdateShopCreatedStatus)
 	}
 }

@@ -30,6 +30,30 @@ type Shop struct {
 	CreatedStatus    int8        `json:"created_status,omitempty"`
 }
 
+type UpdateCreatedStatusShop struct {
+	ID            string `json:"id" binding:"required"`
+	CreatedStatus int8   `json:"created_status" binding:"required"`
+}
+
+func ValidateUpdateShopCreatedStatus(shop UpdateCreatedStatusShop) error {
+	db, err := config.ConnDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// body - dan gelen created status dogrymy ya nadogry sol barlanyar
+	if shop.CreatedStatus != helpers.CreatedStatuses["wait"] || shop.CreatedStatus != helpers.CreatedStatuses["rejected"] || shop.CreatedStatus != helpers.CreatedStatuses["success"] {
+		return errors.New("invalid created status")
+	}
+
+	if err := helpers.ValidateRecordByID("shops", shop.ID, "NULL", db); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func ValidateShop(shop Shop, isCreateFunction bool) error {
 	db, err := config.ConnDB()
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
+	"github/abbgo/yenil_yol/backend/models"
 	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 	"strings"
@@ -123,4 +124,27 @@ func GetAdminShops(c *gin.Context) {
 		"status": true,
 		"shops":  shops,
 	})
+}
+
+func UpdateShopCreatedStatus(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - dan gelen maglumatlar alynyar
+	var shop models.UpdateCreatedStatusShop
+	if err := c.BindJSON(&shop); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	if err := models.ValidateUpdateShopCreatedStatus(shop); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
 }
