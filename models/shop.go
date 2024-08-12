@@ -43,7 +43,7 @@ func ValidateUpdateShopCreatedStatus(shop UpdateCreatedStatusShop) error {
 	defer db.Close()
 
 	// body - dan gelen created status dogrymy ya nadogry sol barlanyar
-	if shop.CreatedStatus != helpers.CreatedStatuses["wait"] || shop.CreatedStatus != helpers.CreatedStatuses["rejected"] || shop.CreatedStatus != helpers.CreatedStatuses["success"] {
+	if shop.CreatedStatus != helpers.CreatedStatuses["wait"] && shop.CreatedStatus != helpers.CreatedStatuses["rejected"] && shop.CreatedStatus != helpers.CreatedStatuses["success"] {
 		return errors.New("invalid created status")
 	}
 
