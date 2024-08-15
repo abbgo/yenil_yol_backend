@@ -147,8 +147,15 @@ func UpdateShopCreatedStatus(c *gin.Context) {
 		return
 	}
 
+	var rejectedReason interface{}
+	if shop.RejectedReason != "" {
+		rejectedReason = shop.RejectedReason
+	} else {
+		rejectedReason = nil
+	}
+
 	// maglumatlar barlananda son shop - yn created status - y update edilyar
-	_, err = db.Exec(context.Background(), `UPDATE shops SET created_status=$1 WHERE id=$2`, shop.CreatedStatus, shop.ID)
+	_, err = db.Exec(context.Background(), `UPDATE shops SET created_status=$1 , rejected_reason=$2 WHERE id=$3`, shop.CreatedStatus, rejectedReason, shop.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
