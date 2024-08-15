@@ -270,7 +270,6 @@ func GetShops(c *gin.Context) {
 	var rowsShop pgx.Rows
 	if len(shopQuery.CratedStatuses) != 0 {
 		rowsShop, err = db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+" AND created_status=ANY($1) "+queryLimitOffset, pq.Array(shopQuery.CratedStatuses))
-
 	} else {
 		rowsShop, err = db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+queryLimitOffset)
 	}

@@ -30,8 +30,8 @@ type GetShops struct {
 	Latitude       float64     `json:"latitude,omitempty"`
 	Longitude      float64     `json:"longitude,omitempty"`
 	Image          null.String `json:"image,omitempty"`
-	HasShipping    bool        `json:"has_shipping,omitempty"`
-	CreatedStatus  int         `json:"created_status,omitempty"`
+	HasShipping    bool        `json:"has_shipping"`
+	CreatedStatus  int8        `json:"created_status"`
 	RejectedReason null.String `json:"rejected_reason,omitempty"`
 }
 
