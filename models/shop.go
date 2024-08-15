@@ -31,8 +31,9 @@ type Shop struct {
 }
 
 type UpdateCreatedStatusShop struct {
-	ID            string `json:"id" binding:"required"`
-	CreatedStatus int8   `json:"created_status" binding:"required"`
+	ID             string `json:"id" binding:"required"`
+	CreatedStatus  int8   `json:"created_status" binding:"required"`
+	RejectedReason string `json:"rejected_reason"`
 }
 
 func ValidateUpdateShopCreatedStatus(shop UpdateCreatedStatusShop) error {
