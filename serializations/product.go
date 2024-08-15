@@ -67,14 +67,15 @@ type ShopForProduct struct {
 
 type ProductQuery struct {
 	helpers.StandartQuery
-	ShopID     string   `form:"shop_id"`
-	Categories []string `form:"categories"`
-	ProductID  string   `form:"product_id"`
-	Search     string   `form:"search"`
-	Lang       string   `form:"lang"`
-	Sort       string   `form:"sort"`
-	MinPrice   string   `form:"min_price"`
-	MaxPrice   string   `form:"max_price"`
+	ShopID         string   `form:"shop_id"`
+	Categories     []string `form:"categories"`
+	ProductID      string   `form:"product_id"`
+	Search         string   `form:"search"`
+	Lang           string   `form:"lang"`
+	Sort           string   `form:"sort"`
+	MinPrice       string   `form:"min_price"`
+	MaxPrice       string   `form:"max_price"`
+	CratedStatuses []string `form:"crated_statuses"`
 }
 
 type ProductCountQuery struct {
