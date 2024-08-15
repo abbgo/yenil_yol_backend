@@ -81,8 +81,11 @@ func Routes() *gin.Engine {
 		// bu route - ler saytyn sazlamalary ucin doredilen rout - laryn toplumy
 		backApi.SettingRoutes(back)
 
-		// bu route - ler product ucin doredilen rout - laryn toplumy
-		backApi.ProductRoutes(back)
+		// bu route - ler product ucin shop owner ulanar yaly doredilen rout - laryn toplumy
+		backApi.BackProductRoutesForShopOwner(back)
+
+		// bu route - ler product ucin admin ulanar yaly doredilen rout - laryn toplumy
+		backApi.BackProductRoutesForAdmin(back)
 
 		// bu route - ler dimension groups ucin doredilen rout - laryn toplumy
 		backApi.DimensionGroupRoutes(back)

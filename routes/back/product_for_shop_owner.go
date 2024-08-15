@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ProductRoutes(back *gin.RouterGroup) {
+func BackProductRoutesForShopOwner(back *gin.RouterGroup) {
 	backProductApi := back.Group("/products").Use(middlewares.CheckTokenAdminOrShopOwner())
 	{
 		// // CreateProduct -> Product gosmak ulanylar
