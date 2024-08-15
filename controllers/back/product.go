@@ -369,7 +369,7 @@ func GetProducts(c *gin.Context) {
 	}
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf(`SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.is_visible FROM products p WHERE p.deleted_at IS %v`, isDeleted)
+	rowQuery := fmt.Sprintf(`SELECT p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.is_visible,p.created_status FROM products p WHERE p.deleted_at IS %v`, isDeleted)
 	orderQuery := fmt.Sprintf(` ORDER BY p.created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 	if requestQuery.ShopID != "" {
 		shopQuery = fmt.Sprintf(` AND p.shop_id = '%v'`, requestQuery.ShopID)
@@ -396,6 +396,7 @@ func GetProducts(c *gin.Context) {
 			&product.Price,
 			&product.OldPrice,
 			&product.IsVisible,
+			&product.CreatedStatus,
 		); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
