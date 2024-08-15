@@ -8,7 +8,7 @@ import (
 )
 
 func BackProductRoutesForAdmin(back *gin.RouterGroup) {
-	backProductApi := back.Group("/products/admin").Use(middlewares.CheckTokenAdminOrShopOwner())
+	backProductApi := back.Group("/products/admin").Use(middlewares.CheckToken("admin"))
 	{
 		// GetProducts -> Ahli Product - leryn maglumatlaryny request query - den gelen
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
