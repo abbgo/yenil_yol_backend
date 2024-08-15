@@ -379,7 +379,6 @@ func GetProducts(c *gin.Context) {
 		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
-	// database - den brend - lar alynyar
 	rowsProducts, err := db.Query(context.Background(), rowQuery+shopQuery+searchQuery+orderQuery)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
