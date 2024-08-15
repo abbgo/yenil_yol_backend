@@ -52,6 +52,10 @@ func ValidateUpdateShopCreatedStatus(shop UpdateCreatedStatusShop) error {
 		return err
 	}
 
+	if shop.CreatedStatus == helpers.CreatedStatuses["rejected"] && shop.RejectedReason == "" {
+		return errors.New("Rejected reason is required")
+	}
+
 	return nil
 }
 
