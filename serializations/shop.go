@@ -32,7 +32,7 @@ type GetShops struct {
 	Image          null.String `json:"image,omitempty"`
 	HasShipping    bool        `json:"has_shipping,omitempty"`
 	CreatedStatus  int         `json:"created_status,omitempty"`
-	RejectedReason string      `json:"rejected_reason,omitempty"`
+	RejectedReason null.String `json:"rejected_reason,omitempty"`
 }
 
 type GetShop struct {
