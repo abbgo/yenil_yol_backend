@@ -12,6 +12,6 @@ func BackProductRoutesForAdmin(back *gin.RouterGroup) {
 	{
 		// GetProducts -> Ahli Product - leryn maglumatlaryny request query - den gelen
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
-		backProductApi.GET("", controllers.GetProducts)
+		backProductApi.GET("", controllers.GetAdminProducts)
 	}
 }
