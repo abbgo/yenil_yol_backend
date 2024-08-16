@@ -17,7 +17,7 @@ import (
 
 func GetAdminProducts(c *gin.Context) {
 	var requestQuery serializations.ProductQuery
-	var products []serializations.GetProductsForFront
+	var products []serializations.GetProductsForAdminProduct
 	isDeleted := "NULL"
 	var searchQuery, search, searchStr string
 
@@ -75,7 +75,7 @@ func GetAdminProducts(c *gin.Context) {
 	defer rowsProducts.Close()
 
 	for rowsProducts.Next() {
-		var product serializations.GetProductsForFront
+		var product serializations.GetProductsForAdminProduct
 		if err := rowsProducts.Scan(
 			&product.ID,
 			&product.NameTM,
