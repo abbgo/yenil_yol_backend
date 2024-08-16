@@ -112,6 +112,15 @@ func GetAdminProducts(c *gin.Context) {
 		}
 		defer rowsCategories.Close()
 
+		for rowsCategories.Next() {
+			var category serializations.CategoryForProduct
+			if err := rowsCategories.Scan(&category.ID, &category.NameTM, &category.NameRU); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			product.Categories = append(product.Categories, category)
+		}
+
 		// haryda degisli suratlar alynyar
 		// if err := db.QueryRow(context.Background(),
 		// 	`SELECT image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pc.order_number=1 AND pi.order_number=1`,
