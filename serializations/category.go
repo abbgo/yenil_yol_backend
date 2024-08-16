@@ -20,3 +20,9 @@ type GetCategories struct {
 	ParentCategoryID null.String     `json:"parent_category_id,omitempty"`
 	ChildCategories  []GetCategories `json:"child_categories,omitempty"`
 }
+
+type CategoryForProduct struct {
+	ID     string `json:"id"`
+	NameTM string `json:"name_tm"`
+	NameRU string `json:"name_ru"`
+}

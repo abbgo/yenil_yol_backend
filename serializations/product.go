@@ -61,6 +61,7 @@ type GetProductsForAdminProduct struct {
 	Brend         BrendForProduct       `json:"brend,omitempty"`
 	Shop          ShopForProduct        `json:"shop,omitempty"`
 	IsVisible     bool                  `json:"is_visible,omitempty"`
+	Categories    []CategoryForProduct  `json:"categories,omitempty"`
 }
 
 type BrendForProduct struct {

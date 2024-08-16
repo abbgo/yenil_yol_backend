@@ -100,6 +100,18 @@ func GetAdminProducts(c *gin.Context) {
 		db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru FROM shops WHERE id=$1`, product.ShopID).
 			Scan(&product.Shop.ID, &product.Shop.NameTM, &product.Shop.NameRU)
 
+		// Harydyn kategoriyalary alynyar
+		rowsCategories, err := db.Query(
+			context.Background(),
+			`SELECT DISTINCT ON (c.id) c.id,c.name_tm,c.name_ru FROM categories c 
+			INNER JOIN category_products cp ON cp.category_id=c.id 
+			WHERE cp.product_id=$1`, product.ID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsCategories.Close()
+
 		// haryda degisli suratlar alynyar
 		// if err := db.QueryRow(context.Background(),
 		// 	`SELECT image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pc.order_number=1 AND pi.order_number=1`,
