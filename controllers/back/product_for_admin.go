@@ -11,6 +11,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
+	"github.com/jackc/pgx/v5"
+	"github.com/lib/pq"
 )
 
 func GetAdminProducts(c *gin.Context) {
@@ -60,7 +62,12 @@ func GetAdminProducts(c *gin.Context) {
 		searchQuery = fmt.Sprintf(` %s (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
-	rowsProducts, err := db.Query(context.Background(), rowQuery+searchQuery+orderQuery)
+	var rowsProducts pgx.Rows
+	if len(requestQuery.CratedStatuses) != 0 {
+		rowsProducts, err = db.Query(context.Background(), rowQuery+searchQuery+" AND created_status=ANY($1) "+orderQuery, pq.Array(requestQuery.CratedStatuses))
+	} else {
+		rowsProducts, err = db.Query(context.Background(), rowQuery+searchQuery+orderQuery)
+	}
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
