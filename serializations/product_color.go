@@ -13,3 +13,9 @@ type ProductColorForBack struct {
 	Dimensions  []models.Dimension    `json:"dimensions,omitempty"`
 	OrderNumber int8                  `json:"order_number,omitempty"`
 }
+
+type ProductColorForAdmin struct {
+	Name       null.String           `json:"name"`
+	Images     []models.ProductImage `json:"images"`
+	Dimensions []models.Dimension    `json:"dimensions"`
+}
