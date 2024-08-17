@@ -15,7 +15,8 @@ type ProductColorForBack struct {
 }
 
 type ProductColorForAdmin struct {
-	Name       null.String           `json:"name"`
-	Images     []models.ProductImage `json:"images"`
-	Dimensions []models.Dimension    `json:"dimensions"`
+	ID         string      `json:"-"`
+	Name       null.String `json:"name,omitempty"`
+	Images     []string    `json:"images"`
+	Dimensions []string    `json:"dimensions"`
 }

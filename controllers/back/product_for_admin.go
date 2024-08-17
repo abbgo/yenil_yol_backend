@@ -130,16 +130,53 @@ func GetAdminProducts(c *gin.Context) {
 		defer rowsColors.Close()
 
 		for rowsColors.Next() {
+			var color serializations.ProductColorForAdmin
+			if err := rowsColors.Scan(&color.ID, &color.Name); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
 
+			// harydyn bu renkine degisli razmerler alynyar
+			rowsDimensions, err := db.Query(
+				context.Background(),
+				`SELECT DISTINCT ON (d.dimension) d.dimension FROM dimensions d 
+				INNER JOIN product_dimensions pd ON pd.dimension_id=d.id 
+				WHERE pd.product_color_id=$1`, color.ID)
+			if err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			defer rowsDimensions.Close()
+
+			for rowsDimensions.Next() {
+				var dimension string
+				if err := rowsDimensions.Scan(&dimension); err != nil {
+					helpers.HandleError(c, 400, err.Error())
+					return
+				}
+				color.Dimensions = append(color.Dimensions, dimension)
+			}
+
+			// harydyn renkine degisli suratlar alynyar
+			rowsImages, err := db.Query(context.Background(), `SELECT image FROM product_images WHERE product_color_id=$1`, color.ID)
+			if err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			defer rowsImages.Close()
+
+			for rowsImages.Next() {
+				var image string
+				if err := rowsImages.Scan(&image); err != nil {
+					helpers.HandleError(c, 400, err.Error())
+					return
+				}
+				color.Images = append(color.Images, image)
+			}
+
+			product.Colors = append(product.Colors, color)
 		}
 
-		// haryda degisli suratlar alynyar
-		// if err := db.QueryRow(context.Background(),
-		// 	`SELECT image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id WHERE pc.product_id=$1 AND pc.order_number=1 AND pi.order_number=1`,
-		// 	product.ID).Scan(&product.Image); err != nil {
-		// 	helpers.HandleError(c, 400, err.Error())
-		// 	return
-		// }
 		products = append(products, product)
 	}
 
