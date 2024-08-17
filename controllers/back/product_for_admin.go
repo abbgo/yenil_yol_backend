@@ -174,7 +174,7 @@ func GetAdminProducts(c *gin.Context) {
 				color.Images = append(color.Images, image)
 			}
 
-			product.Colors = append(product.Colors, color)
+			product.ProductColors = append(product.ProductColors, color)
 		}
 
 		products = append(products, product)

@@ -50,18 +50,18 @@ type GetProductsForFront struct {
 }
 
 type GetProductsForAdminProduct struct {
-	ID         string                 `json:"id"`
-	NameTM     string                 `json:"name_tm"`
-	NameRU     string                 `json:"name_ru"`
-	Price      float32                `json:"price"`
-	OldPrice   null.Float             `json:"old_price,omitempty"`
-	BrendID    null.String            `json:"-"`
-	ShopID     string                 `json:"-"`
-	Brend      BrendForProduct        `json:"brend,omitempty"`
-	Shop       ShopForProduct         `json:"shop"`
-	IsVisible  bool                   `json:"is_visible"`
-	Categories []CategoryForProduct   `json:"categories"`
-	Colors     []ProductColorForAdmin `json:"colors"`
+	ID            string                 `json:"id"`
+	NameTM        string                 `json:"name_tm"`
+	NameRU        string                 `json:"name_ru"`
+	Price         float32                `json:"price"`
+	OldPrice      null.Float             `json:"old_price,omitempty"`
+	BrendID       null.String            `json:"-"`
+	ShopID        string                 `json:"-"`
+	Brend         BrendForProduct        `json:"brend,omitempty"`
+	Shop          ShopForProduct         `json:"shop"`
+	IsVisible     bool                   `json:"is_visible"`
+	Categories    []CategoryForProduct   `json:"categories"`
+	ProductColors []ProductColorForAdmin `json:"product_colors"`
 }
 
 type BrendForProduct struct {
