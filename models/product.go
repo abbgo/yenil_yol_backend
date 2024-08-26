@@ -30,6 +30,29 @@ type Product struct {
 	IsVisible     bool           `json:"is_visible,omitempty"`
 }
 
+func ValidateUpdateProductCreatedStatus(shop UpdateCreatedStatusShop) error {
+	db, err := config.ConnDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// body - dan gelen created status dogrymy ya nadogry sol barlanyar
+	if shop.CreatedStatus != helpers.CreatedStatuses["wait"] && shop.CreatedStatus != helpers.CreatedStatuses["rejected"] && shop.CreatedStatus != helpers.CreatedStatuses["success"] {
+		return errors.New("invalid created status")
+	}
+
+	if err := helpers.ValidateRecordByID("products", shop.ID, "NULL", db); err != nil {
+		return err
+	}
+
+	if shop.CreatedStatus == helpers.CreatedStatuses["rejected"] && shop.RejectedReason == "" {
+		return errors.New(`rejected reason is required`)
+	}
+
+	return nil
+}
+
 func ValidateProduct(product Product, isCreateFunction bool) (productCode string, err error) {
 	db, err := config.ConnDB()
 	if err != nil {

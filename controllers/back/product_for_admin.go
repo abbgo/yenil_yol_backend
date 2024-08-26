@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
+	"github/abbgo/yenil_yol/backend/models"
 	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 	"strings"
@@ -183,5 +184,46 @@ func GetAdminProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":   true,
 		"products": products,
+	})
+}
+
+func UpdateProductCreatedStatus(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - dan gelen maglumatlar alynyar
+	var product models.UpdateCreatedStatusShop
+	if err := c.BindJSON(&product); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	if err := models.ValidateUpdateProductCreatedStatus(product); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	var rejectedReason interface{}
+	if product.RejectedReason != "" {
+		rejectedReason = product.RejectedReason
+	} else {
+		rejectedReason = nil
+	}
+
+	// maglumatlar barlananda son product - yn created status - y update edilyar
+	_, err = db.Exec(context.Background(), `UPDATE products SET created_status=$1 , rejected_reason=$2 WHERE id=$3`, product.CreatedStatus, rejectedReason, product.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully updated",
 	})
 }
