@@ -22,14 +22,15 @@ type GetProductForBack struct {
 }
 
 type GetProductsForBack struct {
-	ID            string      `json:"id,omitempty"`
-	NameTM        string      `json:"name_tm,omitempty"`
-	NameRU        string      `json:"name_ru,omitempty"`
-	Price         float32     `json:"price,omitempty"`
-	OldPrice      null.Float  `json:"old_price,omitempty"`
-	Image         null.String `json:"image"`
-	IsVisible     bool        `json:"is_visible,omitempty"`
-	CreatedStatus int8        `json:"created_status"`
+	ID             string      `json:"id,omitempty"`
+	NameTM         string      `json:"name_tm,omitempty"`
+	NameRU         string      `json:"name_ru,omitempty"`
+	Price          float32     `json:"price,omitempty"`
+	OldPrice       null.Float  `json:"old_price,omitempty"`
+	Image          null.String `json:"image"`
+	IsVisible      bool        `json:"is_visible,omitempty"`
+	CreatedStatus  int8        `json:"created_status"`
+	RejectedReason null.String `json:"rejected_reason,omitempty"`
 }
 
 type GetProductsForFront struct {
