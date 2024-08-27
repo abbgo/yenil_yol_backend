@@ -273,7 +273,7 @@ func GetProducts(c *gin.Context) {
 	defer db.Close()
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at,p.price) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
+	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
 
 	if requestQuery.ShopID != "" {
 		shopWhereQuery = fmt.Sprintf(` AND p.shop_id='%s' `, requestQuery.ShopID)
@@ -306,6 +306,7 @@ func GetProducts(c *gin.Context) {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
+	defer rowsProducts.Close()
 
 	for rowsProducts.Next() {
 		var product models.Product
@@ -315,13 +316,10 @@ func GetProducts(c *gin.Context) {
 		}
 
 		// haryda degisli yekeje surat alyas
-		err := db.QueryRow(context.Background(),
+		db.QueryRow(context.Background(),
 			`SELECT DISTINCT ON (pi.id) pi.resized_image FROM product_images pi INNER JOIN product_colors pc ON pc.id=pi.product_color_id 
 			WHERE pc.product_id=$1 AND pc.order_number=1 AND pi.order_number=1 AND pi.deleted_at IS NULL AND pc.deleted_at IS NULL`, product.ID).Scan(&product.Image)
-		if err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
+
 		products = append(products, product)
 	}
 
