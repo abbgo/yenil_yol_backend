@@ -273,7 +273,7 @@ func GetProducts(c *gin.Context) {
 	defer db.Close()
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
+	defaultQuery := `SELECT DISTINCT ON (p.id,p.created_at,p.price) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p`
 
 	if requestQuery.ShopID != "" {
 		shopWhereQuery = fmt.Sprintf(` AND p.shop_id='%s' `, requestQuery.ShopID)
