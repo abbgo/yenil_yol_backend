@@ -260,7 +260,7 @@ func GetProducts(c *gin.Context) {
 		orderByQuery = ` ORDER BY p.created_at DESC`
 	}
 
-	if requestQuery.MinPrice != "0" && requestQuery.MaxPrice != "0" {
+	if requestQuery.MinPrice != "0" || requestQuery.MaxPrice != "0" {
 		priceRangeQuery = fmt.Sprintf(` AND p.price >= %v AND p.price <= %v `, requestQuery.MinPrice, requestQuery.MaxPrice)
 	}
 
@@ -299,6 +299,7 @@ func GetProducts(c *gin.Context) {
 		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+isVisibleQuery+categoryQuery+shopWhereQuery+searchQuery+
 			priceRangeQuery+orderByQuery+` LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	} else {
+		fmt.Println(defaultQuery + isVisibleQuery + searchQuery + shopWhereQuery + priceRangeQuery + orderByQuery)
 		rowsProducts, err = db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+shopWhereQuery+
 			priceRangeQuery+orderByQuery+` LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	}
