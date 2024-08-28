@@ -299,7 +299,6 @@ func GetProducts(c *gin.Context) {
 		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+isVisibleQuery+categoryQuery+shopWhereQuery+searchQuery+
 			priceRangeQuery+orderByQuery+` LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	} else {
-		fmt.Println(defaultQuery + isVisibleQuery + searchQuery + shopWhereQuery + priceRangeQuery + orderByQuery)
 		rowsProducts, err = db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+shopWhereQuery+
 			priceRangeQuery+orderByQuery+` LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	}
