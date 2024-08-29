@@ -133,18 +133,18 @@ func GetSimilarProductsByProductID(c *gin.Context) {
 	// request query - den maglumatlara gora product - lary almak ucin query yazylyar
 	rowQuery := `SELECT DISTINCT ON (p.id,p.created_at) p.id,p.name_tm,p.name_ru,p.price,p.old_price FROM products p 
 				INNER JOIN category_products cp ON cp.product_id=p.id 
-				INNER JOIN categories c ON c.id=cp.category_id WHERE p.id!=$1
+				INNER JOIN categories c ON c.id=cp.category_id WHERE p.id!=$1 AND p.created_status=$2 
 				AND c.id = (SELECT ca.id FROM categories ca INNER JOIN category_products cap ON cap.category_id=ca.id WHERE 
 				ca.parent_category_id IS NOT NULL AND cap.product_id=$1 ORDER BY ca.created_at DESC LIMIT 1) 
 				AND c.deleted_at IS NULL 
 				AND p.deleted_at IS NULL 
 				AND cp.deleted_at IS NULL 
 				AND p.is_visible=true
-				ORDER BY p.created_at DESC LIMIT $2
+				ORDER BY p.created_at DESC LIMIT $3
 				`
 
 	// product - lar alynyar
-	rowsProducts, err := db.Query(context.Background(), rowQuery, requestQuery.ProductID, requestQuery.Limit)
+	rowsProducts, err := db.Query(context.Background(), rowQuery, requestQuery.ProductID, helpers.CreatedStatuses["success"], requestQuery.Limit)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -194,9 +194,9 @@ func GetProductsByIDs(c *gin.Context) {
 	rows, err := db.Query(context.Background(),
 		`
 			SELECT id,name_tm,name_ru,price,old_price FROM products 
-			WHERE id = ANY($1) AND deleted_at IS NULL AND is_visible=true
+			WHERE id = ANY($1) AND deleted_at IS NULL AND is_visible=true AND created_status=$2
 		`,
-		pq.Array(productIDs))
+		pq.Array(productIDs), helpers.CreatedStatuses["success"])
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -229,7 +229,7 @@ func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr, priceRangeQuery string
-	isVisibleQuery := fmt.Sprintf(` WHERE p.is_visible=true AND created_status=%v `, helpers.CreatedStatuses["success"])
+	isVisibleQuery := fmt.Sprintf(` WHERE p.is_visible=true AND created_status=%d `, helpers.CreatedStatuses["success"])
 	orderByQuery := ` ORDER BY p.created_at DESC`
 
 	// request query - den maglumatlar bind edilyar
