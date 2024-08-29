@@ -229,7 +229,7 @@ func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr, priceRangeQuery string
-	isVisibleQuery := ` WHERE p.is_visible=true `
+	isVisibleQuery := fmt.Sprintf(` WHERE p.is_visible=true AND created_status=%v `, helpers.CreatedStatuses["success"])
 	orderByQuery := ` ORDER BY p.created_at DESC`
 
 	// request query - den maglumatlar bind edilyar
@@ -280,9 +280,9 @@ func GetProducts(c *gin.Context) {
 	}
 
 	if requestQuery.Search != "" {
-		isVisibleQuery = ""
-		searchQuery = fmt.Sprintf(` %s (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, `WHERE p.is_visible=true AND `,
+		searchQuery = fmt.Sprintf(` %s AND (to_tsvector(p.slug_%s) @@ to_tsquery('%s') OR p.slug_%s LIKE '%s') `, isVisibleQuery,
 			requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		isVisibleQuery = ""
 	}
 
 	if len(requestQuery.Categories) != 0 {
