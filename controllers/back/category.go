@@ -34,7 +34,7 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
-	// eger maglumatlar dogry bolsa onda categories tablisa maglumatlar gosulyar we gosulandan son gosulan maglumatyn id - si return edilyar
+	// eger maglumatlar dogry bolsa onda categories tablisa maglumatlar gosulyar
 	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru,dimension_group_id,parent_category_id) VALUES ($1,$2,$3,$4,$5,$6,$7)", category.NameTM, category.NameRU, category.Image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID, category.ParentCategoryID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
