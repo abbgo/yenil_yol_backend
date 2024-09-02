@@ -193,6 +193,11 @@ func UpdateProductByID(c *gin.Context) {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
+
+			if err := DeleteImageFromDB(image.Image); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
 		}
 	}
 
