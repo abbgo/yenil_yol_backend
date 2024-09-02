@@ -80,6 +80,13 @@ func UpdateBrendByID(c *gin.Context) {
 		return
 	}
 
+	if brend.Image != "" {
+		if err := DeleteImageFromDB(brend.Image); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully updated",
