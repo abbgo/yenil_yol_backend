@@ -85,6 +85,13 @@ func UpdateCategoryByID(c *gin.Context) {
 		return
 	}
 
+	if category.Image.String != "" {
+		if err := DeleteImageFromDB(category.Image.String); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully updated",
