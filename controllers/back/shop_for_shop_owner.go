@@ -134,6 +134,13 @@ func UpdateShopByID(c *gin.Context) {
 		}
 	}
 
+	if shop.Image.String != "" {
+		if err := DeleteImageFromDB(shop.Image.String); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "data successfully updated",
