@@ -229,7 +229,7 @@ func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr, priceRangeQuery string
-	isVisibleQuery := fmt.Sprintf(` WHERE p.is_visible=true AND created_status=%d `, helpers.CreatedStatuses["success"])
+	isVisibleQuery := fmt.Sprintf(` WHERE p.is_visible=true AND p.created_status=%d `, helpers.CreatedStatuses["success"])
 	orderByQuery := ` ORDER BY p.created_at DESC`
 
 	// request query - den maglumatlar bind edilyar
