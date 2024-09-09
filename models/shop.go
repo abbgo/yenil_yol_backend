@@ -28,6 +28,7 @@ type Shop struct {
 	IsShoppingCenter bool        `json:"is_shopping_center"`
 	ParentShopID     null.String `json:"parent_shop_id,omitempty"`
 	CreatedStatus    int8        `json:"created_status,omitempty"`
+	AtHome           bool        `json:"at_home"`
 }
 
 type UpdateCreatedStatusShop struct {
