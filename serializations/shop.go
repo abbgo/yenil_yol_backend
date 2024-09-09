@@ -51,6 +51,7 @@ type GetShop struct {
 	ParentShopID     null.String `json:"-"`
 	ParentShop       ParentShop  `json:"parent_shop,omitempty"`
 	IsShoppingCenter bool        `json:"is_shopping_center,omitempty"`
+	AtHome           bool        `json:"at_home"`
 }
 
 type ParentShop struct {
