@@ -6,6 +6,7 @@ import (
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -60,13 +61,42 @@ func ValidateUpdateShopCreatedStatus(shop UpdateCreatedStatusShop) error {
 	return nil
 }
 
-func ValidateShop(shop Shop, isCreateFunction bool) error {
+func ValidateCreateShop(shop Shop) error {
 	db, err := config.ConnDB()
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
+	if err := DefaultValidateShop(shop, db); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateUpdateShop(shop Shop) error {
+	db, err := config.ConnDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	if shop.ID == "" {
+		return errors.New("shop_id is required")
+	}
+	if err := helpers.ValidateRecordByID("shops", shop.ID, "NULL", db); err != nil {
+		return errors.New("record not found")
+	}
+
+	if err := DefaultValidateShop(shop, db); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DefaultValidateShop(shop Shop, db *pgxpool.Pool) error {
 	if !shop.IsShoppingCenter && shop.ShopOwnerID.String == "" {
 		return errors.New("shop_owner_id is required")
 	}
@@ -103,39 +133,6 @@ func ValidateShop(shop Shop, isCreateFunction bool) error {
 		if err := db.QueryRow(context.Background(), "SELECT latitude,longitude FROM shops WHERE id=$1 AND deleted_at IS NULL", shop.ParentShopID.String).
 			Scan(&shop.Latitude, &shop.Longitude); err != nil {
 			return err
-		}
-	}
-
-	if !isCreateFunction {
-		if shop.ID == "" {
-			return errors.New("shop_id is required")
-		}
-
-		if err := helpers.ValidateRecordByID("shops", shop.ID, "NULL", db); err != nil {
-			return errors.New("record not found")
-		}
-	}
-
-	if shop.OrderNumber != 0 {
-		if isCreateFunction {
-			var order_number uint
-			if err = db.QueryRow(context.Background(), "SELECT order_number FROM shops where order_number = $1 AND deleted_at IS NULL AND shop_owner_id = $2", shop.OrderNumber, shop.ShopOwnerID).Scan(&order_number); err == nil {
-				return errors.New("this order number already exists")
-			}
-		} else {
-			if shop.ID == "" {
-				return errors.New("shop_id is required")
-			}
-
-			if err := helpers.ValidateRecordByID("shops", shop.ID, "NULL", db); err != nil {
-				return errors.New("record not found")
-			}
-
-			var shop_id string
-			db.QueryRow(context.Background(), "SELECT id FROM shops where order_number = $1 AND deleted_at IS NULL", shop.OrderNumber).Scan(&shop_id)
-			if shop_id != shop.ID && shop_id != "" {
-				return errors.New("this order number already exists")
-			}
 		}
 	}
 

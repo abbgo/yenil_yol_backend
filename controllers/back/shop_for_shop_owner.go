@@ -33,7 +33,7 @@ func CreateShop(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateShop(shop, true); err != nil {
+	if err := models.ValidateCreateShop(shop); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -97,7 +97,7 @@ func UpdateShopByID(c *gin.Context) {
 		return
 	}
 
-	if err := models.ValidateShop(shop, false); err != nil {
+	if err := models.ValidateUpdateShop(shop); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
