@@ -69,7 +69,6 @@ func GetAdminShops(c *gin.Context) {
 	var rowsShop pgx.Rows
 	if len(shopQuery.CratedStatuses) != 0 {
 		rowsShop, err = db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+" AND created_status=ANY($1) "+queryLimitOffset, pq.Array(shopQuery.CratedStatuses))
-
 	} else {
 		rowsShop, err = db.Query(context.Background(), rowQuery+queryShopOwner+querySearch+queryLimitOffset)
 	}
@@ -83,14 +82,18 @@ func GetAdminShops(c *gin.Context) {
 		var shop serializations.GetShop
 		if err := rowsShop.Scan(
 			&shop.ID, &shop.Image, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude,
-			&shop.HasShipping, &shop.ShopOwnerID, &shop.ParentShopID); err != nil {
+			&shop.HasShipping, &shop.ShopOwnerID, &shop.ParentShopID,
+		); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		// dukanyn eyesinin maglumatlary alynyar
-		db.QueryRow(context.Background(), `SELECT id,full_name,phone_number FROM shop_owners WHERE id=$1`, shop.ShopOwnerID.String).
-			Scan(&shop.ShopOwner.ID, &shop.ShopOwner.FullName, &shop.ShopOwner.PhoneNumber)
+		if err := db.QueryRow(context.Background(), `SELECT id,full_name,phone_number FROM shop_owners WHERE id=$1`, shop.ShopOwnerID.String).
+			Scan(&shop.ShopOwner.ID, &shop.ShopOwner.FullName, &shop.ShopOwner.PhoneNumber); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 
 		// shop alynanadan son shop_id boyunca shop_phone - lar cekilyar
 		rowsPhoneNumber, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id=$1 AND deleted_at IS NULL", shop.ID)
@@ -110,11 +113,13 @@ func GetAdminShops(c *gin.Context) {
 		}
 
 		if shop.ParentShopID.String != "" {
+			var parentShop serializations.ParentShop
 			if err := db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru FROM shops WHERE id=$1`, shop.ParentShopID.String).
-				Scan(&shop.ParentShop.ID, &shop.ParentShop.NameTM, &shop.ParentShop.NameRU); err != nil {
+				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU); err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
+			shop.ParentShop = &parentShop
 		}
 
 		shops = append(shops, shop)
