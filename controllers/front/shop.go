@@ -155,7 +155,7 @@ func GetShops(c *gin.Context) {
 				shop.ParentShopID.String, helpers.CreatedStatuses["successs"]).
 				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU, &parentShop.IsShoppingCenter)
 
-			shop.ParentShop = parentShop
+			shop.ParentShop = &parentShop
 		}
 
 		rowsShopPhones, err := db.Query(context.Background(), "SELECT phone_number FROM shop_phones WHERE shop_id = $1 AND deleted_at IS NULL", shop.ID)
@@ -267,7 +267,7 @@ func GetShopByIDs(c *gin.Context) {
 			db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru,is_shopping_center FROM shops WHERE id=$1`, shop.ParentShopID.String).
 				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU, &parentShop.IsShoppingCenter)
 
-			shop.ParentShop = parentShop
+			shop.ParentShop = &parentShop
 		}
 
 		shops = append(shops, shop)

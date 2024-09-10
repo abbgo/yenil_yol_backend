@@ -163,12 +163,12 @@ func GetShopByID(c *gin.Context) {
 	var shop serializations.GetShop
 	if err := db.QueryRow(
 		context.Background(),
-		`SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_shipping,shop_owner_id,parent_shop_id 
+		`SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_shipping,shop_owner_id,parent_shop_id,at_home 
 		FROM shops WHERE id = $1 AND deleted_at IS NULL`,
 		shopID).
 		Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU,
 			&shop.Latitude, &shop.Longitude, &shop.Image,
-			&shop.HasShipping, &shop.ShopOwnerID, &shop.ParentShopID); err != nil {
+			&shop.HasShipping, &shop.ShopOwnerID, &shop.ParentShopID, &shop.AtHome); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
@@ -203,7 +203,7 @@ func GetShopByID(c *gin.Context) {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
-		shop.ParentShop = parentShop
+		shop.ParentShop = &parentShop
 	}
 
 	c.JSON(http.StatusOK, gin.H{

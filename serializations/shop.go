@@ -49,7 +49,7 @@ type GetShop struct {
 	ShopOwner        ShopOwner   `json:"shop_owner,omitempty"`
 	ShopPhones       []string    `json:"phones,omitempty"`
 	ParentShopID     null.String `json:"-"`
-	ParentShop       ParentShop  `json:"parent_shop,omitempty"`
+	ParentShop       *ParentShop `json:"parent_shop"`
 	IsShoppingCenter bool        `json:"is_shopping_center,omitempty"`
 	AtHome           bool        `json:"at_home"`
 }
