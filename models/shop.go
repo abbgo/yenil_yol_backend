@@ -15,8 +15,8 @@ type Shop struct {
 	NameRU           string      `json:"name_ru,omitempty" binding:"required"`
 	AddressTM        string      `json:"address_tm,omitempty" binding:"required"`
 	AddressRU        string      `json:"address_ru,omitempty" binding:"required"`
-	Latitude         float64     `json:"latitude,omitempty" binding:"required"`
-	Longitude        float64     `json:"longitude,omitempty" binding:"required"`
+	Latitude         float64     `json:"latitude,omitempty"`
+	Longitude        float64     `json:"longitude,omitempty"`
 	Image            null.String `json:"image,omitempty"`
 	HasShipping      bool        `json:"has_shipping,omitempty"`
 	ShopOwnerID      null.String `json:"shop_owner_id,omitempty"`
