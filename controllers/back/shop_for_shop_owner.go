@@ -49,10 +49,10 @@ func CreateShop(c *gin.Context) {
 	var shop_id string
 	if err = db.QueryRow(context.Background(),
 		`INSERT INTO shops 
-		(name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_shipping,shop_owner_id,slug_tm,slug_ru,order_number,parent_shop_id,is_shopping_center,resized_image) 
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
+		(name_tm,name_ru,address_tm,address_ru,latitude,longitude,image,has_shipping,shop_owner_id,slug_tm,slug_ru,order_number,parent_shop_id,is_shopping_center,resized_image,at_home) 
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
 		shop.NameTM, shop.NameRU, shop.AddressTM, shop.AddressRU, shop.Latitude, shop.Longitude, shop.Image, shop.HasShipping, shop.ShopOwnerID, slug.MakeLang(shop.NameTM, "en"),
-		slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ParentShopID, shop.IsShoppingCenter, resizedImage).
+		slug.MakeLang(shop.NameRU, "en"), shop.OrderNumber, shop.ParentShopID, shop.IsShoppingCenter, resizedImage, shop.AtHome).
 		Scan(&shop_id); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
