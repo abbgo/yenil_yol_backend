@@ -21,6 +21,7 @@ func GetAdminShops(c *gin.Context) {
 	var shops []serializations.GetShop
 	isDeleted := "NULL"
 	var queryShopOwner, search, searchStr, querySearch string
+	count := 0
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -55,15 +56,25 @@ func GetAdminShops(c *gin.Context) {
 		isDeleted = "NOT NULL"
 	}
 
-	// request query - den status - a gora shop - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf(`SELECT id,image,name_tm,name_ru,address_tm,address_ru,latitude,longitude,has_shipping,shop_owner_id,parent_shop_id FROM shops 
-	WHERE deleted_at IS %v AND is_shopping_center=false`, isDeleted)
-
 	if shopQuery.Search != "" {
 		querySearch = fmt.Sprintf(` AND (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s')`, shopQuery.Lang, search, shopQuery.Lang, searchStr)
 	}
 
 	queryLimitOffset := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, shopQuery.Limit, offset)
+
+	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM shops WHERE deleted_at IS %v AND is_shopping_center=false`, isDeleted)
+
+	if len(shopQuery.CratedStatuses) != 0 {
+		db.QueryRow(context.Background(), queryCount+queryShopOwner+querySearch+" AND created_status=ANY($1)", pq.Array(shopQuery.CratedStatuses)).Scan(&count)
+	} else {
+		db.QueryRow(context.Background(), queryCount+queryShopOwner+querySearch).Scan(&count)
+	}
+
+	// request query - den status - a gora shop - lary almak ucin query yazylyar
+	rowQuery := fmt.Sprintf(
+		`SELECT id,image,name_tm,name_ru,address_tm,address_ru,latitude,longitude,has_shipping,shop_owner_id,parent_shop_id FROM shops 
+	WHERE deleted_at IS %v AND is_shopping_center=false`, isDeleted,
+	)
 
 	// database - den shop - lar alynyar
 	var rowsShop pgx.Rows
@@ -128,6 +139,7 @@ func GetAdminShops(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": true,
 		"shops":  shops,
+		"count":  count,
 	})
 }
 
