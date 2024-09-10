@@ -136,5 +136,9 @@ func DefaultValidateShop(shop Shop, db *pgxpool.Pool) error {
 		}
 	}
 
+	if !shop.AtHome && (shop.Latitude == 0 || shop.Longitude == 0) {
+		return errors.New("shop coordinates is required")
+	}
+
 	return nil
 }
