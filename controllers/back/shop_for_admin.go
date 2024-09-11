@@ -72,7 +72,7 @@ func GetAdminShops(c *gin.Context) {
 
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
 	rowQuery := fmt.Sprintf(
-		`SELECT id,image,name_tm,name_ru,address_tm,address_ru,latitude,longitude,has_shipping,shop_owner_id,parent_shop_id FROM shops 
+		`SELECT id,image,name_tm,name_ru,address_tm,address_ru,latitude,longitude,has_shipping,shop_owner_id,parent_shop_id,at_home FROM shops 
 	WHERE deleted_at IS %v AND is_shopping_center=false`, isDeleted,
 	)
 
@@ -93,7 +93,7 @@ func GetAdminShops(c *gin.Context) {
 		var shop serializations.GetShop
 		if err := rowsShop.Scan(
 			&shop.ID, &shop.Image, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU, &shop.Latitude, &shop.Longitude,
-			&shop.HasShipping, &shop.ShopOwnerID, &shop.ParentShopID,
+			&shop.HasShipping, &shop.ShopOwnerID, &shop.ParentShopID, &shop.AtHome,
 		); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
