@@ -63,7 +63,6 @@ func GetAdminShops(c *gin.Context) {
 	queryLimitOffset := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, shopQuery.Limit, offset)
 
 	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM shops WHERE deleted_at IS %v AND is_shopping_center=false`, isDeleted)
-
 	if len(shopQuery.CratedStatuses) != 0 {
 		db.QueryRow(context.Background(), queryCount+queryShopOwner+querySearch+" AND created_status=ANY($1)", pq.Array(shopQuery.CratedStatuses)).Scan(&count)
 	} else {

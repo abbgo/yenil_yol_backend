@@ -21,6 +21,7 @@ func GetAdminProducts(c *gin.Context) {
 	var products []serializations.GetProductsForAdminProduct
 	isDeleted := "NULL"
 	var searchQuery, search, searchStr string
+	count := 0
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -48,6 +49,7 @@ func GetAdminProducts(c *gin.Context) {
 		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
 		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
 		searchStr = fmt.Sprintf("%%%s%%", search)
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
 	// request - den gelen deleted statusa gora pozulan ya-da pozulmadyk maglumatlar alynmaly
@@ -55,13 +57,19 @@ func GetAdminProducts(c *gin.Context) {
 		isDeleted = "NOT NULL"
 	}
 
-	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf(`SELECT id,name_tm,name_ru,price,old_price,brend_id,shop_id,is_visible FROM products p WHERE deleted_at IS %v`, isDeleted)
-	orderQuery := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
-
-	if requestQuery.Search != "" {
-		searchQuery = fmt.Sprintf(` %s (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM products WHERE deleted_at IS %v `, isDeleted)
+	if len(requestQuery.CratedStatuses) != 0 {
+		db.QueryRow(
+			context.Background(), queryCount+searchQuery+" AND created_status=ANY($1) ",
+			pq.Array(requestQuery.CratedStatuses),
+		).Scan(&count)
+	} else {
+		db.QueryRow(context.Background(), queryCount+searchQuery).Scan(&count)
 	}
+
+	// request query - den status - a gora product - lary almak ucin query yazylyar
+	rowQuery := fmt.Sprintf(`SELECT id,name_tm,name_ru,price,old_price,brend_id,shop_id,is_visible FROM products WHERE deleted_at IS %v`, isDeleted)
+	orderQuery := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 
 	var rowsProducts pgx.Rows
 	if len(requestQuery.CratedStatuses) != 0 {
@@ -181,9 +189,16 @@ func GetAdminProducts(c *gin.Context) {
 		products = append(products, product)
 	}
 
+	pageCount := count / requestQuery.Limit
+	if count%requestQuery.Limit != 0 {
+		pageCount = count/requestQuery.Limit + 1
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status":   true,
-		"products": products,
+		"status":     true,
+		"products":   products,
+		"count":      count,
+		"page_count": pageCount,
 	})
 }
 
