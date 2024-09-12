@@ -135,7 +135,7 @@ func GetCategoryByID(c *gin.Context) {
 }
 
 func GetCategories(c *gin.Context) {
-	var categories []serializations.GetCategories
+	var categories []serializations.GetCategoriesForAdmin
 	requestQuery := serializations.CategoryQuery{}
 	var searchQuery, search, searchStr, parentCategoryQuery string
 	count := 0
@@ -190,7 +190,7 @@ func GetCategories(c *gin.Context) {
 
 	// db - den maglumatlar alynyar
 	rowQuery := fmt.Sprintf(
-		`SELECT id,name_tm,name_ru FROM categories WHERE deleted_at %s %s %s %s`,
+		`SELECT id,name_tm,name_ru,image FROM categories WHERE deleted_at %s %s %s %s`,
 		deletedAt, parentCategoryQuery, searchQuery, orderByQuery,
 	)
 
@@ -203,14 +203,14 @@ func GetCategories(c *gin.Context) {
 	defer rowsCategory.Close()
 
 	for rowsCategory.Next() {
-		var category serializations.GetCategories
-		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU); err != nil {
+		var category serializations.GetCategoriesForAdmin
+		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		// child category alynyar
-		queryForChildCategory := `SELECT id,name_tm,name_ru,parent_category_id FROM categories 
+		queryForChildCategory := `SELECT id,name_tm,name_ru,parent_category_id,image FROM categories 
 		WHERE deleted_at IS NULL AND parent_category_id=$1`
 
 		rowsChildCategory, err := db.Query(context.Background(), queryForChildCategory, category.ID)
@@ -220,8 +220,11 @@ func GetCategories(c *gin.Context) {
 		}
 		defer rowsChildCategory.Close()
 		for rowsChildCategory.Next() {
-			var childCategory serializations.GetCategories
-			if err := rowsChildCategory.Scan(&childCategory.ID, &childCategory.NameTM, &childCategory.NameRU, &childCategory.ParentCategoryID); err != nil {
+			var childCategory serializations.GetCategoriesForAdmin
+			if err := rowsChildCategory.Scan(
+				&childCategory.ID, &childCategory.NameTM, &childCategory.NameRU,
+				&childCategory.ParentCategoryID, childCategory.Image,
+			); err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
@@ -234,8 +237,11 @@ func GetCategories(c *gin.Context) {
 			}
 			defer rowsChildChildCategory.Close()
 			for rowsChildChildCategory.Next() {
-				var childchildCategory serializations.GetCategories
-				if err := rowsChildChildCategory.Scan(&childchildCategory.ID, &childchildCategory.NameTM, &childchildCategory.NameRU, &childchildCategory.ParentCategoryID); err != nil {
+				var childchildCategory serializations.GetCategoriesForAdmin
+				if err := rowsChildChildCategory.Scan(
+					&childchildCategory.ID, &childchildCategory.NameTM,
+					&childchildCategory.NameRU, &childchildCategory.ParentCategoryID, &childchildCategory.Image,
+				); err != nil {
 					helpers.HandleError(c, 400, err.Error())
 					return
 				}
