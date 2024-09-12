@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CategoryRoutes(back *gin.RouterGroup) {
+func BackCategoryRoutesForAdmin(back *gin.RouterGroup) {
 	backCategoryApi := back.Group("/categories").Use(middlewares.CheckToken("admin"))
 	{
 		// CreateCategory -> Category gosmak ulanylar
