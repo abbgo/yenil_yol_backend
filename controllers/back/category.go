@@ -136,9 +136,10 @@ func GetCategoryByID(c *gin.Context) {
 
 func GetCategories(c *gin.Context) {
 	var categories []serializations.GetCategories
-	requestQuery := serializations.CategoryQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
+	requestQuery := serializations.CategoryQuery{}
 	var searchQuery, search, searchStr, parentCategoryQuery string
 	count := 0
+	deletedAt := "IS NULL"
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -160,6 +161,10 @@ func GetCategories(c *gin.Context) {
 		searchStr = fmt.Sprintf("%%%s%%", search)
 	}
 
+	if requestQuery.IsDeleted {
+		deletedAt = "IS NOT NULL"
+	}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -176,51 +181,18 @@ func GetCategories(c *gin.Context) {
 		parentCategoryQuery = `AND parent_category_id IS NULL`
 	}
 
-	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM categories WHERE deleted_at IS NULL %s %s `, parentCategoryQuery, searchQuery)
-	if requestQuery.ShopID != "" {
-		if requestQuery.Search != "" {
-			searchQuery = fmt.Sprintf(` %s (to_tsvector(c.slug_%s) @@ to_tsquery('%s') OR c.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
-		} else {
-			parentCategoryQuery = `AND c.parent_category_id IS NULL`
-		}
-
-		queryCount = fmt.Sprintf(
-			`SELECT DISTINCT ON (c.id) COUNT(c.id) FROM categories c
-			INNER JOIN category_products cp ON cp.category_id=c.id
-			INNER JOIN products p ON p.id=cp.product_id
-			WHERE p.shop_id='%s' %s 
-			AND c.deleted_at IS NULL 
-			AND cp.deleted_at IS NULL 
-			AND p.deleted_at IS NULL %s`,
-			requestQuery.ShopID, parentCategoryQuery, searchQuery,
-		)
-	}
+	// db - den maglumatlaryn sany alynyar
+	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM categories WHERE deleted_at %s %s %s `, deletedAt, parentCategoryQuery, searchQuery)
 	if err := db.QueryRow(context.Background(), queryCount).Scan(&count); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
 
 	// db - den maglumatlar alynyar
-	rowQuery := fmt.Sprintf(`SELECT id,name_tm,name_ru FROM categories WHERE deleted_at IS NULL %s %s %s`, parentCategoryQuery, searchQuery, orderByQuery)
-	if requestQuery.ShopID != "" {
-		orderByQuery = fmt.Sprintf(` ORDER BY c.created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
-
-		if requestQuery.Search != "" {
-			searchQuery = fmt.Sprintf(` %s (to_tsvector(c.slug_%s) @@ to_tsquery('%s') OR c.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
-		} else {
-			parentCategoryQuery = `AND c.parent_category_id IS NULL`
-		}
-
-		rowQuery = fmt.Sprintf(
-			`SELECT DISTINCT ON (c.id,c.created_at) c.id,c.name_tm,c.name_ru FROM categories c
-			INNER JOIN category_products cp ON cp.category_id=c.id
-			INNER JOIN products p ON p.id=cp.product_id
-			WHERE p.shop_id='%s' %s 
-			AND c.deleted_at IS NULL 
-			AND cp.deleted_at IS NULL 
-			AND p.deleted_at IS NULL %s %s`,
-			requestQuery.ShopID, parentCategoryQuery, searchQuery, orderByQuery)
-	}
+	rowQuery := fmt.Sprintf(
+		`SELECT id,name_tm,name_ru FROM categories WHERE deleted_at %s %s %s %s`,
+		deletedAt, parentCategoryQuery, searchQuery, orderByQuery,
+	)
 
 	// shop - a degisli category - ler alynyar
 	rowsCategory, err := db.Query(context.Background(), rowQuery)
@@ -240,16 +212,6 @@ func GetCategories(c *gin.Context) {
 		// child category alynyar
 		queryForChildCategory := `SELECT id,name_tm,name_ru,parent_category_id FROM categories 
 		WHERE deleted_at IS NULL AND parent_category_id=$1`
-
-		if requestQuery.ShopID != "" {
-			queryForChildCategory = fmt.Sprintf(`SELECT DISTINCT ON (c.id) c.id,c.name_tm,c.name_ru,c.parent_category_id FROM categories c 
-		INNER JOIN category_products cp ON cp.category_id=c.id
-		INNER JOIN products p ON p.id=cp.product_id
-		WHERE p.shop_id='%s' AND c.parent_category_id=$1 
-		AND c.deleted_at IS NULL 
-		AND cp.deleted_at IS NULL 
-		AND p.deleted_at IS NULL`, requestQuery.ShopID)
-		}
 
 		rowsChildCategory, err := db.Query(context.Background(), queryForChildCategory, category.ID)
 		if err != nil {
