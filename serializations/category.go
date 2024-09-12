@@ -2,7 +2,6 @@ package serializations
 
 import (
 	"github/abbgo/yenil_yol/backend/helpers"
-	"github/abbgo/yenil_yol/backend/models"
 
 	"gopkg.in/guregu/null.v4"
 )
@@ -28,7 +27,8 @@ type GetCategoriesForAdmin struct {
 	Image            null.String             `json:"image,omitempty"`
 	ParentCategoryID null.String             `json:"parent_category_id,omitempty"`
 	ChildCategories  []GetCategoriesForAdmin `json:"child_categories,omitempty"`
-	DimensionGroups  []models.DimensionGroup `json:"dimension_groups"`
+	DimensionGroupID string                  `json:"-"`
+	DimensionGroup   DimensionGroup          `json:"dimension_group"`
 }
 
 type CategoryForProduct struct {

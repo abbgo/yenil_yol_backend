@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
+	modelHelpers "github/abbgo/yenil_yol/backend/helpers/models"
 	"github/abbgo/yenil_yol/backend/models"
 	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
@@ -190,7 +191,7 @@ func GetCategories(c *gin.Context) {
 
 	// db - den maglumatlar alynyar
 	rowQuery := fmt.Sprintf(
-		`SELECT id,name_tm,name_ru,image FROM categories WHERE deleted_at %s %s %s %s`,
+		`SELECT id,name_tm,name_ru,image,dimension_group_id FROM categories WHERE deleted_at %s %s %s %s`,
 		deletedAt, parentCategoryQuery, searchQuery, orderByQuery,
 	)
 
@@ -204,13 +205,20 @@ func GetCategories(c *gin.Context) {
 
 	for rowsCategory.Next() {
 		var category serializations.GetCategoriesForAdmin
-		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image); err != nil {
+		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image, &category.DimensionGroupID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// kategoriya degisli razmer grupbasy alynyar
+		category.DimensionGroup, err = modelHelpers.GetDimensionsByDimensionGroupID(category.DimensionGroupID)
+		if err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
 
 		// child category alynyar
-		queryForChildCategory := `SELECT id,name_tm,name_ru,parent_category_id,image FROM categories 
+		queryForChildCategory := `SELECT id,name_tm,name_ru,parent_category_id,image,dimension_group_id FROM categories 
 		WHERE deleted_at IS NULL AND parent_category_id=$1`
 
 		rowsChildCategory, err := db.Query(context.Background(), queryForChildCategory, category.ID)
@@ -219,12 +227,20 @@ func GetCategories(c *gin.Context) {
 			return
 		}
 		defer rowsChildCategory.Close()
+
 		for rowsChildCategory.Next() {
 			var childCategory serializations.GetCategoriesForAdmin
 			if err := rowsChildCategory.Scan(
 				&childCategory.ID, &childCategory.NameTM, &childCategory.NameRU,
-				&childCategory.ParentCategoryID, childCategory.Image,
+				&childCategory.ParentCategoryID, &childCategory.Image, &childCategory.DimensionGroupID,
 			); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+
+			// child kategoriya degisli razmer grupbasy alynyar
+			childCategory.DimensionGroup, err = modelHelpers.GetDimensionsByDimensionGroupID(childCategory.DimensionGroupID)
+			if err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
@@ -241,10 +257,19 @@ func GetCategories(c *gin.Context) {
 				if err := rowsChildChildCategory.Scan(
 					&childchildCategory.ID, &childchildCategory.NameTM,
 					&childchildCategory.NameRU, &childchildCategory.ParentCategoryID, &childchildCategory.Image,
+					&childchildCategory.DimensionGroupID,
 				); err != nil {
 					helpers.HandleError(c, 400, err.Error())
 					return
 				}
+
+				// child child - yn kategoriya degisli razmer grupbasy alynyar
+				childchildCategory.DimensionGroup, err = modelHelpers.GetDimensionsByDimensionGroupID(childchildCategory.DimensionGroupID)
+				if err != nil {
+					helpers.HandleError(c, 400, err.Error())
+					return
+				}
+
 				childCategory.ChildCategories = append(childCategory.ChildCategories, childchildCategory)
 			}
 			category.ChildCategories = append(category.ChildCategories, childCategory)
