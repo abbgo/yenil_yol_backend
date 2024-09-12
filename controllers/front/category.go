@@ -17,6 +17,7 @@ func GetCategories(c *gin.Context) {
 	var categories []serializations.GetCategories
 	requestQuery := serializations.CategoryQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var searchQuery, search, searchStr, parentCategoryQuery string
+	count := 0
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -54,6 +55,31 @@ func GetCategories(c *gin.Context) {
 		parentCategoryQuery = `AND parent_category_id IS NULL`
 	}
 
+	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM categories WHERE deleted_at IS NULL %s %s `, parentCategoryQuery, searchQuery)
+	if requestQuery.ShopID != "" {
+		if requestQuery.Search != "" {
+			searchQuery = fmt.Sprintf(` %s (to_tsvector(c.slug_%s) @@ to_tsquery('%s') OR c.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		} else {
+			parentCategoryQuery = `AND c.parent_category_id IS NULL`
+		}
+
+		queryCount = fmt.Sprintf(
+			`SELECT DISTINCT ON (c.id) COUNT(c.id) FROM categories c
+			INNER JOIN category_products cp ON cp.category_id=c.id
+			INNER JOIN products p ON p.id=cp.product_id
+			WHERE p.shop_id='%s' %s 
+			AND c.deleted_at IS NULL 
+			AND cp.deleted_at IS NULL 
+			AND p.deleted_at IS NULL %s`,
+			requestQuery.ShopID, parentCategoryQuery, searchQuery,
+		)
+	}
+	if err := db.QueryRow(context.Background(), queryCount).Scan(&count); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// db - den maglumatlar alynyar
 	rowQuery := fmt.Sprintf(`SELECT id,name_tm,name_ru FROM categories WHERE deleted_at IS NULL %s %s %s`, parentCategoryQuery, searchQuery, orderByQuery)
 	if requestQuery.ShopID != "" {
 		orderByQuery = fmt.Sprintf(` ORDER BY c.created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
@@ -82,6 +108,7 @@ func GetCategories(c *gin.Context) {
 		return
 	}
 	defer rowsCategory.Close()
+
 	for rowsCategory.Next() {
 		var category serializations.GetCategories
 		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU); err != nil {
@@ -136,8 +163,15 @@ func GetCategories(c *gin.Context) {
 		categories = append(categories, category)
 	}
 
+	pageCount := count / requestQuery.Limit
+	if count%requestQuery.Limit != 0 {
+		pageCount = count/requestQuery.Limit + 1
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":     true,
 		"categories": categories,
+		"count":      count,
+		"page_count": pageCount,
 	})
 }

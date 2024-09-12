@@ -59,12 +59,18 @@ func GetAdminProducts(c *gin.Context) {
 
 	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM products WHERE deleted_at IS %v `, isDeleted)
 	if len(requestQuery.CratedStatuses) != 0 {
-		db.QueryRow(
+		if err := db.QueryRow(
 			context.Background(), queryCount+searchQuery+" AND created_status=ANY($1) ",
 			pq.Array(requestQuery.CratedStatuses),
-		).Scan(&count)
+		).Scan(&count); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	} else {
-		db.QueryRow(context.Background(), queryCount+searchQuery).Scan(&count)
+		if err := db.QueryRow(context.Background(), queryCount+searchQuery).Scan(&count); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
 	}
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
