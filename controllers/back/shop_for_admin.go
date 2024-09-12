@@ -136,10 +136,16 @@ func GetAdminShops(c *gin.Context) {
 		shops = append(shops, shop)
 	}
 
+	pageCount := count / shopQuery.Limit
+	if count%shopQuery.Limit != 0 {
+		pageCount = count/shopQuery.Limit + 1
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status": true,
-		"shops":  shops,
-		"count":  count,
+		"status":    true,
+		"shops":     shops,
+		"count":     count,
+		"pageCount": pageCount,
 	})
 }
 
