@@ -142,10 +142,10 @@ func GetAdminShops(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":    true,
-		"shops":     shops,
-		"count":     count,
-		"pageCount": pageCount,
+		"status":     true,
+		"shops":      shops,
+		"count":      count,
+		"page_count": pageCount,
 	})
 }
 
