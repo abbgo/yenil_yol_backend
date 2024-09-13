@@ -19,6 +19,10 @@ func BackCategoryRoutesForAdmin(back *gin.RouterGroup) {
 		// GetBrendByID -> id - si boyunca Brend - in maglumatlaryny almak ucin ulanylyar
 		backCategoryApi.GET(":id", controllers.GetCategoryByID)
 
+		// GetCategoriesWithChild -> Ahli parent Category - leryn cagalary bilen bile maglumatlaryny request query - den gelen
+		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
+		backCategoryApi.GET("with-child", controllers.GetCategoriesWithChild)
+
 		// GetCategories -> Ahli Category - leryn maglumatlaryny request query - den gelen
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		backCategoryApi.GET("", controllers.GetCategories)
