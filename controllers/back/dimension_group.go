@@ -6,6 +6,7 @@ import (
 	"github/abbgo/yenil_yol/backend/config"
 	"github/abbgo/yenil_yol/backend/helpers"
 	"github/abbgo/yenil_yol/backend/models"
+	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -161,6 +162,80 @@ func GetDimensionGroupsWithDimensions(c *gin.Context) {
 		for rowsDimensions.Next() {
 			var dimension models.Dimension
 			if err := rowsDimensions.Scan(&dimension.ID, &dimension.Dimension); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
+			dimensionGroup.Dimensions = append(dimensionGroup.Dimensions, dimension)
+		}
+		dimensionGroups = append(dimensionGroups, dimensionGroup)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":           true,
+		"dimension_groups": dimensionGroups,
+	})
+}
+
+func GetDimensionGroupsWithDimensionsList(c *gin.Context) {
+	var dimensionGroups []serializations.DimensionGroup
+	var requestQuery helpers.StandartQuery
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request query - den maglumatlar helpers.StandartQuery struct boyunca bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// query - den gelyan limit we page boyunca databasede ulanyljak offset hasaplanyar
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
+	// request query - den status - a gora dimension_group - lary almak ucin query yazylyar
+	rowQuery := fmt.Sprintf(
+		`SELECT id,name FROM dimension_groups WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT %v OFFSET %v`,
+		requestQuery.Limit, offset,
+	)
+
+	// database - den brend - lar alynyar
+	rows, err := db.Query(context.Background(), rowQuery)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var dimensionGroup serializations.DimensionGroup
+		if err := rows.Scan(&dimensionGroup.ID, &dimensionGroup.Name); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		rowsDimensions, err := db.Query(
+			context.Background(), `SELECT dimension FROM dimensions WHERE dimension_group_id=$1 AND deleted_at IS NULL`,
+			dimensionGroup.ID,
+		)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		defer rowsDimensions.Close()
+
+		for rowsDimensions.Next() {
+			var dimension string
+			if err := rowsDimensions.Scan(&dimension); err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
