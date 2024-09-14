@@ -38,8 +38,22 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
+	var parent_category_id interface{}
+	if category.ParentCategoryID.String == "" {
+		parent_category_id = nil
+	} else {
+		parent_category_id = category.ParentCategoryID.String
+	}
+
 	// eger maglumatlar dogry bolsa onda categories tablisa maglumatlar gosulyar
-	_, err = db.Exec(context.Background(), "INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru,dimension_group_id,parent_category_id) VALUES ($1,$2,$3,$4,$5,$6,$7)", category.NameTM, category.NameRU, category.Image, slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"), category.DimensionGroupID, category.ParentCategoryID)
+	_, err = db.Exec(
+		context.Background(),
+		`INSERT INTO categories (name_tm,name_ru,image,slug_tm,slug_ru,dimension_group_id,parent_category_id) 
+		VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+		category.NameTM, category.NameRU, category.Image,
+		slug.MakeLang(category.NameTM, "en"), slug.MakeLang(category.NameRU, "en"),
+		category.DimensionGroupID, parent_category_id,
+	)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
