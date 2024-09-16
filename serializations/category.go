@@ -26,6 +26,7 @@ type GetCategoriesForAdmin struct {
 	NameRU           string                  `json:"name_ru"`
 	Image            null.String             `json:"image,omitempty"`
 	ParentCategoryID null.String             `json:"parent_category_id,omitempty"`
+	ParentCategory   *CategoryForProduct     `json:"parent_category,omitempty"`
 	ChildCategories  []GetCategoriesForAdmin `json:"child_categories,omitempty"`
 	DimensionGroupID string                  `json:"-"`
 	DimensionGroup   DimensionGroup          `json:"dimension_group"`

@@ -129,12 +129,45 @@ func GetCategoryByID(c *gin.Context) {
 	categoryID := c.Param("id")
 
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
-	var category models.Category
-	if err := db.QueryRow(context.Background(),
-		"SELECT id,name_tm,name_ru,image,dimension_group_id,parent_category_id FROM categories WHERE id = $1 AND deleted_at IS NULL", categoryID).
+	var category serializations.GetCategoriesForAdmin
+	if err := db.QueryRow(
+		context.Background(),
+		"SELECT id,name_tm,name_ru,image,dimension_group_id,parent_category_id FROM categories WHERE id = $1 AND deleted_at IS NULL",
+		categoryID,
+	).
 		Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image, &category.DimensionGroupID, &category.ParentCategoryID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
+	}
+
+	//kategoriya degisli razmer grupba we razmerler alynyar
+	db.QueryRow(context.Background(), `SELECT id,name FROM dimension_groups WHERE id=$1`, category.DimensionGroupID).
+		Scan(&category.DimensionGroup.ID, &category.DimensionGroup.Name)
+	rowsDimensions, err := db.Query(context.Background(), `SELECT dimension FROM dimensions WHERE dimension_group_id=$1`, category.DimensionGroupID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsDimensions.Close()
+
+	for rowsDimensions.Next() {
+		var dimension string
+		if err := rowsDimensions.Scan(&dimension); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		category.DimensionGroup.Dimensions = append(category.DimensionGroup.Dimensions, dimension)
+	}
+
+	// eger kategoriyanyn parenti bar bolsa db - den parent category alynyar
+	if category.ParentCategoryID.String != "" {
+		var parentCategory serializations.CategoryForProduct
+		if err := db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru FROM categories WHERE id=$1`, category.ParentCategoryID.String).
+			Scan(&parentCategory.ID, &parentCategory.NameTM, &parentCategory.NameRU); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		category.ParentCategory = &parentCategory
 	}
 
 	// eger databse sol maglumat yok bolsa error return edilyar
