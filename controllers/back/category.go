@@ -539,6 +539,12 @@ func CheckForDelete(c *gin.Context) {
 	// request parametrden category id alynyar
 	categoryID := c.Param("id")
 
+	// Ilki bilen kategoriyanyn barlgygy barlanyar
+	if err := helpers.ValidateRecordByID("categories", categoryID, "NULL", db); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
 	// Kategoriya degisli child categoriya barmy sol barlanyar
 	var countOfChildCategories uint8
 	if err := db.QueryRow(
