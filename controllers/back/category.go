@@ -526,3 +526,41 @@ func DeletePermanentlyCategoryByID(c *gin.Context) {
 		"message": "data successfully deleted",
 	})
 }
+
+func CheckForDelete(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request parametrden category id alynyar
+	categoryID := c.Param("id")
+
+	// Kategoriya degisli child categoriya barmy sol barlanyar
+	var countOfChildCategories uint8
+	if err := db.QueryRow(
+		context.Background(), `SELECT COUNT(id) FROM categories WHERE parent_category_id=$1 AND deleted_at IS NULL`, categoryID,
+	).
+		Scan(&countOfChildCategories); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// Kategoriya degisli haryt barmy sol barlanyar
+	var countOfProducts uint8
+	if err := db.QueryRow(
+		context.Background(), `SELECT COUNT(id) FROM category_products WHERE category_id=$1 AND deleted_at IS NULL`, categoryID,
+	).
+		Scan(&countOfProducts); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":       true,
+		"for_deletion": countOfProducts == 0 && countOfChildCategories == 0,
+	})
+}

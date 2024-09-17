@@ -27,6 +27,10 @@ func BackCategoryRoutesForAdmin(back *gin.RouterGroup) {
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		backCategoryApi.GET("", controllers.GetCategories)
 
+		// CheckForDelete - Kategoriya degisli child kategoriya barmy we kategoriya degisli haryt barmy sony barlayar
+		// eger bar bolsa onda kategoriyany pozup bolmayar
+		backCategoryApi.GET(":id/check-for-delete", controllers.CheckForDelete)
+
 		// DeleteCategoryByID -> id boyunca category - ni korzina salmak ucin ulanylyar
 		backCategoryApi.DELETE(":id", controllers.DeleteCategoryByID)
 
