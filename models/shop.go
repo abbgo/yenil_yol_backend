@@ -25,7 +25,7 @@ type Shop struct {
 	SlugRU           string      `json:"slug_ru,omitempty"`
 	ShopPhones       []string    `json:"phones,omitempty"`
 	OrderNumber      uint        `json:"order_number,omitempty"`
-	IsBrend          bool        `json:"is_brend"`
+	IsBrand          bool        `json:"is_brand"`
 	IsShoppingCenter bool        `json:"is_shopping_center"`
 	ParentShopID     null.String `json:"parent_shop_id,omitempty"`
 	CreatedStatus    int8        `json:"created_status,omitempty"`
