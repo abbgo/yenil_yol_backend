@@ -109,11 +109,14 @@ func GetAdminShops(c *gin.Context) {
 
 		// dukanyn eyesinin maglumatlary alynyar
 		if shop.ShopOwnerID.String != "" {
+			var shopOwner serializations.ShopOwner
 			if err := db.QueryRow(context.Background(), `SELECT id,full_name,phone_number FROM shop_owners WHERE id=$1`, shop.ShopOwnerID.String).
-				Scan(&shop.ShopOwner.ID, &shop.ShopOwner.FullName, &shop.ShopOwner.PhoneNumber); err != nil {
+				Scan(&shopOwner.ID, &shopOwner.FullName, &shopOwner.PhoneNumber); err != nil {
 				helpers.HandleError(c, 400, err.Error())
 				return
 			}
+
+			shop.ShopOwner = &shopOwner
 		}
 
 		// shop alynanadan son shop_id boyunca shop_phone - lar cekilyar
