@@ -22,6 +22,7 @@ func GetAdminShops(c *gin.Context) {
 	isDeleted := "NULL"
 	var queryShopOwner, search, searchStr, querySearch string
 	count := 0
+	isShoppingCenter := false
 
 	// initialize database connection
 	db, err := config.ConnDB()
@@ -55,6 +56,10 @@ func GetAdminShops(c *gin.Context) {
 	if shopQuery.IsDeleted {
 		isDeleted = "NOT NULL"
 	}
+	// request - den gelen IsShoppingCenter gora dukanlar filter edilyar
+	if shopQuery.IsShoppingCenter {
+		isShoppingCenter = true
+	}
 
 	if shopQuery.Search != "" {
 		querySearch = fmt.Sprintf(` AND (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s')`, shopQuery.Lang, search, shopQuery.Lang, searchStr)
@@ -62,7 +67,7 @@ func GetAdminShops(c *gin.Context) {
 
 	queryLimitOffset := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, shopQuery.Limit, offset)
 
-	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM shops WHERE deleted_at IS %v AND is_shopping_center=false`, isDeleted)
+	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM shops WHERE deleted_at IS %v AND is_shopping_center=%v`, isDeleted, isShoppingCenter)
 	if len(shopQuery.CratedStatuses) != 0 {
 		if err := db.QueryRow(
 			context.Background(), queryCount+queryShopOwner+querySearch+" AND created_status=ANY($1)",
@@ -81,7 +86,7 @@ func GetAdminShops(c *gin.Context) {
 	// request query - den status - a gora shop - lary almak ucin query yazylyar
 	rowQuery := fmt.Sprintf(
 		`SELECT id,image,name_tm,name_ru,address_tm,address_ru,latitude,longitude,has_shipping,shop_owner_id,parent_shop_id,at_home FROM shops 
-	WHERE deleted_at IS %v AND is_shopping_center=false`, isDeleted,
+	WHERE deleted_at IS %v AND is_shopping_center=%v`, isDeleted, isShoppingCenter,
 	)
 
 	// database - den shop - lar alynyar
