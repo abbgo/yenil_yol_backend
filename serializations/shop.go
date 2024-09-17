@@ -46,7 +46,7 @@ type GetShop struct {
 	Image            null.String `json:"image,omitempty"`
 	HasShipping      bool        `json:"has_shipping,omitempty"`
 	ShopOwnerID      null.String `json:"shop_owner_id,omitempty"`
-	ShopOwner        ShopOwner   `json:"shop_owner,omitempty"`
+	ShopOwner        *ShopOwner  `json:"shop_owner,omitempty"`
 	ShopPhones       []string    `json:"phones,omitempty"`
 	ParentShopID     null.String `json:"-"`
 	ParentShop       *ParentShop `json:"parent_shop"`
