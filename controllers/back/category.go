@@ -187,7 +187,6 @@ func GetCategoriesWithChild(c *gin.Context) {
 	requestQuery := serializations.CategoryQuery{}
 	var searchQuery, search, searchStr, parentCategoryQuery string
 	count := 0
-	deletedAt := "IS NULL"
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -209,10 +208,6 @@ func GetCategoriesWithChild(c *gin.Context) {
 		searchStr = fmt.Sprintf("%%%s%%", search)
 	}
 
-	if requestQuery.IsDeleted {
-		deletedAt = "IS NOT NULL"
-	}
-
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -230,7 +225,7 @@ func GetCategoriesWithChild(c *gin.Context) {
 	}
 
 	// db - den maglumatlaryn sany alynyar
-	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM categories WHERE deleted_at %s %s %s `, deletedAt, parentCategoryQuery, searchQuery)
+	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM categories WHERE deleted_at IS NULL %s %s `, parentCategoryQuery, searchQuery)
 	if err := db.QueryRow(context.Background(), queryCount).Scan(&count); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
@@ -238,8 +233,8 @@ func GetCategoriesWithChild(c *gin.Context) {
 
 	// db - den maglumatlar alynyar
 	rowQuery := fmt.Sprintf(
-		`SELECT id,name_tm,name_ru,image,dimension_group_id FROM categories WHERE deleted_at %s %s %s %s`,
-		deletedAt, parentCategoryQuery, searchQuery, orderByQuery,
+		`SELECT id,name_tm,name_ru,image,dimension_group_id FROM categories WHERE deleted_at IS NULL %s %s %s`,
+		parentCategoryQuery, searchQuery, orderByQuery,
 	)
 
 	// shop - a degisli category - ler alynyar
@@ -265,8 +260,7 @@ func GetCategoriesWithChild(c *gin.Context) {
 		}
 
 		// child category alynyar
-		queryForChildCategory := fmt.Sprintf(`SELECT id,name_tm,name_ru,parent_category_id,image,dimension_group_id FROM categories 
-		WHERE deleted_at %s AND parent_category_id=$1`, deletedAt)
+		queryForChildCategory := "SELECT id,name_tm,name_ru,parent_category_id,image,dimension_group_id FROM categories \n\t\tWHERE deleted_at IS NULL AND parent_category_id=$1"
 
 		rowsChildCategory, err := db.Query(context.Background(), queryForChildCategory, category.ID)
 		if err != nil {
