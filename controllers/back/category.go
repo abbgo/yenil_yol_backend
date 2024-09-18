@@ -657,7 +657,7 @@ func CheckForDelete(c *gin.Context) {
 	})
 }
 
-func CheckForRestore(c *gin.Context) {
+func GetParentCategory(c *gin.Context) {
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
