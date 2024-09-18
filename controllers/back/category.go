@@ -402,12 +402,13 @@ func GetDeletedCategories(c *gin.Context) {
 		}
 		if category.ParentCategoryID.String != "" {
 			var parentCategory serializations.CategoryForProduct
-			if err := db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru FROM categories WHERE id=$1`, category.ParentCategoryID.String).
-				Scan(&parentCategory.ID, &parentCategory.NameTM, &parentCategory.NameRU); err != nil {
-				helpers.HandleError(c, 400, err.Error())
-				return
+			db.QueryRow(context.Background(), `SELECT id,name_tm,name_ru FROM categories WHERE id=$1 AND deleted_at IS NOT NULL`, category.ParentCategoryID.String).
+				Scan(&parentCategory.ID, &parentCategory.NameTM, &parentCategory.NameRU)
+			if parentCategory.ID == "" {
+				category.ParentCategory = nil
+			} else {
+				category.ParentCategory = &parentCategory
 			}
-			category.ParentCategory = &parentCategory
 		}
 
 		// kategoriya degisli razmer grupbasy alynyar
