@@ -337,6 +337,97 @@ func GetCategoriesWithChild(c *gin.Context) {
 	})
 }
 
+func GetDeletedCategories(c *gin.Context) {
+	var categories []serializations.GetCategoriesForAdmin
+	requestQuery := serializations.CategoryQuery{}
+	var searchQuery, search, searchStr string
+	count := 0
+
+	// request query - den maglumatlar bind edilyar
+	if err := c.Bind(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	// request query - den maglumatlar validate edilyar
+	if err := helpers.ValidateStructData(&requestQuery); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// limit we page boyunca offset hasaplanyar
+	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
+	if requestQuery.Search != "" {
+		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
+		search = strings.ReplaceAll(incomingsSarch, "-", " | ")
+		searchStr = fmt.Sprintf("%%%s%%", search)
+	}
+
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	orderByQuery := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
+
+	if requestQuery.Search != "" {
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+	}
+
+	// db - den maglumatlaryn sany alynyar
+	queryCount := fmt.Sprintf(`SELECT COUNT(id) FROM categories WHERE deleted_at IS NOT NULL %s `, searchQuery)
+	if err := db.QueryRow(context.Background(), queryCount).Scan(&count); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// db - den maglumatlar alynyar
+	rowQuery := fmt.Sprintf(
+		`SELECT id,name_tm,name_ru,image,dimension_group_id FROM categories WHERE deleted_at IS NOT NULL %s %s`,
+		searchQuery, orderByQuery,
+	)
+
+	// shop - a degisli category - ler alynyar
+	rowsCategory, err := db.Query(context.Background(), rowQuery)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer rowsCategory.Close()
+
+	for rowsCategory.Next() {
+		var category serializations.GetCategoriesForAdmin
+		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image, &category.DimensionGroupID); err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		// kategoriya degisli razmer grupbasy alynyar
+		category.DimensionGroup, err = modelHelpers.GetDimensionsByDimensionGroupID(category.DimensionGroupID)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+
+		categories = append(categories, category)
+	}
+
+	pageCount := count / requestQuery.Limit
+	if count%requestQuery.Limit != 0 {
+		pageCount = count/requestQuery.Limit + 1
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"categories": categories,
+		"count":      count,
+		"page_count": pageCount,
+	})
+}
+
 func GetCategories(c *gin.Context) {
 	var categories []serializations.CategoryForProduct
 	requestQuery := serializations.CategoryQuery{}

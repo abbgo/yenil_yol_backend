@@ -23,6 +23,9 @@ func BackCategoryRoutesForAdmin(back *gin.RouterGroup) {
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		backCategoryApi.GET("with-child", controllers.GetCategoriesWithChild)
 
+		// GetDeletedCategories -> Ahli pozulan kategoriyalar alynyar
+		backCategoryApi.GET("deleted", controllers.GetDeletedCategories)
+
 		// GetCategories -> Ahli Category - leryn maglumatlaryny request query - den gelen
 		// limit we page boyunca pagination ulanyp almak ucin ulanylyar
 		backCategoryApi.GET("", controllers.GetCategories)
