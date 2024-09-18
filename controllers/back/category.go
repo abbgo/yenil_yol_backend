@@ -265,8 +265,8 @@ func GetCategoriesWithChild(c *gin.Context) {
 		}
 
 		// child category alynyar
-		queryForChildCategory := `SELECT id,name_tm,name_ru,parent_category_id,image,dimension_group_id FROM categories 
-		WHERE deleted_at IS NULL AND parent_category_id=$1`
+		queryForChildCategory := fmt.Sprintf(`SELECT id,name_tm,name_ru,parent_category_id,image,dimension_group_id FROM categories 
+		WHERE deleted_at %s AND parent_category_id=$1`, deletedAt)
 
 		rowsChildCategory, err := db.Query(context.Background(), queryForChildCategory, category.ID)
 		if err != nil {
