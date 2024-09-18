@@ -34,9 +34,6 @@ func BackCategoryRoutesForAdmin(back *gin.RouterGroup) {
 		// eger bar bolsa onda kategoriyany pozup bolmayar
 		backCategoryApi.GET(":id/check-for-delete", controllers.CheckForDelete)
 
-		// GetParentCategory - id boyunca parent category alyar
-		backCategoryApi.GET(":id/parent", controllers.GetParentCategory)
-
 		// DeleteCategoryByID -> id boyunca category - ni korzina salmak ucin ulanylyar
 		backCategoryApi.DELETE(":id", controllers.DeleteCategoryByID)
 

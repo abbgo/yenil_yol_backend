@@ -15,7 +15,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
-	"gopkg.in/guregu/null.v4"
 )
 
 func CreateCategory(c *gin.Context) {
@@ -654,47 +653,5 @@ func CheckForDelete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":       true,
 		"for_deletion": countOfProducts == 0 && countOfChildCategories == 0,
-	})
-}
-
-func GetParentCategory(c *gin.Context) {
-	// initialize database connection
-	db, err := config.ConnDB()
-	if err != nil {
-		helpers.HandleError(c, 400, err.Error())
-		return
-	}
-	defer db.Close()
-
-	// request parametrden category id alynyar
-	categoryID := c.Param("id")
-
-	// Ilki bilen kategoriyanyn barlgygy barlanyar
-	var id string
-	var parentCategoryID null.String
-	db.QueryRow(context.Background(), `SELECT id,parent_category_id FROM categories WHERE id=$1`, categoryID).
-		Scan(&id, &parentCategoryID)
-	if id == "" {
-		helpers.HandleError(c, 404, "record not found")
-		return
-	}
-
-	// Kategoriya degisli pozulan parent category barmy yada yok sol barlanyar
-	var parentCategory serializations.CategoryForProduct
-	if parentCategoryID.String != "" {
-
-		if err := db.QueryRow(
-			context.Background(), `SELECT id,name_tm,name_ru FROM categories WHERE id=$1 AND deleted_at IS NOT NULL`,
-			parentCategoryID.String,
-		).
-			Scan(&parentCategory.ID, &parentCategory.NameTM, &parentCategory.NameRU); err != nil {
-			helpers.HandleError(c, 400, err.Error())
-			return
-		}
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"status":          true,
-		"parent_category": parentCategory,
 	})
 }
