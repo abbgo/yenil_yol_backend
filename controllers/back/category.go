@@ -365,10 +365,10 @@ func GetDeletedCategories(c *gin.Context) {
 	}
 	defer db.Close()
 
-	orderByQuery := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
+	orderByQuery := fmt.Sprintf(` ORDER BY c.created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 
 	if requestQuery.Search != "" {
-		searchQuery = fmt.Sprintf(` %s (to_tsvector(slug_%s) @@ to_tsquery('%s') OR slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
+		searchQuery = fmt.Sprintf(` %s (to_tsvector(c.slug_%s) @@ to_tsquery('%s') OR c.slug_%s LIKE '%s') `, `AND`, requestQuery.Lang, search, requestQuery.Lang, searchStr)
 	}
 
 	// db - den maglumatlaryn sany alynyar
@@ -380,7 +380,8 @@ func GetDeletedCategories(c *gin.Context) {
 
 	// db - den maglumatlar alynyar
 	rowQuery := fmt.Sprintf(
-		`SELECT id,name_tm,name_ru,image,dimension_group_id FROM categories WHERE deleted_at IS NOT NULL %s %s`,
+		`SELECT c.id,c.name_tm,c.name_ru,c.image,c.dimension_group_id,pc.id,pc.name_tm,pc.name_ru FROM categories c 
+		INNER JOIN categories pc ON pc.id=c.parent_category_id WHERE c.deleted_at IS NOT NULL AND pc.deleted_at IS NOT NULL %s %s`,
 		searchQuery, orderByQuery,
 	)
 
@@ -394,10 +395,13 @@ func GetDeletedCategories(c *gin.Context) {
 
 	for rowsCategory.Next() {
 		var category serializations.GetCategoriesForAdmin
-		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image, &category.DimensionGroupID); err != nil {
+		var parentCategory serializations.CategoryForProduct
+		if err := rowsCategory.Scan(&category.ID, &category.NameTM, &category.NameRU, &category.Image, &category.DimensionGroupID,
+			&parentCategory.ID, &parentCategory.NameTM, &parentCategory.NameRU); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
+		category.ParentCategory = &parentCategory
 
 		// kategoriya degisli razmer grupbasy alynyar
 		category.DimensionGroup, err = modelHelpers.GetDimensionsByDimensionGroupID(category.DimensionGroupID)
