@@ -31,8 +31,8 @@ func GetProductByID(c *gin.Context) {
 	// request - dan gelen id boyunca haryt alynyar
 	var product serializations.GetProductsForFront
 	db.QueryRow(context.Background(),
-		`SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.brend_id,s.id,s.name_tm,s.name_ru,s.is_brand FROM products p 
-		INNER JOIN shops s ON s.id=p.shop_id
+		`SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.brend_id,s.id,s.name_tm,s.name_ru,s.is_brand 
+		FROM products p INNER JOIN shops s ON s.id=p.shop_id
 		WHERE p.id=$1 AND s.created_status=$2 AND p.deleted_at IS NULL AND p.is_visible=true`,
 		productID, helpers.CreatedStatuses["success"]).Scan(
 		&product.ID,
@@ -231,7 +231,7 @@ func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
 	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr, priceRangeQuery string
-	isVisibleQuery := fmt.Sprintf(` WHERE p.is_visible=true AND p.created_status=%d `, helpers.CreatedStatuses["success"])
+	isVisibleQuery := fmt.Sprintf(` WHERE p.is_visible=true AND p.deleted_at IS NULL AND p.created_status=%d `, helpers.CreatedStatuses["success"])
 	orderByQuery := ` ORDER BY p.created_at DESC`
 
 	// request query - den maglumatlar bind edilyar
