@@ -31,7 +31,7 @@ func GetProductByID(c *gin.Context) {
 	// request - dan gelen id boyunca haryt alynyar
 	var product serializations.GetProductsForFront
 	db.QueryRow(context.Background(),
-		`SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.brend_id,s.id,s.name_tm,s.name_ru FROM products p 
+		`SELECT DISTINCT ON (p.id) p.id,p.name_tm,p.name_ru,p.price,p.old_price,p.brend_id,s.id,s.name_tm,s.name_ru,s.is_brand FROM products p 
 		INNER JOIN shops s ON s.id=p.shop_id
 		WHERE p.id=$1 AND s.created_status=$2 AND p.deleted_at IS NULL AND p.is_visible=true`,
 		productID, helpers.CreatedStatuses["success"]).Scan(
@@ -43,7 +43,9 @@ func GetProductByID(c *gin.Context) {
 		&product.BrendID,
 		&product.Shop.ID,
 		&product.Shop.NameTM,
-		&product.Shop.NameRU)
+		&product.Shop.NameRU,
+		&product.Shop.IsBrand,
+	)
 	if product.ID == "" {
 		helpers.HandleError(c, 404, "record not found")
 		return

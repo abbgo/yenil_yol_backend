@@ -73,9 +73,10 @@ type BrendForProduct struct {
 }
 
 type ShopForProduct struct {
-	ID     string `json:"id"`
-	NameTM string `json:"name_tm"`
-	NameRU string `json:"name_ru"`
+	ID      string `json:"id"`
+	NameTM  string `json:"name_tm"`
+	NameRU  string `json:"name_ru"`
+	IsBrand bool   `json:"is_brand"`
 }
 
 type ProductQuery struct {
