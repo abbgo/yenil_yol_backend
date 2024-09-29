@@ -150,10 +150,15 @@ func GetShops(c *gin.Context) {
 		// eger shop - yn parent shop - y bar bolsa onda sol alynyar
 		if shop.ParentShopID.String != "" {
 			var parentShop serializations.ParentShop
-			db.QueryRow(
-				context.Background(), `SELECT id,name_tm,name_ru,is_shopping_center FROM shops WHERE id=$1 AND created_status=$2`,
-				shop.ParentShopID.String, helpers.CreatedStatuses["successs"]).
-				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU, &parentShop.IsShoppingCenter)
+			if err := db.QueryRow(
+				context.Background(),
+				`SELECT id,name_tm,name_ru,is_shopping_center FROM shops WHERE id=$1 AND created_status=$2`,
+				shop.ParentShopID.String, helpers.CreatedStatuses["successs"],
+			).
+				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU, &parentShop.IsShoppingCenter); err != nil {
+				helpers.HandleError(c, 400, err.Error())
+				return
+			}
 
 			shop.ParentShop = &parentShop
 		}
