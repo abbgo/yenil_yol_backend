@@ -153,7 +153,7 @@ func GetShops(c *gin.Context) {
 			if err := db.QueryRow(
 				context.Background(),
 				`SELECT id,name_tm,name_ru,is_shopping_center FROM shops WHERE id=$1 AND created_status=$2`,
-				shop.ParentShopID.String, helpers.CreatedStatuses["successs"],
+				shop.ParentShopID.String, helpers.CreatedStatuses["success"],
 			).
 				Scan(&parentShop.ID, &parentShop.NameTM, &parentShop.NameRU, &parentShop.IsShoppingCenter); err != nil {
 				helpers.HandleError(c, 400, err.Error())
