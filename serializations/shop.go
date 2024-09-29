@@ -52,6 +52,7 @@ type GetShop struct {
 	ParentShop       *ParentShop `json:"parent_shop"`
 	IsShoppingCenter bool        `json:"is_shopping_center,omitempty"`
 	AtHome           bool        `json:"at_home"`
+	IsBrand          bool        `json:"is_brand"`
 }
 
 type ParentShop struct {
