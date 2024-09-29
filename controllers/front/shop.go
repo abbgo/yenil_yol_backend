@@ -245,7 +245,7 @@ func GetShopByIDs(c *gin.Context) {
 	var shops []serializations.GetShop
 	rows, err := db.Query(context.Background(),
 		`
-			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image,parent_shop_id,at_home FROM shops 
+			SELECT id,name_tm,name_ru,address_tm,address_ru,latitude,longitude,resized_image,parent_shop_id,at_home,is_brand FROM shops 
 			WHERE id = ANY($1) AND created_status=$2 AND deleted_at IS NULL AND is_shopping_center=false
 		`,
 		pq.Array(shopIDs), helpers.CreatedStatuses["success"])
@@ -257,7 +257,7 @@ func GetShopByIDs(c *gin.Context) {
 	for rows.Next() {
 		var shop serializations.GetShop
 		if err := rows.Scan(&shop.ID, &shop.NameTM, &shop.NameRU, &shop.AddressTM, &shop.AddressRU,
-			&shop.Latitude, &shop.Longitude, &shop.Image, &shop.ParentShopID, &shop.AtHome); err != nil {
+			&shop.Latitude, &shop.Longitude, &shop.Image, &shop.ParentShopID, &shop.AtHome, &shop.IsBrand); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
 		}
