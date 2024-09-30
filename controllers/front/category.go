@@ -64,13 +64,13 @@ func GetCategories(c *gin.Context) {
 		}
 
 		queryCount = fmt.Sprintf(
-			`SELECT DISTINCT ON (c.id) COUNT(c.id) FROM categories c
+			`SELECT COUNT(*) FROM (SELECT COUNT(*) FROM categories c
 			INNER JOIN category_products cp ON cp.category_id=c.id
 			INNER JOIN products p ON p.id=cp.product_id
 			WHERE p.shop_id='%s' %s 
 			AND c.deleted_at IS NULL 
 			AND cp.deleted_at IS NULL 
-			AND p.deleted_at IS NULL %s`,
+			AND p.deleted_at IS NULL %s GROUP BY c.id) d`,
 			requestQuery.ShopID, parentCategoryQuery, searchQuery,
 		)
 	}
@@ -100,7 +100,6 @@ func GetCategories(c *gin.Context) {
 			AND p.deleted_at IS NULL %s %s`,
 			requestQuery.ShopID, parentCategoryQuery, searchQuery, orderByQuery)
 	}
-
 	// shop - a degisli category - ler alynyar
 	rowsCategory, err := db.Query(context.Background(), rowQuery)
 	if err != nil {
