@@ -40,10 +40,11 @@ func CreateProduct(c *gin.Context) {
 
 	// eger maglumatlar dogry bolsa onda products tablisa maglumatlar gosulyar we yzyna id return edilyar
 	if err := db.QueryRow(context.Background(),
-		`INSERT INTO products (name_tm,name_ru,price,old_price,code,slug_tm,slug_ru,brend_id,is_visible,shop_id) 
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+		`INSERT INTO products (name_tm,name_ru,price,old_price,code,slug_tm,slug_ru,brend_id,is_visible,shop_id,genders) 
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
 		product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"),
-		slug.MakeLang(product.NameRU, "en"), product.BrendID, product.IsVisible, product.ShopID).Scan(&product.ID); err != nil {
+		slug.MakeLang(product.NameRU, "en"), product.BrendID, product.IsVisible, product.ShopID, pq.Array(product.Genders)).
+		Scan(&product.ID); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
 	}
