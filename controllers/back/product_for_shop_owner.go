@@ -127,9 +127,10 @@ func UpdateProductByID(c *gin.Context) {
 	_, err = db.Exec(
 		context.Background(),
 		`UPDATE products SET name_tm=$1 , name_ru=$2 , price=$3 , old_price=$4 , code=$5 , 
-		slug_tm=$6 , slug_ru=$7 , brend_id=$8 , is_visible=$9 , shop_id=$10 , created_status=0 , rejected_reason=NULL WHERE id=$11`,
+		slug_tm=$6 , slug_ru=$7 , brend_id=$8 , is_visible=$9 , shop_id=$10 , created_status=0 , 
+		rejected_reason=NULL , genders=$11 WHERE id=$12`,
 		product.NameTM, product.NameRU, product.Price, product.OldPrice, productCode, slug.MakeLang(product.NameTM, "en"), slug.MakeLang(product.NameRU, "en"),
-		product.BrendID, product.IsVisible, product.ShopID, product.ID)
+		product.BrendID, product.IsVisible, product.ShopID, pq.Array(product.Genders), product.ID)
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return
