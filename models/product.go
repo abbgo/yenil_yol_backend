@@ -28,6 +28,7 @@ type Product struct {
 	ProductColors []ProductColor `json:"product_colors,omitempty" binding:"required"`
 	Image         null.String    `json:"image,omitempty"`
 	IsVisible     bool           `json:"is_visible,omitempty"`
+	Genders       []int8         `json:"genders,omitempty"`
 }
 
 func ValidateUpdateProductCreatedStatus(shop UpdateCreatedStatusShop) error {
