@@ -224,7 +224,7 @@ func GetProductByID(c *gin.Context) {
 	// database - den request parametr - den gelen id boyunca maglumat cekilyar
 	var product serializations.GetProductForBack
 	if err := db.QueryRow(context.Background(),
-		`SELECT id,name_tm,name_ru,price,old_price,brend_id,is_visible FROM products WHERE id = $1 AND deleted_at IS NULL`,
+		`SELECT id,name_tm,name_ru,price,old_price,brend_id,is_visible,genders FROM products WHERE id = $1 AND deleted_at IS NULL`,
 		productID).
 		Scan(
 			&product.ID,
@@ -234,6 +234,7 @@ func GetProductByID(c *gin.Context) {
 			&product.OldPrice,
 			&product.BrendID,
 			&product.IsVisible,
+			&product.Genders,
 		); err != nil {
 		helpers.HandleError(c, 400, err.Error())
 		return

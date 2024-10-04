@@ -19,6 +19,7 @@ type GetProductForBack struct {
 	IsVisible     bool                  `json:"is_visible,omitempty"`
 	Brend         BrendForProduct       `json:"brend,omitempty"`
 	BrendID       null.String           `json:"-"`
+	Genders       []int                 `json:"genders"`
 }
 
 type GetProductsForBack struct {
