@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"errors"
 	"image"
 	"image/jpeg"
 	"os"
@@ -20,7 +19,7 @@ func FileUpload(fileName, path, fileType string, context *gin.Context /* resized
 
 	extensionFile := filepath.Ext(file.Filename)
 
-	var newFileName string
+	// var newFileName string
 
 	// VALIDATE IMAGE
 	// if fileType == "image" {
@@ -29,12 +28,13 @@ func FileUpload(fileName, path, fileType string, context *gin.Context /* resized
 	// 	}
 	// 	newFileName = uuid.New().String() + extensionFile
 	// }
-	if fileType == "image" {
-		if extensionFile != ".jpg" && extensionFile != ".JPG" && extensionFile != ".jpeg" && extensionFile != ".JPEG" {
-			return "", errors.New("the image must be .jpg format")
-		}
-		newFileName = uuid.New().String() + extensionFile
-	}
+	// if fileType == "image" {
+	// 	if extensionFile != ".jpg" && extensionFile != ".JPG" && extensionFile != ".jpeg" && extensionFile != ".JPEG" {
+	// 		return "", errors.New("the image must be .jpg format")
+	// 	}
+	// 	newFileName = uuid.New().String() + extensionFile
+	// }
+	newFileName := uuid.New().String() + extensionFile
 
 	_, err = os.Stat(ServerPath + "uploads/" + path)
 	if err != nil {
