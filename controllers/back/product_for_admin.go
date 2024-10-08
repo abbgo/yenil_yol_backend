@@ -74,7 +74,7 @@ func GetAdminProducts(c *gin.Context) {
 	}
 
 	// request query - den status - a gora product - lary almak ucin query yazylyar
-	rowQuery := fmt.Sprintf(`SELECT id,name_tm,name_ru,price,old_price,brend_id,shop_id,is_visible FROM products WHERE deleted_at IS %v`, isDeleted)
+	rowQuery := fmt.Sprintf(`SELECT id,name_tm,name_ru,price,old_price,brend_id,shop_id,is_visible,genders FROM products WHERE deleted_at IS %v`, isDeleted)
 	orderQuery := fmt.Sprintf(` ORDER BY created_at DESC LIMIT %v OFFSET %v`, requestQuery.Limit, offset)
 
 	var rowsProducts pgx.Rows
@@ -100,6 +100,7 @@ func GetAdminProducts(c *gin.Context) {
 			&product.BrendID,
 			&product.ShopID,
 			&product.IsVisible,
+			&product.Genders,
 		); err != nil {
 			helpers.HandleError(c, 400, err.Error())
 			return
