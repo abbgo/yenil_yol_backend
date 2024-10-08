@@ -91,6 +91,7 @@ type ProductQuery struct {
 	MinPrice       string   `form:"min_price"`
 	MaxPrice       string   `form:"max_price"`
 	CratedStatuses []string `form:"crated_statuses"`
+	Genders        []string `form:"genders"`
 }
 
 type ProductCountQuery struct {

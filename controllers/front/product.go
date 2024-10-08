@@ -8,6 +8,7 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -230,7 +231,7 @@ func GetProductsByIDs(c *gin.Context) {
 func GetProducts(c *gin.Context) {
 	var products []models.Product
 	requestQuery := serializations.ProductQuery{StandartQuery: helpers.StandartQuery{IsDeleted: false}}
-	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr, priceRangeQuery string
+	var shopWhereQuery, categoryJoinQuery, categoryQuery, searchQuery, search, searchStr, priceRangeQuery, gendersQuery string
 	isVisibleQuery := fmt.Sprintf(` WHERE p.is_visible=true AND p.deleted_at IS NULL AND p.created_status=%d `, helpers.CreatedStatuses["success"])
 	orderByQuery := ` ORDER BY p.created_at DESC`
 
@@ -247,6 +248,34 @@ func GetProducts(c *gin.Context) {
 
 	// limit we page boyunca offset hasaplanyar
 	offset := requestQuery.Limit * (requestQuery.Page - 1)
+
+	if len(requestQuery.Genders) != 0 {
+		gender, err := strconv.ParseInt(requestQuery.Genders[0], 10, 8)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		gendersQuery += fmt.Sprintf(` AND (%d = ANY(genders) `, gender)
+
+		if len(requestQuery.Genders) > 1 {
+			genders := requestQuery.Genders[1:]
+			lenghtGenders := len(genders)
+			for i := 0; i < lenghtGenders; i++ {
+				gender, err := strconv.ParseInt(genders[i], 10, 8)
+				if err != nil {
+					helpers.HandleError(c, 400, err.Error())
+					return
+				}
+				if genders[i] == genders[lenghtGenders-1] {
+					gendersQuery += fmt.Sprintf(` OR %d = ANY(genders)) `, gender)
+				} else {
+					gendersQuery += fmt.Sprintf(` OR %d = ANY(genders) `, gender)
+				}
+			}
+		} else {
+			gendersQuery += `)`
+		}
+	}
 
 	if requestQuery.Search != "" {
 		incomingsSarch := slug.MakeLang(c.Query("search"), "en")
@@ -299,10 +328,10 @@ func GetProducts(c *gin.Context) {
 	var rowsProducts pgx.Rows
 	if len(requestQuery.Categories) != 0 {
 		rowsProducts, err = db.Query(context.Background(), defaultQuery+categoryJoinQuery+isVisibleQuery+categoryQuery+shopWhereQuery+searchQuery+
-			priceRangeQuery+orderByQuery+` LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
+			priceRangeQuery+gendersQuery+orderByQuery+` LIMIT $2 OFFSET $3`, pq.Array(requestQuery.Categories), requestQuery.Limit, offset)
 	} else {
 		rowsProducts, err = db.Query(context.Background(), defaultQuery+isVisibleQuery+searchQuery+shopWhereQuery+
-			priceRangeQuery+orderByQuery+` LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
+			priceRangeQuery+gendersQuery+orderByQuery+` LIMIT $1 OFFSET $2`, requestQuery.Limit, offset)
 	}
 	if err != nil {
 		helpers.HandleError(c, 400, err.Error())
