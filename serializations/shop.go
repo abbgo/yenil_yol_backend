@@ -18,9 +18,10 @@ type ShopQuery struct {
 }
 
 type ShopForMapQuery struct {
-	Latitude  float64 `form:"latitude" validate:"required"`
-	Longitude float64 `form:"longitude" validate:"required"`
-	Kilometer int8    `form:"kilometer"`
+	Latitude  float64  `form:"latitude" validate:"required"`
+	Longitude float64  `form:"longitude" validate:"required"`
+	Kilometer int8     `form:"kilometer"`
+	Genders   []string `form:"genders"`
 }
 
 type GetShops struct {
