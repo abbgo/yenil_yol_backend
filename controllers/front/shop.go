@@ -8,6 +8,7 @@ import (
 	"github/abbgo/yenil_yol/backend/models"
 	"github/abbgo/yenil_yol/backend/serializations"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,7 @@ import (
 
 func GetShopsForMap(c *gin.Context) {
 	var requestQuery serializations.ShopForMapQuery
+	var gendersQuery, joinProductsQuery string
 
 	// request query - den maglumatlar bind edilyar
 	if err := c.Bind(&requestQuery); err != nil {
@@ -29,6 +31,36 @@ func GetShopsForMap(c *gin.Context) {
 		return
 	}
 
+	if len(requestQuery.Genders) != 0 {
+		joinProductsQuery = ` INNER JOIN products p ON s.id = p.shop_id `
+
+		gender, err := strconv.ParseInt(requestQuery.Genders[0], 10, 8)
+		if err != nil {
+			helpers.HandleError(c, 400, err.Error())
+			return
+		}
+		gendersQuery += fmt.Sprintf(` AND (%d = ANY(p.genders) `, gender)
+
+		if len(requestQuery.Genders) > 1 {
+			genders := requestQuery.Genders[1:]
+			lenghtGenders := len(genders)
+			for i := 0; i < lenghtGenders; i++ {
+				gender, err := strconv.ParseInt(genders[i], 10, 8)
+				if err != nil {
+					helpers.HandleError(c, 400, err.Error())
+					return
+				}
+				if genders[i] == genders[lenghtGenders-1] {
+					gendersQuery += fmt.Sprintf(` OR %d = ANY(p.genders)) `, gender)
+				} else {
+					gendersQuery += fmt.Sprintf(` OR %d = ANY(p.genders) `, gender)
+				}
+			}
+		} else {
+			gendersQuery += `)`
+		}
+	}
+
 	// initialize database connection
 	db, err := config.ConnDB()
 	if err != nil {
@@ -38,25 +70,16 @@ func GetShopsForMap(c *gin.Context) {
 	defer db.Close()
 
 	rowsShopQuery := fmt.Sprintf(`
-							SELECT id,name_tm,name_ru,latitude,longitude,is_shopping_center FROM shops 
+							SELECT DISTINCT ON (s.id) s.id,s.name_tm,s.name_ru,s.latitude,s.longitude,s.is_shopping_center FROM shops s  
+							%s
 							WHERE 6371 * acos(
-										cos(radians(%f)) * cos(radians(latitude)) *
-										cos(radians(longitude) - radians(%f)) +
-										sin(radians(%f)) * sin(radians(latitude))
-									) <= %d AND deleted_at IS NULL AND parent_shop_id IS NULL AND 
-									 created_status=%d AND at_home=false;
-						`, requestQuery.Latitude, requestQuery.Longitude, requestQuery.Latitude, requestQuery.Kilometer, helpers.CreatedStatuses["success"])
-
-	// if requestQuery.Search != "" {
-	// 	rowsShopQuery = fmt.Sprintf(`
-	// 						SELECT id,name_tm,name_ru,latitude,longitude FROM shops
-	// 						WHERE 6371 * acos(
-	// 									cos(radians(%f)) * cos(radians(latitude)) *
-	// 									cos(radians(longitude) - radians(%f)) +
-	// 									sin(radians(%f)) * sin(radians(latitude))
-	// 								) <= %d AND to_tsvector(slug_tm) @@ to_tsquery('%s') OR slug_tm LIKE '%s'  AND deleted_at IS NULL;
-	// 					`, requestQuery.Latitude, requestQuery.Longitude, requestQuery.Latitude, requestQuery.Kilometer, search, searchStr)
-	// }
+										cos(radians(%f)) * cos(radians(s.latitude)) *
+										cos(radians(s.longitude) - radians(%f)) +
+										sin(radians(%f)) * sin(radians(s.latitude))
+									) <= %d AND s.deleted_at IS NULL AND s.parent_shop_id IS NULL AND 
+									 s.created_status=%d AND s.at_home=false %s;
+						`, joinProductsQuery, requestQuery.Latitude, requestQuery.Longitude, requestQuery.Latitude,
+		requestQuery.Kilometer, helpers.CreatedStatuses["success"], gendersQuery)
 
 	rowsShop, err := db.Query(context.Background(), rowsShopQuery)
 	if err != nil {
