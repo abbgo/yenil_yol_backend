@@ -202,3 +202,32 @@ func UpdateShopCreatedStatus(c *gin.Context) {
 		"message": "data successfully updated",
 	})
 }
+
+func UpdateShopBrandStatus(c *gin.Context) {
+	// initialize database connection
+	db, err := config.ConnDB()
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+	defer db.Close()
+
+	// request body - dan gelen maglumatlar alynyar
+	var shop models.UpdateBrandStatusShop
+	if err := c.BindJSON(&shop); err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	// maglumatlar barlananda son shop - yn created status - y update edilyar
+	_, err = db.Exec(context.Background(), `UPDATE shops SET is_brand=$1 WHERE id=$2`, shop.BrandStatus, shop.ID)
+	if err != nil {
+		helpers.HandleError(c, 400, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "data successfully updated",
+	})
+}

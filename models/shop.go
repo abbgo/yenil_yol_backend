@@ -38,6 +38,11 @@ type UpdateCreatedStatusShop struct {
 	RejectedReason string `json:"rejected_reason"`
 }
 
+type UpdateBrandStatusShop struct {
+	ID          string `json:"id" binding:"required"`
+	BrandStatus int8   `json:"brand_status" binding:"required"`
+}
+
 func ValidateUpdateShopCreatedStatus(shop UpdateCreatedStatusShop) error {
 	db, err := config.ConnDB()
 	if err != nil {
