@@ -40,7 +40,7 @@ type UpdateCreatedStatusShop struct {
 
 type UpdateBrandStatusShop struct {
 	ID          string `json:"id" binding:"required"`
-	BrandStatus int8   `json:"brand_status" binding:"required"`
+	BrandStatus bool   `json:"brand_status"`
 }
 
 func ValidateUpdateShopCreatedStatus(shop UpdateCreatedStatusShop) error {
